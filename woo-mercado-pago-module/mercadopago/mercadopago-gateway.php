@@ -630,13 +630,13 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 	// Check if we have valid credentials.
 	public function validateCredentials() {
-		if (empty($this->client_id)) return false;
-		if (empty($this->client_secret)) return false;
-		if (strlen($this->client_id) > 0 && strlen($this->client_secret) > 0) {
+		if ( empty( $this->client_id ) ) return false;
+		if ( empty( $this->client_secret ) ) return false;
+		if ( strlen( $this->client_id ) > 0 && strlen( $this->client_secret ) > 0 ) {
 			try {
-				$mp = new MP($this->client_id, $this->client_secret);
+				$mp = new MP( $this->client_id, $this->client_secret );
 				return true;
-			} catch (Exception $e) {
+			} catch ( Exception $e ) {
 				return false;
 			}
 		}
@@ -645,41 +645,41 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	
 	// Build the string representing the path to the log file
 	protected function buildLogPathString() {
-		return '<a href="' . esc_url(admin_url('admin.php?page=wc-status&tab=logs&log_file=' .
-			esc_attr($this->id) . '-' . sanitize_file_name(wp_hash($this->id)) . '.log')) . '">' .
-			__('WooCommerce &gt; System Status &gt; Logs', 'woocommerce-mercadopago-module') . '</a>';
+		return '<a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=logs&log_file=' .
+			esc_attr( $this->id ) . '-' . sanitize_file_name( wp_hash( $this->id ) ) . '.log' ) ) . '">' .
+			__( 'WooCommerce &gt; System Status &gt; Logs', 'woocommerce-mercadopago-module' ) . '</a>';
 	}
 	
 	// Return boolean indicating if currency is supported.
 	protected function isSupportedCurrency() {
-		return in_array(get_woocommerce_currency(), array('ARS', 'BRL', 'CLP', 'COP', 'MXN', 'USD', 'VEF'));
+		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'USD', 'VEF' ) );
 	}
 
 	// Called automatically by WooCommerce, verify if Module is available to use.
 	public function is_available() {
 		// Test if is valid for use.
-		$available = ('yes' == $this->settings['enabled']) &&
-					! empty($this->client_id) &&
-					! empty($this->client_secret) &&
+		$available = ( 'yes' == $this->settings[ 'enabled' ] ) &&
+					! empty( $this->client_id ) &&
+					! empty( $this->client_secret ) &&
 					$this->isSupportedCurrency();
 		return $available;
 	}
 	
 	// Fix css for Mercado Pago in specific cases.
 	public function css() {
-		if (defined('WC_VERSION') && version_compare(WC_VERSION, '2.1', '>=')) {
-			$page_id = wc_get_page_id('checkout');
+		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.1', '>=' ) ) {
+			$page_id = wc_get_page_id( 'checkout' );
 		} else {
-			$page_id = woocommerce_get_page_id('checkout');
+			$page_id = woocommerce_get_page_id( 'checkout' );
 		}
-		if (is_page($page_id)) {
+		if ( is_page($page_id ) ) {
 			echo '<style type="text/css">#MP-Checkout-dialog { z-index: 9999 !important; }</style>' . PHP_EOL;
 		}
 	}
 	
 	// Get the URL to admin page.
 	protected function admin_url() {
-		if (defined('WC_VERSION') && version_compare(WC_VERSION, '2.1', '>=')) {
+		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.1', '>=' ) ) {
 			return admin_url(
 				'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopago_gateway'
 			);
@@ -692,34 +692,34 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// Notify that Client_id and/or Client_secret are not valid.
 	public function clientIdOrSecretMissingMessage() {
 		echo '<div class="error"><p><strong>' . 
-			__('Mercado Pago is Inactive', 'woocommerce-mercadopago-module') .
+			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
-				__('Your Mercado Pago credentials Client_id/Client_secret appears to be misconfigured.', 'woocommerce-mercadopago-module') . ' %s',
-				'<a href="' . $this->admin_url() . '">' . __('Click here and configure!', 'woocommerce-mercadopago-module') . '</a>') .
+				__( 'Your Mercado Pago credentials Client_id/Client_secret appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
+				'<a href="' . $this->admin_url() . '">' . __( 'Click here and configure!', 'woocommerce-mercadopago-module' ) . '</a>' ) .
 			'</p></div>';
 	}
 
 	// Notify that currency is not supported.
 	public function currencyNotSupportedMessage() {
 		echo '<div class="error"><p><strong>' .
-			__('Mercado Pago is Inactive', 'woocommerce-mercadopago-module') .
+			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
-				__('The currency') . ' <code>%s</code> ' . __('is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, USD, VEF.', 'woocommerce-mercadopago-module'),
-				get_woocommerce_currency()) .
+				__( 'The currency' ) . ' <code>%s</code> ' . __( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, USD, VEF.', 'woocommerce-mercadopago-module' ),
+				get_woocommerce_currency() ) .
 			'</p></div>';
 	}
 	
-	public function getCountryName($site_id) {
+	public function getCountryName( $site_id ) {
 		$country = $site_id;
-		switch ($site_id) {
-			case 'MLA': return __('Argentine', 'woocommerce-mercadopago-module');
-			case 'MLB': return __('Brazil', 'woocommerce-mercadopago-module');
-			case 'MCO': return __('Colombia', 'woocommerce-mercadopago-module');
-			case 'MLC': return __('Chile', 'woocommerce-mercadopago-module');
-			case 'MLV': return __('Mexico', 'woocommerce-mercadopago-module');
-			case 'MLM': return __('Venezuela', 'woocommerce-mercadopago-module');
+		switch ( $site_id ) {
+			case 'MLA': return __( 'Argentine', 'woocommerce-mercadopago-module' );
+			case 'MLB': return __( 'Brazil', 'woocommerce-mercadopago-module' );
+			case 'MCO': return __( 'Colombia', 'woocommerce-mercadopago-module' );
+			case 'MLC': return __( 'Chile', 'woocommerce-mercadopago-module' );
+			case 'MLV': return __( 'Mexico', 'woocommerce-mercadopago-module' );
+			case 'MLM': return __( 'Venezuela', 'woocommerce-mercadopago-module' );
 		}
 	}
 	
@@ -731,71 +731,71 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	
 	// This call checks any incoming notifications from Mercado Pago server.
 	public function check_ipn_response() {
-		if ('yes' == $this->debug) {
-			$this->log->add($this->id, $this->id . ': @[check_ipn_response] - got a call from mercado pago ipn');
+		if ( 'yes' == $this->debug ) {
+			$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - got a call from mercado pago ipn' );
 		}
 		@ob_clean();
-		$data = $this->check_ipn_request_is_valid($_GET);
-		if ($data) {
-			header('HTTP/1.1 200 OK');
-			if ('yes' == $this->debug) {
-				$this->log->add($this->id, $this->id . ': @[check_ipn_response] - received _get call with following content: ' . print_r($data, true));
+		$data = $this->check_ipn_request_is_valid( $_GET );
+		if ( $data ) {
+			header( 'HTTP/1.1 200 OK' );
+			if ( 'yes' == $this->debug ) {
+				$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - received _get call with following content: ' . print_r( $data, true ) );
 			}
-			do_action('valid_mercadopago_ipn_request', $data);
+			do_action( 'valid_mercadopago_ipn_request', $data );
 		} else {
-			if ('yes' == $this->debug) {
-				$this->log->add($this->id, $this->id . ': @[check_ipn_response] - Mercado Pago Request Failure: ' . print_r($_GET, true));
+			if ( 'yes' == $this->debug ) {
+				$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - Mercado Pago Request Failure: ' . print_r( $_GET, true ) );
 			}
-			wp_die(__('Mercado Pago Request Failure', 'woocommerce-mercadopago-module'));
+			wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );
 		}
 	}
 	
 	// Get received data from IPN and checks if we have a merchant_order or
 	// payment associated. If we have these information, we return data to be
 	// processed by successful_request function.
-	public function check_ipn_request_is_valid($data) {
-		if ('yes' == $this->debug) {
-			$this->log->add($this->id, $this->id . ': @[check_ipn_request_is_valid] - received ipn message from mercado pago, checking validity with $data containing: ' . print_r($data, true));
+	public function check_ipn_request_is_valid( $data ) {
+		if ( 'yes' == $this->debug ) {
+			$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - received ipn message from mercado pago, checking validity with $data containing: ' . print_r( $data, true ) );
 		}
-		if (!isset($data['id'])) {
-			if ('yes' == $this->debug) {
-				$this->log->add($this->id, $this->id . ': @[check_ipn_request_is_valid] - failing due to ID absent');
+		if ( !isset( $data[ 'id' ] ) ) {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - failing due to ID absent' );
 			}
 			return false; // No ID? No process!
 		}
 		// Create MP object and setup sandbox mode.
-		$mp = new MP($this->client_id, $this->client_secret);
-		if ('yes' == $this->sandbox) {
-			$mp->sandbox_mode(true);
+		$mp = new MP( $this->client_id, $this->client_secret );
+		if ( 'yes' == $this->sandbox ) {
+			$mp->sandbox_mode( true );
 		} else {
-			$mp->sandbox_mode(false);
+			$mp->sandbox_mode( false );
 		}
 		try { // Get the merchant_order reported by the IPN. Glossary of attributes response in https://developers.mercadopago.com
-			$params = array("access_token" => $mp->get_access_token());
-			if ($data["topic"] == 'merchant_order') {
-				$merchant_order_info = $mp->get("/merchant_orders/" . $_GET["id"], $params, false);
+			$params = array( "access_token" => $mp->get_access_token() );
+			if ( $data[ "topic" ] == 'merchant_order' ) {
+				$merchant_order_info = $mp->get( "/merchant_orders/" . $_GET[ "id" ], $params, false );
 				// If the payment's transaction amount is equal (or bigger) than the merchant order's amount you can release your items 
-				if (!is_wp_error($merchant_order_info) && ($merchant_order_info["status"] == 200)) {
-					$payments = $merchant_order_info["response"]["payments"];
+				if ( !is_wp_error( $merchant_order_info ) && ($merchant_order_info[ "status" ] == 200 ) ) {
+					$payments = $merchant_order_info[ "response" ][ "payments" ];
 				   	// check if we have more than one payment method
-			  		if (sizeof($payments) >= 1) { // We have payments
-				  		return $merchant_order_info['response'];
+			  		if ( sizeof( $payments ) >= 1 ) { // We have payments
+				  		return $merchant_order_info[ 'response' ];
 				   	} else { // We have no payments?
-						if ('yes' == $this->debug) {
-							$this->log->add($this->id, $this->id . ': @[check_ipn_request_is_valid] - order received but has no payment');
+						if ( 'yes' == $this->debug ) {
+							$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - order received but has no payment' );
 						}
 						return false;
 					}
 				} else {
-					if ('yes' == $this->debug) {
-						$this->log->add($this->id, $this->id . ': @[check_ipn_request_is_valid] - got status not equal 200 or some error');
+					if ( 'yes' == $this->debug ) {
+						$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - got status not equal 200 or some error' );
 					}
 					return false;
 				}
 			}
-		} catch (MercadoPagoException $e) {
-			if ('yes' == $this->debug) {
-				$this->log->add($this->id, $this->id . ': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' . $e->getMessage());
+		} catch ( MercadoPagoException $e ) {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' . $e->getMessage() );
 			}
 			return false;
 		}
@@ -803,109 +803,111 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	}
 	
 	// Properly handles each case of notification, based in payment status.
-	public function successful_request($data) {
-		if ('yes' == $this->debug) {
-			$this->log->add($this->id, $this->id . ': @[successful_request] - starting to process ipn update...');
+	public function successful_request( $data ) {
+		if ( 'yes' == $this->debug ) {
+			$this->log->add( $this->id, $this->id . ': @[successful_request] - starting to process ipn update...' );
 		}
-		$order_key = $data['external_reference'];
-		if (!empty($order_key)) {
-			$order_id = (int)str_replace($this->invoice_prefix, '', $order_key);
-			$order = new WC_Order($order_id);
+		$order_key = $data[ 'external_reference' ];
+		if ( !empty( $order_key ) ) {
+			$order_id = (int) str_replace( $this->invoice_prefix, '', $order_key );
+			$order = new WC_Order( $order_id );
 			// Checks whether the invoice number matches the order. If true processes the payment.
-			if ($order->id === $order_id) {
+			if ( $order->id === $order_id ) {
 				if ( 'yes' == $this->debug ) {
-					$this->log->add($this->id, $this->id . ': @[successful_request] - got order with ID ' . $order->id . ' and status ' . $data['payments'][0]['status']);
+					$this->log->add( $this->id, $this->id . ': @[successful_request] - got order with ID ' . $order->id . ' and status ' . $data[ 'payments' ][ 0 ][ 'status' ] );
 				}
 				// Order details.
-				if (!empty($data['payer']['email'])) {
+				if ( !empty( $data[ 'payer' ][ 'email' ] ) ) {
 					update_post_meta(
 						$order_id,
-						__('Payer email', 'woocommerce-mercadopago-module'),
-						$data['payer']['email']
+						__( 'Payer email', 'woocommerce-mercadopago-module' ),
+						$data[ 'payer' ][ 'email' ]
 					);
 				}
-				if (!empty($data['payment_type'])) {
+				if ( !empty( $data[ 'payment_type' ] ) ) {
 					update_post_meta(
 						$order_id,
-						__('Payment type', 'woocommerce-mercadopago-module'),
-						$data['payment_type']
+						__( 'Payment type', 'woocommerce-mercadopago-module' ),
+						$data[ 'payment_type' ]
 					);
 				}
-				if (!empty($data['payments'])) {
+				if ( !empty( $data[ 'payments' ] ) ) {
 					$payment_ids = array();
-					foreach ($data['payments'] as $payment) {
-						$payment_ids[] = $payment['id'];
+					foreach ( $data[ 'payments' ] as $payment ) {
+						$payment_ids[] = $payment[ 'id' ];
 					}
-					if (sizeof($payment_ids) > 0) {
+					if ( sizeof( $payment_ids ) > 0 ) {
 						update_post_meta(
 							$order_id,
-							__('Mercado Pago Payment ID', 'woocommerce-mercadopago-module'),
-							implode(', ', $payment_ids)
+							__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
+							implode( ', ', $payment_ids )
 						);
 					}
 				}
 				// Here, we process the status...
 				$status = 'pending';
-				if (sizeof($data['payments']) == 1) {
+				if ( sizeof( $data[ 'payments' ] ) == 1 ) {
 					// if there's only one payment, then we get its status
-					$status = $data['payments'][0]['status'];
-				} else if (sizeof($data['payments']) > 1) {
+					$status = $data[ 'payments' ][ 0 ][ 'status' ];
+				} else if ( sizeof( $data[ 'payments' ] ) > 1 ) {
 					// otherwise, we check payment sum
 					$total_paid = 0.00;
-					foreach ($data['payments'] as $payment) {
-						if ($payment['status'] === 'approved') {
-							$total_paid = $total_paid + (float)$payment['total_paid_amount'];
+					foreach ( $data[ 'payments' ] as $payment ) {
+						if ( $payment[ 'status' ] === 'approved' ) {
+							$total_paid = $total_paid + (float) $payment[ 'total_paid_amount' ];
 						}
 					}
-					$total = $data['shipping_cost'] + $data['total_amount'];
-					if ($total_paid >= $total) {
+					$total = $data[ 'shipping_cost' ] + $data[ 'total_amount' ];
+					if ( $total_paid >= $total ) {
 						// At this point, the sum of approved payments are above or equal than the total order amount, so it is approved
 						$status = 'approved';
 					}
 				}
 				// Switch the status and update in WooCommerce
-				switch ($status) {
+				switch ( $status ) {
 					case 'approved':
 						$order->add_order_note(
-							'Mercado Pago: ' . __('Payment approved.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' . __( 'Payment approved.', 'woocommerce-mercadopago-module' )
 						);
 						$order->payment_complete();
 						break;
 					case 'pending':
 						$order->add_order_note(
-							'Mercado Pago: ' . __('Customer haven\'t paid yet.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' . __( 'Customer haven\'t paid yet.', 'woocommerce-mercadopago-module' )
 						);
 						break;
 					case 'in_process':
-						$order->update_status('on-hold',
-							'Mercado Pago: ' . __('Payment under review.', 'woocommerce-mercadopago-module')
+						$order->update_status(
+							'on-hold',
+							'Mercado Pago: ' . __( 'Payment under review.', 'woocommerce-mercadopago-module' )
 						);
 						break;
 					case 'rejected':
-						$order->update_status('failed',
-							'Mercado Pago: ' . __('The payment was refused. The customer can try again.', 'woocommerce-mercadopago-module')
+						$order->update_status(
+							'failed',
+							'Mercado Pago: ' . __( 'The payment was refused. The customer can try again.', 'woocommerce-mercadopago-module' )
 						);
 						break;
 					case 'refunded':
 						$order->update_status(
 							'refunded',
-							'Mercado Pago: ' . __('The payment was refunded to the customer.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' . __( 'The payment was refunded to the customer.', 'woocommerce-mercadopago-module' )
 						);
 						break;
 					case 'cancelled':
 						$order->update_status(
 							'cancelled',
-							'Mercado Pago: ' . __('The payment was cancelled.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' . __( 'The payment was cancelled.', 'woocommerce-mercadopago-module' )
 						);
 						break;
 					case 'in_mediation':
 						$order->add_order_note(
-							'Mercado Pago: ' . __('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' . __( 'The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module' )
 						);
 						break;
 					case 'charged-back':
 						$order->add_order_note(
-							'Mercado Pago: ' . __('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' . __( 'The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module' )
 						);
 					default:
 						break;
