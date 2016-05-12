@@ -3,23 +3,19 @@
 // This include Mercado Pago library SDK
 require_once "sdk/lib/mercadopago.php";
 
-/**
- * Extending from WooCommerce Payment Gateway class.
- * This extension implements the credit card gateway.
- */
+// Extending from WooCommerce Payment Gateway class.
+// This extension implements the credit card gateway.
 class WC_WooMercadoPagoCredit_Gateway extends WC_Payment_Gateway {
 	
 	// This array stores each banner image, depending on the country it belongs to or on
 	// the type of checkout we use.
-	private $banners = array(
-        "mercadopago_custom" => array(
-			"MLA" => 'MLA/credit_card.png',
-            "MLB" => 'MLB/credit_card.png',
-            "MCO" => 'MCO/credit_card.png',
-            "MLC" => 'MLC/credit_card.png',
-            "MLV" => 'MLV/credit_card.png',
-            "MLM" => 'MLM/credit_card.png'
-		)
+	private $banners_mercadopago_custom = array(
+		"MLA" => 'MLA/credit_card.png',
+        "MLB" => 'MLB/credit_card.png',
+        "MCO" => 'MCO/credit_card.png',
+        "MLC" => 'MLC/credit_card.png',
+        "MLV" => 'MLV/credit_card.png',
+        "MLM" => 'MLM/credit_card.png'
     );
     
     // Sponsor ID array by country
@@ -47,27 +43,31 @@ class WC_WooMercadoPagoCredit_Gateway extends WC_Payment_Gateway {
     	$this->store_categories_description = array();
     	
 		// Within your constructor, you should define the following variables.
-		$this->id = 'woocommerce-mercadopagocustom-module';
-		$this->method_title = __('Mercado Pago - Credit Card', 'woocommerce-mercadopago-module');
+		$this->id = 'woocommerce-mercadopagocredit-module';
+		
+		
+		
+		
+		$this->method_title = __( 'Mercado Pago - Credit Card', 'woocommerce-mercadopago-module' );
 		$this->method_description = '<img width="200" height="52" src="' .
-			plugins_url('images/mplogo.png', plugin_dir_path(__FILE__)) . '"><br><br>' . '<strong>' .
-			wordwrap(__('This option enable your customers to pay with Mercado Pago via Credit Card.', 'woocommerce-mercadopago-module'), 80, "\n") .
+			plugins_url( 'images/mplogo.png', plugin_dir_path( __FILE__ ) ) . '"><br><br>' . '<strong>' .
+			wordwrap( __( 'This option enables your customers to pay with Mercado Pago via Credit Card.', 'woocommerce-mercadopago-module' ), 80, "\n" ) .
 			'</strong>';
 		
 		// These fields are used in our Mercado Pago Module configuration page.
-		$this->client_id = $this->get_option('client_id');
-		$this->client_secret = $this->get_option('client_secret');
-		$this->title = $this->get_option('title');
-		$this->description = $this->get_option('description');
-		$this->category_id = $this->get_option('category_id');
-		$this->invoice_prefix = $this->get_option('invoice_prefix', 'WC-');
-		$this->method = $this->get_option('method', 'modal');
-		$this->iframe_width = $this->get_option('iframe_width', 640);
-		$this->iframe_height = $this->get_option('iframe_height', 800);
-		$this->auto_return = $this->get_option('auto_return', true);
-		$this->installments = $this->get_option('installments', '24');
+		$this->client_id = $this->get_option( 'client_id' );
+		$this->client_secret = $this->get_option( 'client_secret' );
+		$this->title = $this->get_option( 'title' );
+		$this->description = $this->get_option( 'description' );
+		$this->category_id = $this->get_option( 'category_id' );
+		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
+		$this->method = $this->get_option( 'method', 'modal' );
+		$this->iframe_width = $this->get_option( 'iframe_width', 640 );
+		$this->iframe_height = $this->get_option( 'iframe_height', 800 );
+		$this->auto_return = $this->get_option( 'auto_return', true );
+		$this->installments = $this->get_option( 'installments', '24' );
 		//$this->enable_2cc = $this->get_option('enable_2cc', true);
-		$this->ex_payments = $this->get_option('ex_payments', 'n/d');
+		$this->ex_payments = $this->get_option( 'ex_payments', 'n/d' );
 		$this->sandbox = $this->get_option('sandbox', false);
 		$this->debug = $this->get_option('debug');
 		
