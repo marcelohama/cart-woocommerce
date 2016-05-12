@@ -223,10 +223,10 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 	
 	// ============================================================
 	// Checkout process
-	jQuery(document).ready(function($) {
+	/*jQuery(document).ready(function($) {
         // hide place order button on checkout page
         $('input[name=woocommerce_checkout_place_order]').hide();
-    });
+    });*/
 	doSubmit = false;
 	$("#form-pagar-mp").submit(
 		function(event) {

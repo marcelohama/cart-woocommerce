@@ -47,7 +47,7 @@ class WC_WooMercadoPago_Module {
 		if ( class_exists( 'WC_Payment_Gateway' ) ) {
 			include_once 'mercadopago/mercadopago-gateway.php';
 			include_once 'mercadopago/mercadopago-credit-gateway.php';
-			include_once 'mercadopago/mercadopago-ticket-gateway.php';
+			//include_once 'mercadopago/mercadopago-ticket-gateway.php';
 			add_filter( 'woocommerce_payment_gateways', array( $this, 'addGateway' ) );
 			add_filter( 'woomercadopago_settings_link_' . plugin_basename( __FILE__ ), array( $this, 'woomercadopago_settings_link' ) );
 		} else {
@@ -60,7 +60,7 @@ class WC_WooMercadoPago_Module {
 	public function addGateway( $methods ) {
 		$methods[] = 'WC_WooMercadoPago_Gateway';
 		$methods[] = 'WC_WooMercadoPagoCredit_Gateway';
-		$methods[] = 'WC_WooMercadoPagoTicket_Gateway';
+		//$methods[] = 'WC_WooMercadoPagoTicket_Gateway';
 		return $methods;
 	}
 	
@@ -107,17 +107,17 @@ add_action( 'plugins_loaded', array( 'WC_WooMercadoPago_Module', 'initMercadoPag
 function woomercadopago_settings_link( $links ) { 
 	$plugin_links = array();
 	$plugin_links[] = '<a href="' . esc_url( admin_url(
-		'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopago_gateway' ) ) . '">' .
+		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPago_Gateway' ) ) . '">' .
 		__( 'Standard Checkout', 'woocommerce-mercadopago-module' ) .
 	'</a>';
 	$plugin_links[] = '<a href="' . esc_url( admin_url(
-		'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopagocredit_gateway' ) ) . '">' .
+		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCredit_Gateway' ) ) . '">' .
 		__( 'Credit Card', 'woocommerce-mercadopago-module' ) .
 	'</a>';
-	$plugin_links[] = '<a href="' . esc_url( admin_url(
-		'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopagoticket_gateway' ) ) . '">' .
+	/*$plugin_links[] = '<a href="' . esc_url( admin_url(
+		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway' ) ) . '">' .
 		__( 'Banking Ticket', 'woocommerce-mercadopago-module' ) .
-	'</a>';
+	'</a>';*/
 	return array_merge( $plugin_links, $links );
 }
 $plugin = plugin_basename( __FILE__ ); 
