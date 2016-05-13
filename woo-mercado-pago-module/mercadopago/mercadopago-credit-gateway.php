@@ -83,10 +83,10 @@ class WC_WooMercadoPagoCredit_Gateway extends WC_Payment_Gateway {
 		add_action( // Used by WordPress to render the custom checkout page.
 			'woocommerce_receipt_' . $this->id,
 			array($this, 'receipt_page')
-		);
+		);*/
 		add_action( // Used to fix CSS in some older WordPress/WooCommerce versions.
 			'wp_head', array($this, 'css')
-		);*/
+		);
 		add_action( // Used in settings page to hook "save settings" action.
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array( $this, 'process_admin_options' )
@@ -330,15 +330,11 @@ class WC_WooMercadoPagoCredit_Gateway extends WC_Payment_Gateway {
 	public function customCheckoutScripts() {
 		if ( is_checkout() && $this->is_available() ) {
 			if ( !get_query_var( 'order-received' ) ) {
-				//$session_id = $this->api->get_session_id();
-				//$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
-				
 				wp_enqueue_style( 'woocommerce-dd', plugins_url( 'assets/css/dd.css', plugin_dir_path( __FILE__ ) ) );
 				wp_enqueue_style( 'woocommerce-core', plugins_url( 'assets/css/mp_core.css', plugin_dir_path( __FILE__ ) ) );
 				wp_enqueue_style( 'woocommerce-style', plugins_url( 'assets/css/style.css', plugin_dir_path( __FILE__ ) ) );
 				wp_enqueue_style( 'woocommerce-mercadopago_v6', plugins_url( 'assets/css/mercadopago_v6.css', plugin_dir_path( __FILE__ ) ) );
 				wp_enqueue_script( 'woocommerce-checkout-jquery', plugins_url( 'assets/js/jquery-1.12.3.min.js', plugin_dir_path( __FILE__ ) ) );
-
 				/*wp_localize_script(
 					'woocommerce-checkout-font-awesome',
 					'wc_mercadopago_params',
@@ -686,16 +682,16 @@ class WC_WooMercadoPagoCredit_Gateway extends WC_Payment_Gateway {
 	}
 	
 	// Fix css for Mercado Pago in specific cases.
-	/*public function css() {
-		if (defined('WC_VERSION') && version_compare(WC_VERSION, '2.1', '>=')) {
-			$page_id = wc_get_page_id('checkout');
+	public function css() {
+		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.1', '>=' ) ) {
+			$page_id = wc_get_page_id( 'checkout' );
 		} else {
-			$page_id = woocommerce_get_page_id('checkout');
+			$page_id = woocommerce_get_page_id( 'checkout' );
 		}
-		if (is_page($page_id)) {
+		if ( is_page($page_id ) ) {
 			echo '<style type="text/css">#MP-Checkout-dialog { z-index: 9999 !important; }</style>' . PHP_EOL;
 		}
-	}*/
+	}
 	
 	// Get the URL to admin page.
 	protected function admin_url() {

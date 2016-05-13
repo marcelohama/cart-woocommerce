@@ -3,6 +3,7 @@
 // This include Mercado Pago library SDK
 require_once "sdk/lib/mercadopago.php";
 
+
 // Extending from WooCommerce Payment Gateway class.
 // This class implements Mercado Pago standard checkout.
 class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
@@ -51,7 +52,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		$this->method_title = __( 'Mercado Pago - Standard Checkout' );
 		$this->method_description = '<img width="200" height="52" src="' .
 			plugins_url( 'images/mplogo.png', plugin_dir_path( __FILE__ ) ) . '"><br><br>' . '<strong>' .
-			wordwrap( __( 'This option enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module' ), 80, "\n" ) .
+			wordwrap( __( 'This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module' ), 80, "\n" ) .
 			'</strong>';
 		
 		// These fields are used in our Mercado Pago Module configuration page.
@@ -345,9 +346,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$this->display_errors();
 			return false;
 		} else {
-			?>
-				<h2><?php _e( 'Mercado Pago - Standard Checkout','woocommerce' ); ?></h2>
-			<?php
 			echo wpautop( $this->method_description );
 			?>
 				<p><a href="https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform" target="_blank" class="button button-primary">
@@ -369,7 +367,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	
 	public function payment_fields() {
 		// standard checkout
-		if ( $description = $this->get_description() ) {
+		if ($description = $this->get_description() ) {
             echo wpautop( wptexturize( $description ) );
     	}
 	    if ( $this->supports( 'default_credit_card_form' ) ) {
