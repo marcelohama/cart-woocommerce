@@ -34,3 +34,11 @@ v1.0.5 (29/04/2016)
 	- Removal of extra shipment setup in checkout view;
 	- Translation to es_ES;
 	- Some bug fixes and code improvements.
+
+v2.0.0 (??/??/????)
+-> Custom Checkout
+	- LatAm support;
+	- Title, description, category, and external reference customizations;
+	- Tickets;
+	- Max installments and payment method exclusion setup;
+	- Sandbox and debug options.

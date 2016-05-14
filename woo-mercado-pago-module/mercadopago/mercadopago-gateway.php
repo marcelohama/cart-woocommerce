@@ -3,7 +3,6 @@
 // This include Mercado Pago library SDK
 require_once "sdk/lib/mercadopago.php";
 
-
 // Extending from WooCommerce Payment Gateway class.
 // This class implements Mercado Pago standard checkout.
 class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
@@ -718,8 +717,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			case 'MLB': return __( 'Brazil', 'woocommerce-mercadopago-module' );
 			case 'MCO': return __( 'Colombia', 'woocommerce-mercadopago-module' );
 			case 'MLC': return __( 'Chile', 'woocommerce-mercadopago-module' );
-			case 'MLV': return __( 'Mexico', 'woocommerce-mercadopago-module' );
-			case 'MLM': return __( 'Venezuela', 'woocommerce-mercadopago-module' );
+			case 'MLM': return __( 'Mexico', 'woocommerce-mercadopago-module' );
+			case 'MLV': return __( 'Venezuela', 'woocommerce-mercadopago-module' );
 		}
 	}
 	

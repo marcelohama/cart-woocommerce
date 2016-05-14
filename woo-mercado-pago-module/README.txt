@@ -4,7 +4,7 @@ Donate link: https://www.mercadopago.com.br/developers/
 Tags: ecommerce, mercadopago
 Requires at least: WooCommerce 2.1.x
 Tested up to: WooCommerce 2.5.x
-Stable tag: 1.0.5
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,8 +45,8 @@ and follow bellow steps:
 You will receive the following message: "Plugin enabled." as a notice in your WordPress.
 
 = Configuration =
-1. Go to **WooCommerce > Configuration > Checkout Tab > Mercado Pago**. <br />
-Fist of all, you need to configure your client credentials. To make it, fill your **Client_id**, **Client_secret** in Mercado Pago Credentials section.
+1. Go to **WooCommerce > Configuration > Checkout Tab** and look for **Mercado Pago - Standard Checkout** or **Mercado Pago - Custom Checkout**. <br />
+For **Mercado Pago - Standard Checkout**, you need to configure your credentials **Client_id** and **Client_secret** in Standard Checkout Credentials section.
 	
 	You can obtain your **Client_id** and **Client_secret**, accordingly to your country, in the following links:
 
@@ -57,28 +57,48 @@ Fist of all, you need to configure your client credentials. To make it, fill you
 	* Mexico: https://www.mercadopago.com/mlm/herramientas/aplicaciones
 	* Venezuela: https://www.mercadopago.com/mlv/herramientas/aplicaciones
 
-2. Other general configurations. <br />
+For **Mercado Pago - Custom Checkout**, you need to configure your credentials **Public Key**  and **Access Token** in Custom Checkout Credentials section.
+
+	You can obtain your **Public Key** and **Access Token**, accordingly to your country, in the following links:
+	
+	* Argentina: https://www.mercadopago.com/mla/account/credentials?type=custom
+	* Brazil: https://www.mercadopago.com/mlb/account/credentials?type=custom
+	* Chile: https://www.mercadopago.com/mlc/account/credentials?type=custom
+	* Colombia: https://www.mercadopago.com/mco/account/credentials?type=custom
+	* Mexico: https://www.mercadopago.com/mlm/account/credentials?type=custom
+	* Venezuela: https://www.mercadopago.com/mlv/account/credentials?type=custom
+
+2. Common configurations for **Standard Checkout** and **Custom Checkout**. <br />
 	* **Instant Payment Notification (IPN) URL**
-	![Installation Instructions](/README.img/wc_setup_ipn.png) <br />
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_ipn.png) <br />
 	The highlighted URL is where you will get notified about payment updates.<br /><br />
 	* **Checkout Options**
-	![Installation Instructions](/README.img/wc_setup_checkout.png) <br />
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_checkout.png) <br />
 	**Title**: This is the title of the payment option that will be shown to your customers;<br />
 	**Description**: This is the description of the payment option that will be shown to your customers;<br />
 	**Store Category**: Sets up the category of the store;<br />
-	**Store Identificator**: A prefix to identify your store, when you have multiple stores for only one Mercado Pago account;<br />
-	**Integration Method**: How your customers will interact with Mercado Pago to pay their orders;<br />
-	**iFrame Width**: The width, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
-	**iFrame Height**: The height, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
-	**Auto Return**: If set, the platform will return to your store when the payment is approved.<br /><br />
+	**Store Identificator**: A prefix to identify your store, when you have multiple stores for only one Mercado Pago account;<br /><br />
 	* **Payment Options**
-	![Installation Instructions](/README.img/wc_setup_payment.png) <br />
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_payment.png) <br />
 	**Max Installments**: The maximum installments allowed for your customers;<br />
 	**Exclude Payment Methods**: Select the payment methods that you want to not work with Mercado Pago.<br /><br />
 	* **Test and Debug Options**
-	![Installation Instructions](/README.img/wc_setup_testdebug.png) <br />
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_testdebug.png) <br />
 	**Mercado Pago Sandboxs**: Test your payments in Mercado Pago sandbox environment;<br />
 	**Debug and Log**: Enables/disables system logs.<br />
+
+3. Specific configurations for **Standard Checkout**. <br />
+	* **Checkout Options**
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_checkout_standard.png) <br />
+	**Integration Method**: How your customers will interact with Mercado Pago to pay their orders;<br />
+	**iFrame Width**: The width, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
+	**iFrame Height**: The height, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
+	**Auto Return**: If set, the platform will return to your store when the payment is approved.<br />
+
+4. Specific configurations for **Custom Checkout**. <br />
+	* **Checkout Options**
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_checkout_custom.png) <br />
+	**Ticket**: Enable this option to let your customer to pay via ticket;<br />
 
 == Frequently Asked Questions ==
 
@@ -123,6 +143,10 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 * Removal of extra shipment setup in checkout view;
 * Translation to es_ES;
 * Some bug fixes and code improvements.
+	
+v2.0.0 (??/??/????)
+* Custom Checkout for LatAm;
+* Ticket.
 	
 == Upgrade Notice ==
 

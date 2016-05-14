@@ -46,8 +46,7 @@ class WC_WooMercadoPago_Module {
 		// verify if WooCommerce is already installed
 		if ( class_exists( 'WC_Payment_Gateway' ) ) {
 			include_once 'mercadopago/mercadopago-gateway.php';
-			include_once 'mercadopago/mercadopago-credit-gateway.php';
-			include_once 'mercadopago/mercadopago-ticket-gateway.php';
+			include_once 'mercadopago/mercadopago-custom-gateway.php';
 			add_filter( 'woocommerce_payment_gateways', array( $this, 'addGateway' ) );
 			add_filter( 'woomercadopago_settings_link_' . plugin_basename( __FILE__ ), array( $this, 'woomercadopago_settings_link' ) );
 		} else {
@@ -59,8 +58,7 @@ class WC_WooMercadoPago_Module {
 	// it exists. Do this by filtering woocommerce_payment_gateways.
 	public function addGateway( $methods ) {
 		$methods[] = 'WC_WooMercadoPago_Gateway';
-		$methods[] = 'WC_WooMercadoPagoCredit_Gateway';
-		$methods[] = 'WC_WooMercadoPagoTicket_Gateway';
+		$methods[] = 'WC_WooMercadoPagoCustom_Gateway';
 		return $methods;
 	}
 	
@@ -111,12 +109,8 @@ function woomercadopago_settings_link( $links ) {
 		__( 'Standard Checkout', 'woocommerce-mercadopago-module' ) .
 	'</a>';
 	$plugin_links[] = '<a href="' . esc_url( admin_url(
-		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCredit_Gateway' ) ) . '">' .
-		__( 'Credit Card', 'woocommerce-mercadopago-module' ) .
-	'</a>';
-	$plugin_links[] = '<a href="' . esc_url( admin_url(
-		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway' ) ) . '">' .
-		__( 'Banking Ticket', 'woocommerce-mercadopago-module' ) .
+		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCustom_Gateway' ) ) . '">' .
+		__( 'Custom Checkout', 'woocommerce-mercadopago-module' ) .
 	'</a>';
 	return array_merge( $plugin_links, $links );
 }
