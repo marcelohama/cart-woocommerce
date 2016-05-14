@@ -161,8 +161,8 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 			}
 		}
 	};
-	addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'keyup', guessingPaymentMethod);
-	addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'change', guessingPaymentMethod);
+	//addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'keyup', guessingPaymentMethod);
+	//addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'change', guessingPaymentMethod);
 	// ============================================================
 	
 	// ============================================================
@@ -432,42 +432,126 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 	$("#id-card-holder-name").val("");
 	$("#id-doc-number").val("");
 	
-	// Checkout trigger
-	var country = "{$country|escape:'javascript'}";
-	if (window.Mercadopago === undefined) {
-		$.getScript("https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js")
-		.done(function(script, textStatus) {
-			Mercadopago.setPublishableKey('TEST-c9e985fc-34d2-4518-a8f0-d1886b37ba86');
-			Mercadopago.getIdentificationTypes();
-		});
+	// Checkout trigger 4235 6477 2802 5682
+	//var country = "{$country|escape:'javascript'}";
+	function initMercadoPago(event) {
+		if (window.Mercadopago === undefined) {
+			$.getScript("https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js")
+			.done(function(script, textStatus) {
+				Mercadopago.setPublishableKey(document.getElementById('public_key').value);
+				Mercadopago.getIdentificationTypes();
+				guessingPaymentMethod(event);
+			});
+		} else {
+			guessingPaymentMethod(event);
+		}
 	}
 	
 </script>
 
-<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">-->
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 	
+<div width="100%" style="margin:1px; padding:16px; background:white;">
+	<img class="logo" src="<?php echo $mplogo_path; ?>" width="156" height="40" />
+	<?php if (!empty($banner_path)) { ?>
+		<img class="mp-creditcard-banner" src="<?php echo $banner_path; ?>" width="312" height="40" />
+	<?php } ?>
+</div>
 <fieldset id="mercadopago-credit-cart-form" style="background:white;">
 	
-	<div class="mp-module">
+	<input id="public_key" type="hidden" value="<?php echo $public_key; ?>" />
+	<input id="amount" type="hidden" value="<?php echo $amount; ?>" />
+
+	<div id="mercadopago-credit-card-form" class="mercadopago-method-form">
+		<p id="mercadopago-card-number-field" class="form-row form-row-first">
+			<label for="mercadopago-card-number"><?php _e( 'Card Number', 'woocommerce-mercadopago-module' ); ?> 
+				<span class="required">*</span>
+			</label>
+			<input id="id-card-number" data-checkout="cardNumber"
+				class="input-text wc-credit-card-form-card-number" type="text" maxlength="20"
+				autocomplete="off" placeholder="#### #### #### ####" style="font-size: 1.5em; padding: 8px;"
+				onkeyup="initMercadoPago(this);" onchange="initMercadoPago(this);"/>
+		</p>
+		<p id="mercadopago-card-holder-name-field" class="form-row form-row-last">
+			<label for="mercadopago-card-holder-name">
+				<?php _e( 'Card Holder Name', 'woocommerce-mercadopago-module' ); ?> 
+				<span class="required">*</span>
+			</label>
+			<input id="mercadopago-card-holder-name" name="mercadopago_card_holder_name" class="input-text"
+				type="text" autocomplete="off" style="font-size: 1.5em; padding: 8px;" />
+		</p>
+		<div class="clear"></div>
+		<p id="mercadopago-card-expiry-field" class="form-row form-row-first">
+			<label for="mercadopago-card-expiry">
+				<?php _e( 'Expiry (MM/YYYY)', 'woocommerce-mercadopago-module' ); ?> 
+				<span class="required">*</span>
+			</label>
+			<input id="mercadopago-card-expiry"
+				class="input-text wc-credit-card-form-card-expiry" type="text"
+				autocomplete="off" placeholder="<?php _e( 'MM / YYYY', 'woocommerce-mercadopago-module' ); ?>"
+				style="font-size: 1.5em; padding: 8px;" />
+		</p>
+		<p id="mercadopago-card-holder-birth-date-field" class="form-row form-row-last">
+			<label for="mercadopago-card-holder-birth-date">
+				<?php _e( 'Card Holder Birth Date', 'woocommerce-mercadopago-module' ); ?> 
+				<span class="required">*</span>
+			</label>
+			<input id="mercadopago-card-holder-birth-date"
+				name="mercadopago_card_holder_birth_date" class="input-text" type="text"
+				autocomplete="off" placeholder="<?php _e( 'DD / MM / YYYY', 'woocommerce-mercadopago-module' ); ?>"
+				style="font-size: 1.5em; padding: 8px;" />
+		</p>
+		<div class="clear"></div>
+		<p id="mercadopago-card-cvc-field" class="form-row form-row-first">
+			<label for="mercadopago-card-cvc">
+				<?php _e( 'Security Code', 'woocommerce-mercadopago-module' ); ?> 
+				<span class="required">*</span>
+			</label>
+			<input id="mercadopago-card-cvc"
+				class="input-text wc-credit-card-form-card-cvc" type="text" autocomplete="off"
+				placeholder="<?php _e( 'CVC', 'woocommerce-mercadopago-module' ); ?>"
+				style="font-size: 1.5em; padding: 8px; background: url( <?php echo $cvv_path; ?> ) 98% 50% no-repeat;" />
+		</p>
+		<p id="mercadopago-card-holder-cpf-field" class="form-row form-row-last">
+			<label for="mercadopago-card-holder-cpf"><?php _e( 'Card Holder CPF', 'woocommerce-mercadopago-module' ); ?> <span class="required">*</span></label>
+			<input id="mercadopago-card-holder-cpf" name="mercadopago_card_holder_cpf" class="input-text wecfb-cpf-field" type="text" autocomplete="off" style="font-size: 1.5em; padding: 8px;" />
+		</p>
+		<div class="clear"></div>
+		<p id="mercadopago-card-installments-field" class="form-row form-row-first">
+			<label for="mercadopago-card-installments">
+				<?php _e( 'Installments', 'woocommerce-mercadopago-module' ); ?> 
+				<span class="required">*</span>
+			</label>
+			<select id="id-installments" name="installments" type="text"
+				style="font-size: 1.5em; padding: 4px; width: 100%;">
+			</select>
+		</p>
+		<p id="mercadopago-card-holder-phone-field" class="form-row form-row-last">
+			<label for="mercadopago-card-holder-phone"><?php _e( 'Card Holder Phone', 'woocommerce-mercadopago-module' ); ?> <span class="required">*</span></label>
+			<input id="mercadopago-card-holder-phone" name="mercadopago_card_holder_phone" class="input-text" type="text" autocomplete="off" placeholder="<?php _e( '(xx) xxxx-xxxx', 'woocommerce-mercadopago-module' ); ?>" style="font-size: 1.5em; padding: 8px;" />
+		</p>
+		<div class="clear"></div>
+	</div>
+
+
+
+	<!--<div class="mp-module">
 		<div class="payment_module mp-form-custom">
 			<div class="row">
-				<img class="logo" src="<?php echo $mplogo_path; ?>" width="156" height="40" />
-				<?php if (!empty($banner_path)) { ?>
-					<img class="mp-creditcard-banner" src="<?php echo $banner_path; ?>" width="312" height="40" />
-				<?php } ?>
+				<img class="logo" src="<?php /*echo $mplogo_path;*/ ?>" width="156" height="40" />
+				<?php /*if (!empty($banner_path)) {*/ ?>
+					<img class="mp-creditcard-banner" src="<?php /*echo $banner_path;*/ ?>" width="312" height="40" />
+				<?php /*}*/ ?>
 			</div>
-			<form action="<?php echo $custom_action_url; ?>" method="post" id="form-pagar-mp">
-				<input id="amount" type="hidden" value="<?php echo $amount; ?>" />
-				<input id="payment_method_id" type="hidden" name="payment_method_id" />
-				<input id="payment_type_id" type="hidden" name="payment_type_id" />
-				<input name="mercadopago_coupon" type="hidden" class="mercadopago_coupon_ticket" />
+			<form action="<?php /*echo $custom_action_url;*/ ?>" method="post" id="form-pagar-mp">
 				
 				<div id="cardDiv">
 					<div class="row">
 						<div class="col" style="margin-top: 32px;>
 							<label for="id-card-number">Card number: <em>*</em></label> 
-							<input id="id-card-number" data-checkout="cardNumber" type="text" />
+							<input id="id-card-number" data-checkout="cardNumber" type="text" 
+								onkeyup="initMercadoPago(this);"
+								onchange="initMercadoPago(this);" />
 							<div id="id-card-number-status" class="status"></div>
 						</div>
 					</div>
@@ -484,7 +568,7 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 					<div class="row">
 						<div class="col">
 							<label for="id-card-holder-name">Card Holder Name: <em>*</em></label> 
-							<input id="id-card-holder-name" data-checkout="cardholderName" type="text" name="cardholderName" />
+							<input id="id-card-holder-name" data-checkout="cardholderName" type="text" name="cardholderName"/>
 							<div id="id-card-holder-name-status" class="status"></div>
 						</div>
 					</div>
@@ -492,11 +576,11 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 						<div class="col">
 							<label for="id-security-code" style="font-weight: 700;">Security Code: <em>*</em></label> 
 							<input id="id-security-code" data-checkout="securityCode" type="text" maxlength="4" /> 
-							<img src="<?php echo $cvv_path; ?>" class="cvv" />
+							<img src="<?php /*echo $cvv_path;*/ ?>" class="cvv" />
 							<div id="id-security-code-status" class="status"></div>
 						</div>
 					</div>
-					<?php if ($country == 'MLB') { ?>
+					<?php /*if ($country == 'MLB') {*/ ?>
 						<div class="row">
 							<div class="col">
 								<label for="id-doc-number">CPF: <em>*</em></label> 
@@ -505,14 +589,14 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 								<input name="docType" data-checkout="docType" type="hidden" id="id-docType" value="CPF" />
 							</div>
 						</div>
-					<?php } elseif ($country == 'MLM' || $country == 'MLA') { ?>
+					<?php /*} elseif ($country == 'MLM' || $country == 'MLA') {*/ ?>
 						<div class="row">
 							<div class="col">
 								<label class="issuers-options" for="id-issuers-options">Bank: <em>*</em>
 								</label> <select class="issuers-options" id="id-issuers-options" name="issuersOptions" type="text"></select>
 							</div>
 						</div>
-					<?php } if ($country == 'MLM') { ?>
+					<?php /*} if ($country == 'MLM') {*/ ?>
 						<div class="row">
 							<div class="col">
 								<label for="card-types">Card Type: </label> 
@@ -520,7 +604,7 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 								<input id="id-debit-card" name="card-types" type="radio" value="deb">Debit</input>
 							</div>
 						</div>
-					<?php } elseif ($country == 'MLA' || $country == 'MCO' || $country == 'MLV') { ?> {
+					<?php /*} elseif ($country == 'MLA' || $country == 'MCO' || $country == 'MLV') {*/ ?> {
 						<div class="row">
 							<div class="col">
 								<label for="docType">Document type: <em>*</em></label> 
@@ -532,7 +616,7 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 							</div>
 						</div>
 						<div class="row"></div>
-					<?php } if ($country == 'MLC') { ?>
+					<?php /*} if ($country == 'MLC') {*/ ?>
 						<div class="row">
 							<div class="col">
 								<label for="id-doc-number">RUT: <em>*</em></label> 
@@ -541,7 +625,7 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 								<div id="id-doc-number-status" class="status"></div>
 							</div>
 						</div>
-					<?php } ?>
+					<?php /*}*/ ?>
 					<div class="row">
 						<div class="col">
 							<label for="id-installments">Installments: <em>*</em></label> 
@@ -557,14 +641,14 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 				</div>
 				<div class="row">
 					<div class="col-bottom">
-						<?php if ($country != "MLB") { ?>
+						<?php /*if ($country != "MLB") {*/ ?>
 							<button class="ch-btn ch-btn-big submit" value="Confirm payment" type="submit" id="btnSubmit"> Confirm payment</button>
-						<?php } else { ?>
+						<?php /*} else {*/ ?>
 							<button class="ch-btn ch-btn-big es-button submit" value="Confirm payment" type="submit" id="btnSubmit"> Confirm payment</button>
-						<?php } ?>
+						<?php /*}*/ ?>
 					</div>
-				</div>
-				<!--<div class="row">
+				</div>-->
+				<!--====<div class="row">
 					<div class="col" style="margin-top: 32px;">
 						<label for="id-card-number">Card number: </label> 
 						<input id="id-card-number" data-checkout="cardNumber" type="text" />
@@ -639,9 +723,9 @@ AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429
 						<?php /*}*/ ?>
 						<input type="submit" value="Confirm payment" class="ch-btn ch-btn-big submit" />
 					</div>
-				</div>-->
-			</form>
+				</div>====-->
+			<!--</form>
 		</div>
-	</div>
+	</div>-->
 	
 </fieldset>
