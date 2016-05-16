@@ -138,7 +138,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$payments = MPRestClient::get( array( "uri" => "/v1/payment_methods/?public_key=" . $this->public_key ) );
 				array_push( $this->payment_methods, "n/d" );
 				foreach ( $payments[ "response" ] as $payment ) {
-					array_push( $this->payment_methods, str_replace( "_", " ", $payment[ 'name' ] ) );
+					array_push( $this->payment_methods, str_replace( "_", " ", $payment[ 'id' ] ) );
 				}
 				$this->payment_desc =
 					__( 'Select the payment methods that you <strong>don\'t</strong> want to receive with Mercado Pago.', 'woocommerce-mercadopago-module' );
@@ -322,12 +322,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	public function customCheckoutScripts() {
 		if ( is_checkout() && $this->is_available() ) {
 			if ( !get_query_var( 'order-received' ) ) {
-				wp_enqueue_style( 'woocommerce-dd', plugins_url( 'assets/css/dd.css', plugin_dir_path( __FILE__ ) ) );
-				wp_enqueue_style( 'woocommerce-core', plugins_url( 'assets/css/mp_core.css', plugin_dir_path( __FILE__ ) ) );
-				wp_enqueue_style( 'woocommerce-style', plugins_url( 'assets/css/style.css', plugin_dir_path( __FILE__ ) ) );
-				wp_enqueue_style( 'woocommerce-mercadopago_v6', plugins_url( 'assets/css/mercadopago_v6.css', plugin_dir_path( __FILE__ ) ) );
-				wp_enqueue_script( 'woocommerce-checkout-jquery', plugins_url( 'assets/js/jquery-1.12.3.min.js', plugin_dir_path( __FILE__ ) ) );
-				wp_enqueue_script( 'woocommerce-checkout', plugins_url( 'assets/js/checkout.js', plugin_dir_path( __FILE__ ) ) );
+				wp_enqueue_style( 'woocommerce-mercadopago-style', plugins_url( 'assets/css/custom_checkout_mercadopago.css', plugin_dir_path( __FILE__ ) ) );
+				wp_enqueue_script( 'woocommerce-mercadopago-v1', "https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js" );
 				/*wp_localize_script(
 					'woocommerce-checkout-font-awesome',
 					'wc_mercadopago_params',
@@ -347,14 +343,40 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	
 	public function payment_fields() {
 		$amount = $this->get_order_total();
+
+		$accepted_payments = array();
+		$accepted_payments_icon_paths = array();
+        if ( is_array( $this->ex_payments ) || is_object( $this->ex_payments ) ) {
+	        try { // in some PHP versions, $this->ex_payments is interpreted as a not iterable object
+		        foreach ( $this->ex_payments as $ex ) {
+		        	array_push( $accepted_payments, $this->payment_methods[ $ex ] );
+    	    	}
+        	} catch ( MercadoPagoException $e ) {
+        		if ( 'yes' == $this->debug ) {
+					$this->log->add( $this->id, $this->id . ': @[payment_fields] - excluded payments: exception caught: ' . print_r( $e, true ) );
+				}
+    	    }
+    	}
+    	if ( !empty( $accepted_payments ) ) {
+    		$accepted_payments = array_diff ( $this->payment_methods, $accepted_payments );
+    	}
+    	if ( in_array( "n/d", $accepted_payments ) )
+    		unset( $accepted_payments[ 0 ] );
+    	foreach ( $accepted_payments as $ex ) {
+    		if ( !( strpos( $ex, 'bol')  !== false ) ) {
+    			$img_local_path = 'images/bandeiras/' . $ex . '.png';
+    			array_push( $accepted_payments_icon_paths, plugins_url( $img_local_path, plugin_dir_path( __FILE__ ) ) );
+    		}
+    	}
+
 		wc_get_template(
 			'credit-card/payment-form.php',
 			array(
 				// TODO: implement custom checkout fields
 				'public_key'			=> $this->public_key,
-				'country'				=> $this->site_id,
-				'cvv_path'				=> plugins_url( 'images/cvv.png', plugin_dir_path( __FILE__ ) ),
-				'mplogo_path'			=> plugins_url( 'images/mplogo.png', plugin_dir_path( __FILE__ ) ),
+				'site_id'				=> $this->site_id,
+				'accepted_payments'		=> $accepted_payments_icon_paths,
+				'images_path'			=> plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
 				'banner_path'			=> plugins_url( 'images/' . $this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
 				'amount'				=> $amount,
 				'max_installment'		=> 24,
