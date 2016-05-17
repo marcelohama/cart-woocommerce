@@ -32,101 +32,98 @@ if ( !defined( 'ABSPATH' ) ) {
 		<img class="mp-creditcard-banner" src="<?php echo $banner_path; ?>" width="312" height="40" />
 	<?php } ?>
 </div>
-<fieldset id="mercadopago-credit-cart-form" style="background:white;">
+<fieldset id="mercadopago-form" style="background:white;">
 	
 	<input id="public_key" type="hidden" value="<?php echo $public_key; ?>" />
 	<input id="amount" type="hidden" value="<?php echo $amount; ?>" />
 
-    <form action="post.php" method="post" id="mercadopago-form" name="pay" >
-		<div class="mp-box-inputs mp-line mp-paymentMethodsSelector" style="display:none;">
-	        <label for="paymentMethodIdSelector">Payment Method <em>*</em></label>
-	        <select id="paymentMethodIdSelector" name="paymentMethodIdSelector" data-checkout="paymentMethodIdSelector"></select>
-      	</div>
-      	<div class="mp-box-inputs mp-line">
-			<div class="mp-box-inputs mp-col-45">
-				<label for="cardNumber">Credit card number <em>*</em></label>
-				<input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" />
-			</div>
-			<div class="mp-box-inputs mp-col-10">
-				<div id="mp-separete-date">&nbsp;</div>
-    	    </div>
-    	    <div class="mp-box-inputs mp-col-45">
-    	    	<label style="font-size: 6px;">&nbsp;</label>
-    	    	<label for="cardExpirationMonth" style="font-size: 14px;">Accepted cards for this store:</label>
-    	    	<span>
-    	    		<?php for ($x=0; $x<sizeof($accepted_payments); $x++): ?>
-    	    			<img class="logo" src="<?php echo $accepted_payments[ $x ]; ?>" width="28.33" height="11.66" />
-            		<?php endfor; ?>
-    	    	</span>
-    	    </div>
+	<div class="mp-box-inputs mp-line mp-paymentMethodsSelector" style="display:none;">
+        <label for="paymentMethodIdSelector">Payment Method <em>*</em></label>
+        <select id="paymentMethodIdSelector" name="paymentMethodIdSelector" data-checkout="paymentMethodIdSelector"></select>
+  	</div>
+  	<div class="mp-box-inputs mp-line">
+		<div class="mp-box-inputs mp-col-45">
+			<label for="cardNumber">Credit card number <em>*</em></label>
+			<input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" />
 		</div>
-		<div class="mp-box-inputs mp-line">
-			<div class="mp-box-inputs mp-col-45">
-          		<label for="cardExpirationMonth">Expiration month <em>*</em></label>
-				<select id="cardExpirationMonth" data-checkout="cardExpirationMonth">
-            	<option value="-1"> Month </option>
-					<?php for ($x=1; $x<=12; $x++): ?>
-						<option value="<?php echo $x; ?>"> <?php echo $x; ?></option>
-            		<?php endfor; ?>
-				</select>
-        	</div>
-        	<div class="mp-box-inputs mp-col-10">
-				<div id="mp-separete-date">&nbsp;</div>
-    	    </div>
-        	<div class="mp-box-inputs mp-col-45">
-				<label for="cardExpirationYear">Expiration year <em>*</em></label>
-				<select  id="cardExpirationYear" data-checkout="cardExpirationYear">
-					<option value="-1"> Year </option>
-	        		<?php for ($x=date("Y"); $x<= date("Y") + 10; $x++): ?>
-      					<option value="<?php echo $x; ?>"> <?php echo $x; ?> </option>
-        			<?php endfor; ?>
-          		</select>
-        	</div>
-		</div>
-		<div class="mp-box-inputs mp-col-100">
-        	<label for="cardholderName">Card holder name <em>*</em></label>
-	        <input type="text" id="cardholderName" name="cardholderName" data-checkout="cardholderName" placeholder=" as it appear in your card ... " />
-      	</div>
-		<div class="mp-box-inputs mp-line">
-        	<div class="mp-box-inputs mp-col-45">
-				<label for="securityCode">Security code <em>*</em></label>
-        		<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" style="font-size: 1.5em; padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;"/>
-			</div>
-		</div>
-		<div class="mp-box-inputs mp-col-100 mp-doc">
-        	<div class="mp-box-inputs mp-col-25 mp-docType">
-				<label for="docType">Type <em>*</em></label>
-				<select id="docType" name="docType" data-checkout="docType"></select>
-        	</div>
-    	<div class="mp-box-inputs mp-col-75 mp-docNumber">
-        	<label for="docNumber">Document number <em>*</em></label>
-        	<input type="text" id="docNumber" name="docNumber" data-checkout="docNumber" placeholder="" />
-        </div>
-	    <div class="mp-box-inputs mp-col-100 mp-issuer">
-	        <label for="issuer">Issuer <em>*</em></label>
-	        <select id="issuer" name="issuer" data-checkout="issuer"></select>
+		<div class="mp-box-inputs mp-col-10">
+			<div id="mp-separete-date">&nbsp;</div>
 	    </div>
-		<div class="mp-box-inputs mp-col-100">
-	    	<label for="installments">Installments <em>*</em></label>
-	        <select id="installments" name="installments" data-checkout="installments"></select>
+	    <div class="mp-box-inputs mp-col-45">
+	    	<label style="font-size: 6px;">&nbsp;</label>
+	    	<label for="cardExpirationMonth" style="font-size: 14px;">Accepted cards for this store:</label>
+	    	<span>
+	    		<?php for ($x=0; $x<sizeof($accepted_payments); $x++): ?>
+	    			<img class="logo" src="<?php echo $accepted_payments[ $x ]; ?>" width="28.33" height="11.66" />
+        		<?php endfor; ?>
+	    	</span>
+	    </div>
+	</div>
+	<div class="mp-box-inputs mp-line">
+		<div class="mp-box-inputs mp-col-45">
+      		<label for="cardExpirationMonth">Expiration month <em>*</em></label>
+			<select id="cardExpirationMonth" data-checkout="cardExpirationMonth">
+        	<option value="-1"> Month </option>
+				<?php for ($x=1; $x<=12; $x++): ?>
+					<option value="<?php echo $x; ?>"> <?php echo $x; ?></option>
+        		<?php endfor; ?>
+			</select>
+    	</div>
+    	<div class="mp-box-inputs mp-col-10">
+			<div id="mp-separete-date">&nbsp;</div>
+	    </div>
+    	<div class="mp-box-inputs mp-col-45">
+			<label for="cardExpirationYear">Expiration year <em>*</em></label>
+			<select  id="cardExpirationYear" data-checkout="cardExpirationYear">
+				<option value="-1"> Year </option>
+        		<?php for ($x=date("Y"); $x<= date("Y") + 10; $x++): ?>
+  					<option value="<?php echo $x; ?>"> <?php echo $x; ?> </option>
+    			<?php endfor; ?>
+      		</select>
+    	</div>
+	</div>
+	<div class="mp-box-inputs mp-col-100">
+    	<label for="cardholderName">Card holder name <em>*</em></label>
+        <input type="text" id="cardholderName" name="cardholderName" data-checkout="cardholderName" placeholder=" as it appears in your card ... " />
+  	</div>
+	<div class="mp-box-inputs mp-line">
+    	<div class="mp-box-inputs mp-col-45">
+			<label for="securityCode">Security code <em>*</em></label>
+    		<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" style="font-size: 1.5em; padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;"/>
 		</div>
-		<!--<div class="mp-box-inputs mp-line">
-        	<div class="mp-box-inputs mp-col-50">
-        		<input type="submit" value="Pay" id="submit"/>
+	</div>
+	<div class="mp-box-inputs mp-col-100 mp-doc">
+    	<div class="mp-box-inputs mp-col-25 mp-docType">
+			<label for="docType">Type <em>*</em></label>
+			<select id="docType" name="docType" data-checkout="docType"></select>
+    	</div>
+	<div class="mp-box-inputs mp-col-75 mp-docNumber">
+    	<label for="docNumber">Document number <em>*</em></label>
+    	<input type="text" id="docNumber" name="docNumber" data-checkout="docNumber" placeholder="" />
+    </div>
+    <div class="mp-box-inputs mp-col-100 mp-issuer">
+        <label for="issuer">Issuer <em>*</em></label>
+        <select id="issuer" name="issuer" data-checkout="issuer"></select>
+    </div>
+	<div class="mp-box-inputs mp-col-100">
+    	<label for="installments">Installments <em>*</em></label>
+        <select id="installments" name="installments" data-checkout="installments"></select>
+	</div>
+	<div class="mp-box-inputs mp-line">
+    	<!-- <div class="mp-box-inputs mp-col-50">
+    		<input type="submit" value="Pay" id="submit"/>
+    	</div> -->
+		<div class="mp-box-inputs mp-col-25">
+    		<div id="mp-box-loading">
         	</div>
-			<div class="mp-box-inputs mp-col-25">
-	    		<div id="mp-box-loading">
-	        	</div>
-    		</div>
-		</div>-->
-		<div class="mp-box-inputs mp-col-100">
-	        <input type="hidden" name="site_id" id="site_id" />
-	        <input type="hidden" name="amount" id="amount" value="249.99"/>
-	        <input type="hidden" name="paymentMethodId" id="paymentMethodId"/>
-	        <input type="hidden" name="token" id="token"/>
 		</div>
-	</form>
-
+	</div>
+	<div class="mp-box-inputs mp-col-100">
+        <input type="text" name="site_id" id="site_id" />
+        <input type="text" name="amount" id="amount" value="249.99"/>
+        <input type="text" name="paymentMethodId" id="paymentMethodId"/>
+        <input type="text" name="token" id="token"/>
+	</div>
 </fieldset>
 
 <script type="text/javascript">
@@ -352,11 +349,13 @@ if ( !defined( 'ABSPATH' ) ) {
 	};
 
 	function createTokenBySubmit() {
+
 		addEvent(document.querySelector(config_mp.selectors.form), 'submit', doPay);
 	};
 
 	var doSubmit = false;
 	function doPay(event) {
+		console.log("doPay");
 		event.preventDefault();
 	   	if (!doSubmit) {
 			createToken();
@@ -365,6 +364,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	};
 
 	function validateInputsCreateToken() {
+		console.log("validateInputsCreateToken");
 		var valid_to_create_token = true;
 		for (var x = 0; x < document.querySelectorAll('[data-checkout]').length; x++) {
 	    	var element = document.querySelectorAll('[data-checkout]')[x];
@@ -436,7 +436,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		    form: '#mercadopago-form'
 		},
 	  	paths:{
-	    	loading: "<?php echo ( $images_path . 'loading.png' ); ?>"
+	    	loading: "<?php echo ( $images_path . 'loading.gif' ); ?>"
 	  	}
 	}
 
