@@ -21,8 +21,20 @@ body{
   width: 10%;
 }
 
+.mp-col-20{
+  width: 20%;
+}
+
 .mp-col-25{
   width: 25%;
+}
+
+.mp-col-30{
+  width: 30%;
+}
+
+.mp-col-35{
+  width: 35%;
 }
 
 .mp-col-45{
@@ -31,6 +43,14 @@ body{
 
 .mp-col-50{
   width: 50%;
+}
+
+.mp-col-55{
+  width: 55%;
+}
+
+.mp-col-65{
+  width: 65%;
 }
 
 .mp-col-75{
@@ -49,7 +69,7 @@ body{
 
 .mp-box-inputs label{
   text-transform: uppercase;
-  font-size: 20px;
+  font-size: 14px;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   margin: 0 0 5px 0;
   display: block;
@@ -66,14 +86,18 @@ body{
   padding: 5px;
   border-radius: 3px;
   color: #666;
-  height: 48px;
-  font-size: 24px;
-  /*font-size: 100%;*/
+  height: 40px;
+  font-size: 20px;
 }
 
 .mp-box-inputs input:focus, .mp-box-inputs select:focus{
   border: 1px solid #999;
   outline: 0;
+}
+
+
+.mp-box-inputs input.mp-error-input, .mp-box-inputs select.mp-error-input{
+  border: 1px solid red;
 }
 
 #mp-box-loading{
@@ -88,8 +112,12 @@ body{
   line-height: 65px;
   text-align: center;
   height: 48px;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 100;
+}
+
+#mercadopago-utilities{
+  display: none;
 }
 
 #submit{
@@ -100,7 +128,7 @@ body{
   border: 1px solid transparent;
   border-radius: 4px;
   text-align: center;
-  font-size: 24px;
+  font-size: 14px;
   font-weight: 400;
 }
 
@@ -109,3 +137,23 @@ body{
   background-color: #286090;
   border-color: #204d74;
 }
+
+
+/*
+ *
+ *
+ * Error
+ *
+ *
+ */
+
+ .mp-error{
+   text-transform: uppercase;
+   font-size: 10px;
+   color: red;
+   font-weight: bold;
+   display: none;
+   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+   clear: both;
+   float: left;
+ }
