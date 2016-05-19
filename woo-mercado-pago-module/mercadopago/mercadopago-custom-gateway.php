@@ -359,10 +359,14 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 						break;
 	                case 'in_process':
 	                	// for pending, we don't know if the purchase will be made, so we must inform this status
-	                	$order->add_order_note(
+	                	/*$order->add_order_note(
 							'Mercado Pago: ' .
 							__( 'Your payment is under review. In less than 1h, you should be notified by email.',
 								'woocommerce-mercadopago-module' )
+						);*/
+						apply_filter(
+							'showOrderStatus',
+							array( $response[ 'status' ], $response[ 'status_detail' ] )
 						);
 						return array(
 							'result' => 'success',
@@ -372,10 +376,14 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	                case 'rejected':
 	                	// if rejected is received, the order will not proceed until another payment try,
 	                	// so we must inform this status
-	                	$order->add_order_note(
+	                	/*$order->add_order_note(
 							'Mercado Pago: ' .
 							__( 'Your payment was refused. You can try again.',
 								'woocommerce-mercadopago-module' ) . '<br>' . $response[ 'status_detail' ]
+						);*/
+						apply_filter(
+							'showOrderStatus',
+							array( $response[ 'status' ], $response[ 'status_detail' ] )
 						);
 						return array(
 							'result' => 'success',
@@ -761,29 +769,29 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	/*public function showOrderStatus( $status ) {
-
-		$mp = new MP( $this->access_token );
-		if ( 'yes' == $this->sandbox )
-			$mp->sandbox_mode( true );
-		else
-			$mp->sandbox_mode( false );
-
-		if ( $status == "rejected" ) {
+	public function showOrderStatus( $status, $status_detail ) {
+		if ( $status == "in_process" ) {
+			$html =
+				'<p>' . 'Mercado Pago: ' .
+					__( 'Your payment is under review. In less than 1h, you should be notified by email.', 'woocommerce-mercadopago-module' ) .
+				'</p>';
+			$html .=
+				'<a class="button" href="' . esc_url( $order->get_checkout_order_received_url() ) . '">' .
+				__( 'Click to check your order', 'woocommerce-mercadopago-module' ) .
+				'</a>';
+			echo $html;
+		} else if ( $status == "rejected" ) {
 			$html =
 				'<p>' . __( 'An error occurred when proccessing your payment. Please try again or contact us for assistence.', 'woocommerce-mercadopago-module' ) . '</p>';
 			$html .=
-				'<p>' . __( 'Reason is: ', 'woocommerce-mercadopago-module' ) . $status . '.</p>';
+				'<p>' . __( 'Reason is: ', 'woocommerce-mercadopago-module' ) . $status_detail . '.</p>';
 			$html .=
 				'<a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' .
 				__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
 				'</a>';
-			return $html;
-		} else if ( $status == "in_process" ) {
-
-			return $html;
+			echo $html;
 		}
-	}*/
+	}
 	
 	/*
 	 * ========================================================================
