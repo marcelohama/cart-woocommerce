@@ -89,7 +89,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<!-- card number -->
 		<div class="mp-box-inputs mp-col-100">
 	        <label for="cardNumber"><?php echo $form_labels[ 'form' ][ 'credit_card_number' ]; ?> <em>*</em></label>
-	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" />
+	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" autocomplete="off" />
 	        <span class="mp-error" id="mp-error-205" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ '205' ]; ?> </span>
 	        <span class="mp-error" id="mp-error-E301" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ 'E301' ]; ?> </span>
 		</div>
@@ -126,7 +126,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	  	<!-- card holder name -->
 	  	<div class="mp-box-inputs mp-col-100">
 	        <label for="cardholderName"><?php echo $form_labels[ 'form' ][ 'card_holder_name' ]; ?> <em>*</em></label>
-	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder=" as it appears in your card ... " />
+	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder=" as it appears in your card ... " autocomplete="off" />
 	        <span class="mp-error" id="mp-error-221" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '221' ]; ?> </span>
 	        <span class="mp-error" id="mp-error-316" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '316' ]; ?> </span>
 		</div>
@@ -134,7 +134,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<div class="mp-box-inputs mp-line">
 	        <div class="mp-box-inputs mp-col-45">
 				<label for="securityCode"><?php echo $form_labels[ 'form' ][ 'security_code' ]; ?> <em>*</em></label>
-				<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" name="mercadopago_custom[securityCode]" style="padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;"/>
+				<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" name="mercadopago_custom[securityCode]" style="padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;" autocomplete="off"/>
 				<span class="mp-error" id="mp-error-224" data-main="#securityCode"> <?php echo $form_labels[ 'error' ][ '224' ]; ?> </span>
 				<span class="mp-error" id="mp-error-E302" data-main="#securityCode"> <?php echo $form_labels[ 'error' ][ 'E302' ]; ?> </span>
 			</div>
@@ -149,7 +149,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	        </div>
 	        <div class="mp-box-inputs mp-col-65 mp-docNumber">
 				<label for="docNumber"><?php echo $form_labels[ 'form' ][ 'document_number' ]; ?> <em>*</em></label>
-				<input type="text" id="docNumber" data-checkout="docNumber" placeholder="" name="mercadopago_custom[docNumber]"/>
+				<input type="text" id="docNumber" data-checkout="docNumber" placeholder="" name="mercadopago_custom[docNumber]" autocomplete="off"/>
 				<span class="mp-error" id="mp-error-214" data-main="#docNumber"> <?php echo $form_labels[ 'error' ][ '214' ]; ?> </span>
 				<span class="mp-error" id="mp-error-324" data-main="#docNumber"> <?php echo $form_labels[ 'error' ][ '324' ]; ?> </span>
 			</div>
@@ -191,11 +191,14 @@ if ( !defined( 'ABSPATH' ) ) {
 
 	var config_mp = {
 	    debug: true,
-	    create_token_on_event: true,
-	    create_token_on_event_and_keyup: true,
 	    add_truncated_card: true,
 	    site_id: '<?php echo $site_id; ?>',
 	    public_key: '<?php echo $public_key; ?>',
+	    create_token_on: {
+ 			event: true, //if true create token on event, if false create on click and ignore others events. eg: paste or keyup
+ 			keyup: false,
+ 			paste: true,
+ 		},
 	    inputs_to_create_token: [
 	        "cardNumber",
 	        "cardExpirationMonth",
@@ -503,19 +506,17 @@ if ( !defined( 'ABSPATH' ) ) {
 
 	        //add events only in the required fields
 	        if (config_mp.inputs_to_create_token.indexOf(element.getAttribute("data-checkout")) > -1) {
-	            var event = "focusout";
+	            
+	            addEvent(element, "focusout", validateInputsCreateToken);
+	            addEvent(element, "change", validateInputsCreateToken);
 
-	            if (element.nodeName == "SELECT") {
-	                event = "change";
-	            }
-
-	            //add on element data-checkout
-	            addEvent(element, event, validateInputsCreateToken);
-
-	            if (config_mp.create_token_on_event_and_keyup) {
+	            if (config_mp.create_token_on.keyup) {
 	                addEvent(element, "keyup", validateInputsCreateToken);
 	            }
-
+	            
+	            if (config_mp.create_token_on.paste) {
+ 					addEvent(element, "paste", validateInputsCreateToken);
+ 				}
 
 	        }
 	    }
@@ -583,7 +584,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	            document.querySelector(config_mp.selectors.cardTruncated).value = card;
 	        }
 
-	        if (!config_mp.create_token_on_event) {
+	        if (!config_mp.create_token_on.event) {
 	            doSubmit = true;
 	            btn = document.querySelector(config_mp.selectors.form);
 	            btn.submit();
@@ -678,7 +679,7 @@ if ( !defined( 'ABSPATH' ) ) {
 
 	function Initialize() {
 
-	    if (config_mp.create_token_on_event) {
+	    if (config_mp.create_token_on.event) {
 	        createTokenByEvent();
 	    } else {
 	        createTokenBySubmit()
