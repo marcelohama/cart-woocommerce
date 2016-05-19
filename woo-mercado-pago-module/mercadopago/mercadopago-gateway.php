@@ -908,6 +908,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						$order->add_order_note(
 							'Mercado Pago: ' . __( 'The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module' )
 						);
+						break;
 					default:
 						break;
 				}
