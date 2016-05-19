@@ -72,7 +72,7 @@ if ( !defined( 'ABSPATH' ) ) {
  Colombia: 3743 781877 55283
 -->
 
-<div width="100%" style="margin:1px; padding:16px; background:white; ">
+<div width="100%" style="margin:1px; padding:36px 36px 16px 36px; background:white; ">
 	<img class="logo" src="<?php echo ( $images_path . 'mplogo.png' ); ?>" width="156" height="40" />
 	<?php if ( !empty( $banner_path ) ) { ?>
 		<img class="mp-creditcard-banner" src="<?php echo $banner_path; ?>" width="312" height="40" />
