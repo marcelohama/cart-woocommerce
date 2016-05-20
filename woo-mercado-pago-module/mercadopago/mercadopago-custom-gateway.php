@@ -56,6 +56,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->access_token = $this->get_option( 'access_token' );
 		$this->title = $this->get_option( 'title' );
 		$this->description = $this->get_option( 'description' );
+		$this->statement_descriptor = $this->get_option( 'statement_descriptor' );
+		$this->binary_mode = $this->get_option( 'binary_mode' );
 		$this->custom_ticket = $this->get_option( 'custom_ticket' );
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
@@ -213,6 +215,19 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'type' => 'textarea',
 				'description' => __( 'Description shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
 				'default' => __( 'Pay with Mercado Pago', 'woocommerce-mercadopago-module' )
+			),
+			'statement_descriptor' => array(
+				'title' => __( 'Statement Descriptor', 'woocommerce-mercadopago-module' ),
+				'type' => 'text',
+				'description' => __( 'The description that will be shown in your customer\'s invoice.', 'woocommerce-mercadopago-module' ),
+				'default' => __( 'Mercado Pago', 'woocommerce-mercadopago-module' )
+			),
+			'binary_mode' => array(
+				'title'   => __( 'Binary Mode', 'woocommerce-mercadopago-module' ),
+				'type'    => 'checkbox',
+				'label'   => __( 'Enable Bbinary mode for checkout status', 'woocommerce-mercadopago-module' ),
+				'default' => 'no',
+				'description' => __( 'When charging a credit card, only [approved] or [reject] status will be taken.', 'woocommerce-mercadopago-module' )
 			),
 			'custom_ticket' => array(
 				'title'   => __( 'Ticket', 'woocommerce-mercadopago-module' ),
@@ -582,7 +597,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
             	'email' => $order->billing_email
             ),
             'external_reference' => $this->invoice_prefix . $order->id,
-            'statement_descriptor' => $this->title,
+            'statement_descriptor' => $this->statement_descriptor,
+            'binary_mode' => $this->binary_mode,
             'additional_info' => array(
                 'items' => $items,
                 'payer' => $payer_additional_info,
