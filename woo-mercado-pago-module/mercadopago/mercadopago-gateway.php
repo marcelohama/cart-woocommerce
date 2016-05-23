@@ -456,7 +456,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$html =
 				'<p>' . __( 'An error occurred when proccessing your payment. Please try again or contact us for assistence.', 'woocommerce-mercadopago-module' ) . '</p>';
 			$html .=
-				'<a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' .
+				'<a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
 				__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
 				'</a>';
 			return $html;

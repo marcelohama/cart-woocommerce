@@ -77,10 +77,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'valid_mercadopagocustom_ipn_request',
 			array($this, 'successful_request')
 		);
-		add_action( // Used by WordPress to render the custom checkout page.
-			'woocommerce_receipt_' . $this->id,
-			array( $this, 'receipt_page' )
-		);
 		add_action( // Used to fix CSS in some older WordPress/WooCommerce versions.
 			'wp_head',
 			array( $this, 'css' )
@@ -313,12 +309,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					'wc_mercadopago_params',
 					array(
 						'session_id'         => $session_id,
-						'interest_free'      => __( 'interest free', 'woocommerce-pagseguro' ),
-						'invalid_card'       => __( 'Invalid credit card number.', 'woocommerce-pagseguro' ),
-						'invalid_expiry'     => __( 'Invalid expiry date, please use the MM / YYYY date format.', 'woocommerce-pagseguro' ),
-						'expired_date'       => __( 'Please check the expiry date and use a valid format as MM / YYYY.', 'woocommerce-pagseguro' ),
-						'general_error'      => __( 'Unable to process the data from your credit card on the PagSeguro, please try again or contact us for assistance.', 'woocommerce-pagseguro' ),
-						'empty_installments' => __( 'Select a number of installments.', 'woocommerce-pagseguro' ),
+						'payment_method'     => __( 'Payment Method', 'woocommerce-mercadopago-module' )
 					)
 				);*/
 			}
@@ -352,16 +343,17 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				': @[process_payment] - Received [$_POST] from customer front-end page: ' .
 				json_encode( $_POST, JSON_PRETTY_PRINT ) );
 		}
-		if ( isset( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'token' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) ) {
+		if ( isset( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) &&
+			 isset( $_POST[ 'mercadopago_custom' ][ 'token' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'token' ] ) &&
+			 isset( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) &&
+			 isset( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) ) {
 			$post = $_POST;
 			$response = $this->createUrl( $order, $post );
 	        if ( array_key_exists( 'status', $response ) ) {
-	        	WC()->cart->empty_cart();
 	            switch ( $response[ 'status' ] ) {
 	            	case 'approved':
+	            		WC()->cart->empty_cart();
+	            		//$order->reduce_order_stock();
 	            		$order->add_order_note(
 							'Mercado Pago: ' .
 							__( 'Payment approved.', 'woocommerce-mercadopago-module' )
@@ -375,14 +367,14 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 						break;
 	                case 'in_process':
 	                	// for pending, we don't know if the purchase will be made, so we must inform this status
-	                	/*$order->add_order_note(
-							'Mercado Pago: ' .
-							__( 'Your payment is under review. In less than 1h, you should be notified by email.',
-								'woocommerce-mercadopago-module' )
-						);*/
-						apply_filter(
-							'showOrderStatus',
-							array( $response[ 'status' ], $response[ 'status_detail' ] )
+	                	WC()->cart->empty_cart();
+	                	//$order->reduce_order_stock();
+						wc_add_notice(
+							__( 'Your payment is under review. In less than 1h, you should be notified by email.', 'woocommerce-mercadopago-module' ) .
+							'<br><a class="button" href="' . esc_url( $order->get_checkout_order_received_url() ) . '">' .
+							__( 'Check your order resume', 'woocommerce-mercadopago-module' ) .
+							'</a>',
+							'notice'
 						);
 						return array(
 							'result' => 'success',
@@ -392,14 +384,18 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	                case 'rejected':
 	                	// if rejected is received, the order will not proceed until another payment try,
 	                	// so we must inform this status
-	                	/*$order->add_order_note(
-							'Mercado Pago: ' .
-							__( 'Your payment was refused. You can try again.',
-								'woocommerce-mercadopago-module' ) . '<br>' . $response[ 'status_detail' ]
-						);*/
+						wc_add_notice(
+							__( 'Your payment was refused. You can try again.', 'woocommerce-mercadopago-module' ) .
+							'<br>' . __( $response[ 'status' ], 'woocommerce-mercadopago-module' ) .
+							': ' . __( $response[ 'status_detail' ], 'woocommerce-mercadopago-module' ) .
+							'<br><a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
+							__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
+							'</a>',
+							'error'
+						);
 						return array(
-							'result' => 'success',
-							'redirect' => $order->get_checkout_payment_url( true )
+							'result' => 'fail',
+							'redirect' => ''
 						);
 						break;
 					case 'cancelled':
@@ -412,44 +408,15 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	        }
 		} else {
 			// process when fields are imcomplete
-			wc_add_notice( __( 'A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?',
-				'woocommerce-mercadopago-module' ), 'error' );
+			wc_add_notice(
+				__( 'A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module' ),
+				'error'
+			);
 			return array(
 				'result'   => 'fail',
 				'redirect' => '',
 			);
 		}
-	}
-
-	// This function is used to display non-approved orders
-	public function receipt_page( $order_id ) {
-		$incomming_order = $order = wc_get_order( $order_id );
-
-		//$this->showOrderStatus( "rejected", "fields not filled" );
-		/*if ( $status == "in_process" ) { // in-process
-			$html =
-				'<p>' . __( 'Your payment is under review. In less than 1h we should notify you via email.', 'woocommerce-mercadopago-module' ) . '</p>';
-			$html .=
-				'<a class="button" href="' . esc_url( $incomming_order->get_checkout_order_received_url() ) . '">' .
-				__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
-				'</a>';
-			echo $html;
-			$incomming_order->update_status( 'pending' );
-		} else if ( strpos( $status, 'rejected' ) !== false ) { // rejected
-			$rejected_detail = explode( "|", $incomming_order->status );
-			$html =
-				'<p>' . __( 'Your payment was refused. You can try again.', 'woocommerce-mercadopago-module' ) . '</p>' .
-				'<p>' . __( $rejected_detail[1], 'woocommerce-mercadopago-module' ) . '</p>';
-			$html .=
-				'<a class="button cancel" href="' . esc_url( $incomming_order->get_checkout_payment_url() ) . '">' .
-				__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
-				'</a>';
-			echo $html;
-			$incomming_order->update_status( 'pending' );
-		} else {
-			echo '<p>$status: ' . $status . '</p>';
-		}*/
-		//echo $html;
 	}
 
 	protected function createUrl( $order, $post_from_form ) {
@@ -702,7 +669,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 		return false;
 	}
-	
+
 	// Build the string representing the path to the log file
 	protected function buildLogPathString() {
 		return '<a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=logs&log_file=' .
