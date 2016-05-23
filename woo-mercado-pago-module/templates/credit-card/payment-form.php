@@ -4,52 +4,6 @@ if ( !defined( 'ABSPATH' ) ) {
 }
 ?>
 
-<?php
-	$form_labels = array(
-    	"form" => array(
-	        "payment_method" => "Payment Method",
-	        "credit_card_number" => "Credit card number",
-	        "expiration_month" => "Expiration month",
-	        "expiration_year" => "Expiration year",
-	        "year" => "Year",
-	        "month" => "Month",
-	        "card_holder_name" => "Card holder name",
-	        "security_code" => "Security code",
-	        "document_type" => "Document Type",
-	        "document_number" => "Document number",
-	        "issuer" => "Issuer",
-	        "installments" => "Installments"
-      	),
-      	"error" => array(
-	        //card number
-	        "205" => "Parameter cardNumber can not be null/empty",
-	        "E301" => "Invalid Card Number",
-	        //expiration date
-	        "208" => "Invalid Expiration Date",
-	        "209" => "Invalid Expiration Date",
-	        "325" => "Invalid Expiration Date",
-	        "326" => "Invalid Expiration Date",
-	        //card holder name
-	        "221" => "Parameter cardholderName can not be null/empty",
-	        "316" => "Invalid Card Holder Name",
-	        //security code
-	        "224" => "Parameter securityCode can not be null/empty",
-	        "E302" => "Invalid Security Code",
-	        //doc type
-	        "212" => "Parameter docType can not be null/empty",
-	        "322" => "Invalid Document Type",
-	        //doc number
-	        "214" => "Parameter docNumber can not be null/empty",
-	        "324" => "Invalid Document Number",
-	        //doc sub type
-	        "213" => "The parameter cardholder.document.subtype can not be null or empty",
-	        "323" => "Invalid Document Sub Type",
-	        //issuer
-	        "220" => "Parameter cardIssuerId can not be null/empty"
-		)
-	);
-?>
-
 <!-- VISA TEST CARDS
  Argentina: 4509 9535 6623 3704
  Brazil: 4235 6477 2802 5682

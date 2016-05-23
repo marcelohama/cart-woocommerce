@@ -48,7 +48,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			'woocommerce_mercadopago_icon',
 			plugins_url( 'images/mercadopago.png', plugin_dir_path( __FILE__ ) )
 		);
-		$this->method_title = __( 'Mercado Pago - Standard Checkout' );
+		$this->method_title = __( 'Mercado Pago - Standard Checkout', 'woocommerce-mercadopago-module' );
 		$this->method_description = '<img width="200" height="52" src="' .
 			plugins_url( 'images/mplogo.png', plugin_dir_path( __FILE__ ) ) . '"><br><br>' . '<strong>' .
 			wordwrap( __( 'This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module' ), 80, "\n" ) .
@@ -705,7 +705,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
-				__( 'The currency' ) . ' <code>%s</code> ' . __( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, USD, VEF.', 'woocommerce-mercadopago-module' ),
+				__( 'The currency' ) . ' <code>%s</code> ' . __( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, VEF.', 'woocommerce-mercadopago-module' ),
 				get_woocommerce_currency() ) .
 			'</p></div>';
 	}

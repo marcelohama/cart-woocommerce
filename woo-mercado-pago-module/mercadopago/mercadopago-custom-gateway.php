@@ -221,7 +221,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'binary_mode' => array(
 				'title'   => __( 'Binary Mode', 'woocommerce-mercadopago-module' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable Bbinary mode for checkout status', 'woocommerce-mercadopago-module' ),
+				'label'   => __( 'Enable binary mode for checkout status', 'woocommerce-mercadopago-module' ),
 				'default' => 'no',
 				'description' => __( 'When charging a credit card, only [approved] or [reject] status will be taken.', 'woocommerce-mercadopago-module' )
 			),
@@ -326,7 +326,50 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
 				'banner_path' => plugins_url( 'images/' .
 					$this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
-				'amount' => $amount
+				'amount' => $amount,
+				'form_labels' => array(
+					"form" => array(
+				        "payment_method" => __( "Payment Method", 'woocommerce-mercadopago-module' ),
+				        "credit_card_number" => __( "Credit card number", 'woocommerce-mercadopago-module' ),
+				        "expiration_month" => __( "Expiration month", 'woocommerce-mercadopago-module' ),
+				        "expiration_year" => __( "Expiration year", 'woocommerce-mercadopago-module' ),
+				        "year" => __( "Year", 'woocommerce-mercadopago-module' ),
+				        "month" => __( "Month", 'woocommerce-mercadopago-module' ),
+				        "card_holder_name" => __( "Card holder name", 'woocommerce-mercadopago-module' ),
+				        "security_code" => __( "Security code", 'woocommerce-mercadopago-module' ),
+				        "document_type" => __( "Document Type", 'woocommerce-mercadopago-module' ),
+				        "document_number" => __( "Document number", 'woocommerce-mercadopago-module' ),
+				        "issuer" => __( "Issuer", 'woocommerce-mercadopago-module' ),
+				        "installments" => __( "Installments", 'woocommerce-mercadopago-module' )
+			      	),
+			      	"error" => array(
+				        //card number
+				        "205" => __( "Parameter cardNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
+				        "E301" => __( "Invalid Card Number", 'woocommerce-mercadopago-module' ),
+				        //expiration date
+				        "208" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+				        "209" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+				        "325" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+				        "326" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+				        //card holder name
+				        "221" => __( "Parameter cardholderName can not be null/empty", 'woocommerce-mercadopago-module' ),
+				        "316" => __( "Invalid Card Holder Name", 'woocommerce-mercadopago-module' ),
+				        //security code
+				        "224" => __( "Parameter securityCode can not be null/empty", 'woocommerce-mercadopago-module' ),
+				        "E302" => __( "Invalid Security Code", 'woocommerce-mercadopago-module' ),
+				        //doc type
+				        "212" => __( "Parameter docType can not be null/empty", 'woocommerce-mercadopago-module' ),
+				        "322" => __( "Invalid Document Type", 'woocommerce-mercadopago-module' ),
+				        //doc number
+				        "214" => __( "Parameter docNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
+				        "324" => __( "Invalid Document Number", 'woocommerce-mercadopago-module' ),
+				        //doc sub type
+				        "213" => __( "The parameter cardholder.document.subtype can not be null or empty", 'woocommerce-mercadopago-module' ),
+				        "323" => __( "Invalid Document Sub Type", 'woocommerce-mercadopago-module' ),
+				        //issuer
+				        "220" => __( "Parameter cardIssuerId can not be null/empty", 'woocommerce-mercadopago-module' )
+					)
+				)
 			),
 			'woocommerce/mercadopago/',
 			WC_WooMercadoPago_Module::getTemplatesPath()
@@ -737,7 +780,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'</strong>: ' .
 			sprintf(
 				__( 'The currency' ) . ' <code>%s</code> ' .
-				__( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, USD, VEF.', 'woocommerce-mercadopago-module' ),
+				__( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, VEF.', 'woocommerce-mercadopago-module' ),
 				get_woocommerce_currency() ) .
 			'</p></div>';
 	}
