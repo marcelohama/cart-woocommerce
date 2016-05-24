@@ -188,7 +188,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	        utilities_fields: "#mercadopago-utilities"
 	    },
 	    text: {
-	        choose: "Choose"
+	        choose: '<?php echo $label_choose; ?>'
 	    },
 	    paths: {
 	        loading: '<?php echo ( $images_path . "loading.gif" ); ?>'
@@ -360,7 +360,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	    var $issuer = document.querySelector(config_mp.selectors.issuer);
 	    var opt = document.createElement('option');
 	    opt.value = "-1";
-	    opt.innerHTML = "Other Bank";
+	    opt.innerHTML = '<?php echo $label_other_bank; ?>';
 
 	    $issuer.innerHTML = "";
 	    $issuer.appendChild(opt);

@@ -47,6 +47,7 @@ class WC_WooMercadoPago_Module {
 		if ( class_exists( 'WC_Payment_Gateway' ) ) {
 			include_once 'mercadopago/mercadopago-gateway.php';
 			include_once 'mercadopago/mercadopago-custom-gateway.php';
+			include_once 'mercadopago/mercadopago-ticket-gateway.php';
 			add_filter( 'woocommerce_payment_gateways', array( $this, 'addGateway' ) );
 			add_filter( 'woomercadopago_settings_link_' . plugin_basename( __FILE__ ), array( $this, 'woomercadopago_settings_link' ) );
 		} else {
@@ -59,6 +60,7 @@ class WC_WooMercadoPago_Module {
 	public function addGateway( $methods ) {
 		$methods[] = 'WC_WooMercadoPago_Gateway';
 		$methods[] = 'WC_WooMercadoPagoCustom_Gateway';
+		$methods[] = 'WC_WooMercadoPagoTicket_Gateway';
 		return $methods;
 	}
 	
@@ -111,6 +113,10 @@ function woomercadopago_settings_link( $links ) {
 	$plugin_links[] = '<a href="' . esc_url( admin_url(
 		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCustom_Gateway' ) ) . '">' .
 		__( 'Custom Checkout', 'woocommerce-mercadopago-module' ) .
+	'</a>';
+	$plugin_links[] = '<a href="' . esc_url( admin_url(
+		'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway' ) ) . '">' .
+		__( 'Ticket', 'woocommerce-mercadopago-module' ) .
 	'</a>';
 	return array_merge( $plugin_links, $links );
 }
