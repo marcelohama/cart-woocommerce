@@ -1,5 +1,5 @@
 <?php
-if (!defined('ABSPATH')) {
+if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
@@ -26,706 +26,667 @@ if (!defined('ABSPATH')) {
  Colombia: 3743 781877 55283
 -->
 
-<!-- std
-6990185330840813
-G1YyZNeO54jmuxJ4QNwOGrf0rEzW4dJe
--->
-<!-- custom
-PROD
-PK APP_USR-1343e85c-9212-4c37-9803-3b1dc6bd3829
-AT APP_USR-6990185330840813-011415-074515a8f225af6bb734be05f2631951__LB_LD__-200429801
-SAND
-PK TEST-c9e985fc-34d2-4518-a8f0-d1886b37ba86
-AT TEST-6990185330840813-011415-4323cd45dfe446411e241f052e7bbebd__LD_LB__-200429801
--->
-
-<!--<script defer type="text/javascript"
-	src="{$this_path_ssl|unescape:'htmlall'}modules/mercadopago/views/js/jquery.dd.js"></script>
--->
-
-<script type="text/javascript">
-
-	// ============================================================
-	// Date selectors fiil ups
-	function setExpirationMonth() {
-		var html_options = "";
-		var currentMonth = new Date().getMonth();
-		var months = [
-			"January",
-			"Febuary",
-			"March",
-			"April",
-			"May",
-			"June",
-			"July",
-			"August",
-			"September",
-			"October",
-			"November",
-			"December" ];
-		for (i = 0; i < 12; i++) {
-			if (currentMonth == i)
-				html_options += "<option value='" + (i + 1) + "' selected>" + months[i] + "</option>";
-			else
-				html_options += "<option value='" + (i + 1) + "'>" + months[i] + "</option>";
-		};
-		$("#id-card-expiration-month").html(html_options);
-	}
-	function setExpirationYear() {
-		var html_options = "";
-		var currentYear = new Date().getFullYear();
-		for (i = 0; i <= 20; i++) {
-			html_options += "<option value='"
-					+ (currentYear + i).toString().substr(2, 2) + "'>"
-					+ (currentYear + i) + "</option>";
-		};
-		$("#id-card-expiration-year").html(html_options);
-	}
-	setExpirationMonth();
-	setExpirationYear();
-	// ============================================================
-	
-	// ============================================================
-	// Checkout identification, installments setup, etc...
-	function getBin() {
-		var ccNumber = document.querySelector('input[data-checkout="cardNumber"]');
-		return bin = ccNumber.value.replace(/[ .-]/g, '').slice(0, 6);
-	}
-	function returnAmount() {
-		if ($("#amount_discount").text() != "") {
-			return $("#total_amount_discount").text();
-		} else {
-			return $("#amount").val();
-		}
-	};
-	function guessingPaymentMethod(event) {
-		var bin = getBin();
-		if (event.type == "keyup") {
-			if (bin.length >= 6) {
-				Mercadopago.getPaymentMethod({
-					"bin": bin
-				}, setPaymentMethodInfo);
-			}
-		} else {
-			setTimeout(function() {
-				if (bin.length >= 6) {
-					Mercadopago.getPaymentMethod({
-						"bin": bin
-					}, setPaymentMethodInfo);
-				}
-			}, 100);
-		}
-	};
-	function setPaymentMethodInfo(status, result) {
-		if (status != 404 && status != 400 && result != undefined) {
-			var payment_method = result[0];
-			var amount = returnAmount();
-			var bin = getBin();
-			if (country === "MLM" || country === "MLA") {
-				// check if the issuer is necessary to pay
-				var issuerMandatory = false, additionalInfo = result[0].additional_info_needed;
-				for (var i = 0; i < additionalInfo.length; i++) {
-					if (additionalInfo[i] == "issuer_id") {
-						issuerMandatory = true;
-					}
-				}
-				if (issuerMandatory) {
-					Mercadopago.getIssuers(result[0].id, showCardIssuers);
-					$("#id-issuers-options").bind("change", function() {
-						setInstallmentsByIssuerId(status, result)
-					});
-				} else {
-					document.querySelector("#id-issuers-options").options.length = 0;
-					document.querySelector("#id-issuers-options").style.display = 'none';
-					document.querySelector(".issuers-options").style.display = 'none';
-				}
-			}
-			$("#id-card-number").css("background", "url(" + payment_method.secure_thumbnail + ") 98% 50% no-repeat");
-			$("#payment_method_id").val(payment_method.id);
-			//$("#payment_method_id").val($("input[name=card-types]:checked").val() ? $("input[name=card-types]:checked").val() + payment_method.id : payment_method.id);
-			$("#payment_type_id").val(payment_method.payment_type_id);
-			loadInstallments();
-		} else {
-			$("#id-card-number").css('background-image', '');
-			$("#id-installments").html('');
-		}
-	};
-	function addEvent(el, eventName, handler){
-		if (el != null) {
-			if (el.addEventListener) {
-				   el.addEventListener(eventName, handler);
-			} else {
-				el.attachEvent('on' + eventName, function(){
-				  handler.call(el);
-				});
-			}
-		}
-	};
-	//addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'keyup', guessingPaymentMethod);
-	//addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'change', guessingPaymentMethod);
-	// ============================================================
-	
-	// ============================================================
-	// Installment values load
-	function loadInstallments() {
-		var opcaoPagamento = $("#opcaoPagamentoCreditCard").val();
-		if (opcaoPagamento == "Customer") {
-			var customerCards = $("#id-customerCards");
-			var id = customerCards.val();
-			var card = document.querySelector('select[data-checkout="cardId"]');
-			var payment_type_id = card[card.options.selectedIndex].getAttribute('payment_type_id');
-			var firstSixDigits = card[card.options.selectedIndex].getAttribute('first_six_digits');
-			var json = {}
-			json.amount = returnAmount();
-			json.bin = firstSixDigits;
-			json.payment_method_id = $("#payment_method_id").val();
-			json.payment_type_id = $("#payment_type_id").val();
-		} else { // load Installment
-			var bin = getBin();
-			var json = {}
-			json.amount = returnAmount();
-			json.bin = bin;
-			if (country === "MLM" || country === "MLA") {
-				var issuerId = document.querySelector('#id-issuers-options').value;
-				if (issuerId != undefined && issuerId != "-1") {
-					json.issuer_id = issuerId;
-					json.payment_method_id = $("#payment_method_id").val();
-					json.payment_type_id = $("#payment_type_id").val();
-				}
-			}
-		}
-		try {
-			Mercadopago.getInstallments(json, setInstallmentInfo);
-		} catch(e) {
-			console.info(e);	
-		}
-	}
-	function setInstallmentInfo(status, installments) {
-		var html_options = "";
-		if (status != 404 && status != 400 && installments.length > 0) {
-			html_options += "<option value='' selected>Choice...</option>";
-			var installments = installments[0].payer_costs;
-			$.each(installments, function(key, value) {
-				html_options += "<option value='"+ value.installments + "'>"
-						+ value.recommended_message + "</option>";
-			});
-		} else {
-			console.error("Installments Not Found.");
-		}
-		var opcaoPagamento = $("#opcaoPagamentoCreditCard").val();
-		if (opcaoPagamento == "Customer") {
-			$("#id-installments-cust").html(html_options);
-		} else {
-			$("#id-installments").html(html_options);
-		}
-	};
-	// ============================================================
-	
-	// ============================================================
-	// Checkout process
-	/*jQuery(document).ready(function($) {
-        // hide place order button on checkout page
-        $('input[name=woocommerce_checkout_place_order]').hide();
-    });*/
-	doSubmit = false;
-	$("#form-pagar-mp").submit(
-		function(event) {
-			event.preventDefault();
-			/*clearErrorStatus();*/
-			if (!validate()) {
-				event.preventDefault();
-				submit = false;
-			} else {
-				/*var opcaoPagamento = $("#opcaoPagamentoCreditCard").val();
-				if (opcaoPagamento == "Customer") {
-					var $form = document.querySelector('#customerCardsAll');
-					Mercadopago.createToken($form, function (status, response) {
-						if (response.error) {
-							$.each(response.cause, function(p,e) {
-								switch (e.code) {
-									case "E203":
-									case "E302":
-										submit = false;
-										$("#id-security-code-status-cust").html("{l s='CVV invalid' mod='mercadopago'}");
-										$("#id-security-code-cust").addClass("form-error");
-										break;
-								}
-							});
-							if (!submit) {
-								event.preventDefault();
-							}
-						} else {
-							$('#card_token_id').val(response.id);
-							document.getElementById("form-pagar-mp").action = "{$custom_action_url|unescape:'htmlall'}";
-							document.getElementById("form-pagar-mp").submit();
-							$(".lightbox").show();
-						}
-					});
-				} else {*/
-					var $form = $('#form-pagar-mp');
-					var $cardDiv = $('#cardDiv');
-					Mercadopago.createToken($cardDiv, function(status, response) {
-						if (response.error) {
-							submit = false;
-							event.preventDefault();
-							$.each(response.cause, function(p, e) {
-								switch (e.code) {
-									case "E301":
-										/*$("#id-card-number-status").html("Card invalid");
-										$("#id-card-number").addClass("form-error");*/
-										alert('Erro E301');
-										break;
-									case "E302":
-										/*$("#id-security-code-status").html("CVV invalid");
-										$("#id-security-code").addClass("form-error");*/
-										alert('Erro E302');
-										break;
-									case "325":
-									case "326":
-										/*$("#id-card-expiration-year-status").html("Date invalid");
-										$("#id-card-expiration-month").addClass("boxshadow-error");
-										$("#id-card-expiration-year").addClass("boxshadow-error");*/
-										alert('Erro 325/326');
-										break;
-									case "316":
-									case "221":
-										/*$("#id-card-holder-name-status").html("Name invalid");
-										$("#id-card-holder-name").addClass("form-error");*/
-										alert('Erro 316/221');
-										break;
-									case "324":
-									case "214":
-										/*$("#id-doc-number-status").html("Document invalid");
-										$("#id-doc-number").addClass("form-error");*/
-										alert('Erro 324/214');
-										break;
-								}
-							});
-						} else {
-							submit = true;
-							var card_token_id = response.id;
-							$form.append($('<input type="hidden" id="card_token_id" name="card_token_id"/>').val(card_token_id));
-							var cardNumber = $("#id-card-number").val();
-							var lastFourDigits = cardNumber.substring(cardNumber.length-4);
-							$form.append($('<input name="lastFourDigits" type="hidden" value="' + lastFourDigits + '"/>'));
-							document.getElementById("form-pagar-mp").action = "{$custom_action_url|unescape:'htmlall'}";
-							document.getElementById("form-pagar-mp").submit();
-							$(".lightbox").show();
-						}
-					});
-				/*}*/
-			}
-		}
-	)
-	// ============================================================
-	// Validations
-	function validate() {
-		/*var opcaoPagamento = $("#opcaoPagamentoCreditCard").val();
-		if (opcaoPagamento == "Customer") {
-			if ($("#id-customerCards").val().length == 0) {
-				$("#id-card-number-status-cust").html(
-						"{l s='Card invalid' mod='mercadopago'}");
-				$( "#id-customerCards_msdd" ).addClass("form-error");
-			}
-			if ($("#id-security-code-cust").val().length == 0) {
-				$("#id-security-code-status-cust").html(
-						"{l s='CVV invalid' mod='mercadopago'}");
-				$("#id-security-code-cust").addClass("form-error");
-			}
-			if ($("#id-installments-cust").val() == null
-					|| $("#id-installments-cust").val().length == 0) {
-				$("#id-installments-status-cust").html(
-						"{l s='Installments invalid' mod='mercadopago'}");
-				$("#id-installments-cust").addClass("form-error");
-			}
-			if ($("#id-installments-cust").val() == null
-					|| $("#id-installments-cust").val().length == 0
-					|| $("#id-security-code-cust").val().length == 0
-					|| $("#id-customerCards").val().length == 0
-					) {
-				return false;
-			}
-			return true;
-		}
-		if ($("#id-card-number").val().length == 0) {
-			$("#id-card-number-status").html(
-					"{l s='Card invalid' mod='mercadopago'}");
-			$("#id-card-number").addClass("form-error");
-		}
-		if ($("#id-card-holder-name").val().length == 0) {
-			$("#id-card-holder-name-status").html(
-					"{l s='Name invalid' mod='mercadopago'}");
-			$("#id-card-holder-name").addClass("form-error");
-		}
-		if ($("#id-security-code").val().length == 0) {
-			$("#id-security-code-status").html(
-					"{l s='CVV invalid' mod='mercadopago'}");
-			$("#id-security-code").addClass("form-error");
-		}
-		if ($("#id-docType").val() == null || $("#id-docType").val() == "") {
-			$("#id-docType").addClass("form-error");
-		}
-		if (country != "MLM") {
-			if ($("#id-doc-number").val().length == 0) {
-				$("#id-doc-number-status").html(
-						"{l s='Document invalid' mod='mercadopago'}");
-				$("#id-doc-number").addClass("form-error");
-			}
-		} else {
-		}
-		if ($("#id-installments").val() == null
-				|| $("#id-installments").val().length == 0) {
-			$("#id-installments-status").html(
-					"{l s='Installments invalid' mod='mercadopago'}");
-			$("#id-installments").addClass("form-error");
-		}
-		if ($("#id-installments").val() == null
-				|| $("#id-installments").val().length == 0
-				|| $("#id-security-code").val().length == 0
-				|| $("#id-card-holder-name").val().length == 0
-				|| $("#id-card-number").val().length == 0
-				
-				|| (country != "MLM" && $("#id-doc-number").val().length == 0)) {
-			return false;
-		}
-		if (country == "MLB") {
-			if (!validateCpf($("#id-doc-number").val())) {
-				$("#id-doc-number-status").html(
-						"{l s='CPF invalid' mod='mercadopago'}");
-				$("#id-doc-number").addClass("form-error");
-				return false;
-			}
-		}*/
-		return true;
-	}
-	function validateCpf(cpf) {
-		var sum = 0;
-		var remainer;
-		if (cpf == "00000000000")
-			return false;
-		for (i=1; i<=9; i++) {
-			sum = sum + parseInt(cpf.substring(i-1, i))*(11-i);
-			remainer = (sum*10)%11;
-		}
-		if ((remainer == 10) || (remainer == 11))
-			remainer = 0;
-		if (remainer != parseInt(cpf.substring(9, 10)))
-			return false;
-		sum = 0;
-		for (i=1; i<=10; i++) {
-			sum = sum + parseInt(cpf.substring(i-1, i))*(12-i);
-			remainer = (sum*10)%11;
-		}
-		if ((remainer == 10) || (remainer == 11))
-			remainer = 0;
-		if (remainer != parseInt(cpf.substring(10, 11))) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-	// ============================================================
-	
-	// first load force to clear all fields
-	$("#id-card-number").val("");
-	$("#id-security-code").val("");
-	$("#id-card-holder-name").val("");
-	$("#id-doc-number").val("");
-	
-	// Checkout trigger 4235 6477 2802 5682
-	//var country = "{$country|escape:'javascript'}";
-	function initMercadoPago(event) {
-		if (window.Mercadopago === undefined) {
-			$.getScript("https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js")
-			.done(function(script, textStatus) {
-				Mercadopago.setPublishableKey(document.getElementById('public_key').value);
-				Mercadopago.getIdentificationTypes();
-				guessingPaymentMethod(event);
-			});
-		} else {
-			guessingPaymentMethod(event);
-		}
-	}
-	
-</script>
-
-<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-	
-<div width="100%" style="margin:1px; padding:16px; background:white;">
-	<img class="logo" src="<?php echo $mplogo_path; ?>" width="156" height="40" />
-	<?php if (!empty($banner_path)) { ?>
+<div width="100%" style="margin:1px; padding:36px 36px 16px 36px; background:white; ">
+	<img class="logo" src="<?php echo ( $images_path . 'mplogo.png' ); ?>" width="156" height="40" />
+	<?php if ( !empty( $banner_path ) ) { ?>
 		<img class="mp-creditcard-banner" src="<?php echo $banner_path; ?>" width="312" height="40" />
 	<?php } ?>
 </div>
-<fieldset id="mercadopago-credit-cart-form" style="background:white;">
-	
-	<input id="public_key" type="hidden" value="<?php echo $public_key; ?>" />
-	<input id="amount" type="hidden" value="<?php echo $amount; ?>" />
+<fieldset id="mercadopago-form" style="background:white; ">
+	<div style="padding:0px 36px 0px 36px;">
 
-	<div id="mercadopago-credit-card-form" class="mercadopago-method-form">
-		<p id="mercadopago-card-number-field" class="form-row form-row-first">
-			<label for="mercadopago-card-number"><?php _e( 'Card Number', 'woocommerce-mercadopago-module' ); ?> 
-				<span class="required">*</span>
-			</label>
-			<input id="id-card-number" data-checkout="cardNumber"
-				class="input-text wc-credit-card-form-card-number" type="text" maxlength="20"
-				autocomplete="off" placeholder="#### #### #### ####" style="font-size: 1.5em; padding: 8px;"
-				onkeyup="initMercadoPago(this);" onchange="initMercadoPago(this);"/>
-		</p>
-		<p id="mercadopago-card-holder-name-field" class="form-row form-row-last">
-			<label for="mercadopago-card-holder-name">
-				<?php _e( 'Card Holder Name', 'woocommerce-mercadopago-module' ); ?> 
-				<span class="required">*</span>
-			</label>
-			<input id="mercadopago-card-holder-name" name="mercadopago_card_holder_name" class="input-text"
-				type="text" autocomplete="off" style="font-size: 1.5em; padding: 8px;" />
-		</p>
-		<div class="clear"></div>
-		<p id="mercadopago-card-expiry-field" class="form-row form-row-first">
-			<label for="mercadopago-card-expiry">
-				<?php _e( 'Expiry (MM/YYYY)', 'woocommerce-mercadopago-module' ); ?> 
-				<span class="required">*</span>
-			</label>
-			<input id="mercadopago-card-expiry"
-				class="input-text wc-credit-card-form-card-expiry" type="text"
-				autocomplete="off" placeholder="<?php _e( 'MM / YYYY', 'woocommerce-mercadopago-module' ); ?>"
-				style="font-size: 1.5em; padding: 8px;" />
-		</p>
-		<p id="mercadopago-card-holder-birth-date-field" class="form-row form-row-last">
-			<label for="mercadopago-card-holder-birth-date">
-				<?php _e( 'Card Holder Birth Date', 'woocommerce-mercadopago-module' ); ?> 
-				<span class="required">*</span>
-			</label>
-			<input id="mercadopago-card-holder-birth-date"
-				name="mercadopago_card_holder_birth_date" class="input-text" type="text"
-				autocomplete="off" placeholder="<?php _e( 'DD / MM / YYYY', 'woocommerce-mercadopago-module' ); ?>"
-				style="font-size: 1.5em; padding: 8px;" />
-		</p>
-		<div class="clear"></div>
-		<p id="mercadopago-card-cvc-field" class="form-row form-row-first">
-			<label for="mercadopago-card-cvc">
-				<?php _e( 'Security Code', 'woocommerce-mercadopago-module' ); ?> 
-				<span class="required">*</span>
-			</label>
-			<input id="mercadopago-card-cvc"
-				class="input-text wc-credit-card-form-card-cvc" type="text" autocomplete="off"
-				placeholder="<?php _e( 'CVC', 'woocommerce-mercadopago-module' ); ?>"
-				style="font-size: 1.5em; padding: 8px; background: url( <?php echo $cvv_path; ?> ) 98% 50% no-repeat;" />
-		</p>
-		<p id="mercadopago-card-holder-cpf-field" class="form-row form-row-last">
-			<label for="mercadopago-card-holder-cpf"><?php _e( 'Card Holder CPF', 'woocommerce-mercadopago-module' ); ?> <span class="required">*</span></label>
-			<input id="mercadopago-card-holder-cpf" name="mercadopago_card_holder_cpf" class="input-text wecfb-cpf-field" type="text" autocomplete="off" style="font-size: 1.5em; padding: 8px;" />
-		</p>
-		<div class="clear"></div>
-		<p id="mercadopago-card-installments-field" class="form-row form-row-first">
-			<label for="mercadopago-card-installments">
-				<?php _e( 'Installments', 'woocommerce-mercadopago-module' ); ?> 
-				<span class="required">*</span>
-			</label>
-			<select id="id-installments" name="installments" type="text"
-				style="font-size: 1.5em; padding: 4px; width: 100%;">
-			</select>
-		</p>
-		<p id="mercadopago-card-holder-phone-field" class="form-row form-row-last">
-			<label for="mercadopago-card-holder-phone"><?php _e( 'Card Holder Phone', 'woocommerce-mercadopago-module' ); ?> <span class="required">*</span></label>
-			<input id="mercadopago-card-holder-phone" name="mercadopago_card_holder_phone" class="input-text" type="text" autocomplete="off" placeholder="<?php _e( '(xx) xxxx-xxxx', 'woocommerce-mercadopago-module' ); ?>" style="font-size: 1.5em; padding: 8px;" />
-		</p>
-		<div class="clear"></div>
-	</div>
-
-
-
-	<!--<div class="mp-module">
-		<div class="payment_module mp-form-custom">
-			<div class="row">
-				<img class="logo" src="<?php /*echo $mplogo_path;*/ ?>" width="156" height="40" />
-				<?php /*if (!empty($banner_path)) {*/ ?>
-					<img class="mp-creditcard-banner" src="<?php /*echo $banner_path;*/ ?>" width="312" height="40" />
-				<?php /*}*/ ?>
-			</div>
-			<form action="<?php /*echo $custom_action_url;*/ ?>" method="post" id="form-pagar-mp">
-				
-				<div id="cardDiv">
-					<div class="row">
-						<div class="col" style="margin-top: 32px;>
-							<label for="id-card-number">Card number: <em>*</em></label> 
-							<input id="id-card-number" data-checkout="cardNumber" type="text" 
-								onkeyup="initMercadoPago(this);"
-								onchange="initMercadoPago(this);" />
-							<div id="id-card-number-status" class="status"></div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col">
-							<label for="id-card-expiration-month">Expiration: <em>*</em></label> 
-							<select id="id-card-expiration-month" class="small-select" data-checkout="cardExpirationMonth" type="text"></select>
-						</div>
-						<div class="col">
-							<select id="id-card-expiration-year" class="small-select" data-checkout="cardExpirationYear" type="text"></select>
-							<div id="id-card-expiration-year-status" class="status"></div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col">
-							<label for="id-card-holder-name">Card Holder Name: <em>*</em></label> 
-							<input id="id-card-holder-name" data-checkout="cardholderName" type="text" name="cardholderName"/>
-							<div id="id-card-holder-name-status" class="status"></div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col">
-							<label for="id-security-code" style="font-weight: 700;">Security Code: <em>*</em></label> 
-							<input id="id-security-code" data-checkout="securityCode" type="text" maxlength="4" /> 
-							<img src="<?php /*echo $cvv_path;*/ ?>" class="cvv" />
-							<div id="id-security-code-status" class="status"></div>
-						</div>
-					</div>
-					<?php /*if ($country == 'MLB') {*/ ?>
-						<div class="row">
-							<div class="col">
-								<label for="id-doc-number">CPF: <em>*</em></label> 
-								<input id="id-doc-number" data-checkout="docNumber" type="text" maxlength="11" />
-								<div id="id-doc-number-status" class="status"></div>
-								<input name="docType" data-checkout="docType" type="hidden" id="id-docType" value="CPF" />
-							</div>
-						</div>
-					<?php /*} elseif ($country == 'MLM' || $country == 'MLA') {*/ ?>
-						<div class="row">
-							<div class="col">
-								<label class="issuers-options" for="id-issuers-options">Bank: <em>*</em>
-								</label> <select class="issuers-options" id="id-issuers-options" name="issuersOptions" type="text"></select>
-							</div>
-						</div>
-					<?php /*} if ($country == 'MLM') {*/ ?>
-						<div class="row">
-							<div class="col">
-								<label for="card-types">Card Type: </label> 
-								<input id="id-credit-card" name="card-types" type="radio" value="" checked>Credit</input> 
-								<input id="id-debit-card" name="card-types" type="radio" value="deb">Debit</input>
-							</div>
-						</div>
-					<?php /*} elseif ($country == 'MLA' || $country == 'MCO' || $country == 'MLV') {*/ ?> {
-						<div class="row">
-							<div class="col">
-								<label for="docType">Document type: <em>*</em></label> 
-								<select name="docType" type="text" class="document-type" d="id-docType" style="width: 92px;" data-checkout="docType"></select>
-							</div>
-							<div class="col">
-								<input id="id-doc-number" name="docNumber" style="width: 102px;" data-checkout="docNumber" type="text" />
-								<div id="id-doc-number-status" class="status"></div>
-							</div>
-						</div>
-						<div class="row"></div>
-					<?php /*} if ($country == 'MLC') {*/ ?>
-						<div class="row">
-							<div class="col">
-								<label for="id-doc-number">RUT: <em>*</em></label> 
-								<input type="hidden" name="docType" id="docType" value="RUT" id="id-docType" data-checkout="docType"> 
-								<input type="text" id="id-doc-number" data-checkout="docNumber" maxlength="10" size="14" placeholder="11111111-1">
-								<div id="id-doc-number-status" class="status"></div>
-							</div>
-						</div>
-					<?php /*}*/ ?>
-					<div class="row">
-						<div class="col">
-							<label for="id-installments">Installments: <em>*</em></label> 
-							<select id="id-installments" name="installments" type="text"></select>
-							<div id="id-installments-status" class="status"></div>
-						</div>
-					</div>
-					<div class="row" style="display: none;">
-						<div class="col-xs-12">
-							<p class="payment-errors"></p>
-						</div>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-bottom">
-						<?php /*if ($country != "MLB") {*/ ?>
-							<button class="ch-btn ch-btn-big submit" value="Confirm payment" type="submit" id="btnSubmit"> Confirm payment</button>
-						<?php /*} else {*/ ?>
-							<button class="ch-btn ch-btn-big es-button submit" value="Confirm payment" type="submit" id="btnSubmit"> Confirm payment</button>
-						<?php /*}*/ ?>
-					</div>
-				</div>-->
-				<!--====<div class="row">
-					<div class="col" style="margin-top: 32px;">
-						<label for="id-card-number">Card number: </label> 
-						<input id="id-card-number" data-checkout="cardNumber" type="text" />
-						<div id="id-card-number-status" class="status"></div>
-					</div>
-					<div class="col col-expiration">
-						<label for="id-card-expiration-month">Month Exp: </label> 
-						<select id="id-card-expiration-month"
-							class="small-select" data-checkout="cardExpirationMonth"
-							type="text">
-						</select>
-						<label for="id-card-expiration-month">Year Exp: </label> 
-						<select id="id-card-expiration-year"
-							class="small-select" data-checkout="cardExpirationYear"
-							type="text">
-						</select>
-						<div id="id-card-expiration-year-status" class="status"></div>
-					</div>
-					<div class="col">
-						<label for="id-card-holder-name">Card Holder Name: </label> 
-						<input id="id-card-holder-name" data-checkout="cardholderName" type="text" name="cardholderName" />
-						<div id="id-card-holder-name-status" class="status"></div>
-					</div>
-				</div>
-				
-				<div class="row">
-					<div class="col col-security">
-						<label for="id-security-code">Security Code: </label> 
-						<input id="id-security-code" data-checkout="securityCode" type="text" maxlength="4" />
-						<img src="<?php /*echo $cvv_path;*/ ?>" class="cvv" />
-						<div id="id-security-code-status" class="status"></div>
-					</div>
-					<?php /*if ($country == 'MLB') {*/ ?>
-						<div class="col col-cpf">
-							<label for="id-doc-number">CPF: </label>
-							<input id="id-doc-number" name="docNumber" data-checkout="docNumber" type="text" maxlength="11" />
-							<div id="id-doc-number-status" class="status"></div>
-							<input name="docType" data-checkout="docType" type="hidden" id="id-docType" value="CPF" />
-						</div>
-					<?php /*} elseif ($country == 'MLM' || $country == 'MLA') {*/ ?>
-						<div class="col col-bank">
-							<label class="issuers-options" for="id-issuers-options">Bank: </label> 
-							<select class="issuers-options" id="id-issuers-options" name="issuersOptions" type="text>"></select>
-						</div>
-					<?php /*}*/ ?>
-					<div class="col">
-						<label for="id-installments">Installments: </label> 
-						<select id="id-installments" name="installments" type="text"></select>
-						<div id="id-installments-status" class="status"></div>
-					</div>
-				</div>
-
-				<div class="row">
-					<div class="col-bottom">
-						<?php /*if ($country == 'MLM') {*/ ?>
-							<div id="div-card-type">
-								<label for="card-types">Card Type: </label> 
-								<input id="id-credit-card" name="card-types" type="radio" value="" checked>Credit: </input> 
-								<input id="id-debit-card" name="card-types" type="radio" value="deb">Debit: </input>
-							</div>
-						<?php /*} elseif ($country == 'MLA') {*/ ?>
-							<div class="row">
-								<div class="col">
-									<label for="docType">Document type: </label> 
-									<select name="docType" id="id-docType" data-checkout="docType"></select>
-								</div>
-								<div class="col">
-									<input id="id-doc-number" name="docNumber" data-checkout="docNumber" type="text" />
-									<div id="id-doc-number-status" class="status"></div>
-								</div>
-							</div>
-						<?php /*}*/ ?>
-						<input type="submit" value="Confirm payment" class="ch-btn ch-btn-big submit" />
-					</div>
-				</div>====-->
-			<!--</form>
+		<!-- payment method -->
+		<div class="mp-box-inputs mp-line mp-paymentMethodsSelector" style="display:none;">
+	        <label for="paymentMethodIdSelector"><?php echo $form_labels[ 'form' ][ 'payment_method' ]; ?> <em>*</em></label>
+	        <select id="paymentMethodIdSelector" name="mercadopago_custom[paymentMethodIdSelector]" data-checkout="paymentMethodIdSelector"></select>
 		</div>
-	</div>-->
-	
+		<!-- card number -->
+		<div class="mp-box-inputs mp-col-100">
+	        <label for="cardNumber"><?php echo $form_labels[ 'form' ][ 'credit_card_number' ]; ?> <em>*</em></label>
+	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" autocomplete="off" />
+	        <span class="mp-error" id="mp-error-205" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ '205' ]; ?> </span>
+	        <span class="mp-error" id="mp-error-E301" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ 'E301' ]; ?> </span>
+		</div>
+		<!-- expiry date -->
+		<div class="mp-box-inputs mp-line">
+			<div class="mp-box-inputs mp-col-45">
+				<label for="cardExpirationMonth"><?php echo $form_labels[ 'form' ][ 'expiration_month' ]; ?> <em>*</em></label>
+          		<select id="cardExpirationMonth" data-checkout="cardExpirationMonth" name="mercadopago_custom[cardExpirationMonth]">
+            		<option value="-1"> <?php echo $form_labels[ 'form' ][ 'month' ]; ?> </option>
+            		<?php for ($x=1; $x<=12; $x++): ?>
+              			<option value="<?php echo $x; ?>"> <?php echo $x; ?></option>
+            		<?php endfor; ?>
+          		</select>
+        	</div>
+        	<div class="mp-box-inputs mp-col-10">
+				<div id="mp-separete-date">
+            	/
+          		</div>
+			</div>
+			<div class="mp-box-inputs mp-col-45">
+				<label for="cardExpirationYear"><?php echo $form_labels[ 'form' ][ 'expiration_year' ]; ?> <em>*</em></label>
+				<select  id="cardExpirationYear" data-checkout="cardExpirationYear" name="mercadopago_custom[cardExpirationYear]">
+            		<option value="-1"> <?php echo $form_labels[ 'form' ][ 'year' ]; ?> </option>
+    				<?php for ($x=date("Y"); $x<= date("Y") + 10; $x++): ?>
+              			<option value="<?php echo $x; ?>"> <?php echo $x; ?> </option>
+            		<?php endfor; ?>
+          		</select>
+			</div>
+	        <span class="mp-error" id="mp-error-208" data-main="#cardExpirationMonth"> <?php echo $form_labels[ 'error' ][ '208' ]; ?> </span>
+	        <span class="mp-error" id="mp-error-209" data-main="#cardExpirationYear"> </span>
+	        <span class="mp-error" id="mp-error-325" data-main="#cardExpirationMonth"> <?php echo $form_labels[ 'error' ][ '325' ]; ?> </span>
+	        <span class="mp-error" id="mp-error-326" data-main="#cardExpirationYear"> </span>
+		</div>
+	  	<!-- card holder name -->
+	  	<div class="mp-box-inputs mp-col-100">
+	        <label for="cardholderName"><?php echo $form_labels[ 'form' ][ 'card_holder_name' ]; ?> <em>*</em></label>
+	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder="<?php echo $form_labels[ 'form' ][ 'card_holder_placeholder' ] ?>" autocomplete="off" />
+	        <span class="mp-error" id="mp-error-221" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '221' ]; ?> </span>
+	        <span class="mp-error" id="mp-error-316" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '316' ]; ?> </span>
+		</div>
+	  	<!-- security code -->
+		<div class="mp-box-inputs mp-line">
+	        <div class="mp-box-inputs mp-col-45">
+				<label for="securityCode"><?php echo $form_labels[ 'form' ][ 'security_code' ]; ?> <em>*</em></label>
+				<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" name="mercadopago_custom[securityCode]" style="padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;" autocomplete="off"/>
+				<span class="mp-error" id="mp-error-224" data-main="#securityCode"> <?php echo $form_labels[ 'error' ][ '224' ]; ?> </span>
+				<span class="mp-error" id="mp-error-E302" data-main="#securityCode"> <?php echo $form_labels[ 'error' ][ 'E302' ]; ?> </span>
+			</div>
+		</div>
+		<!-- document type -->
+		<div class="mp-box-inputs mp-col-100 mp-doc">
+	        <div class="mp-box-inputs mp-col-35 mp-docType">
+				<label for="docType"><?php echo $form_labels[ 'form' ][ 'document_type' ]; ?> <em>*</em></label>
+				<select id="docType" data-checkout="docType" name="mercadopago_custom[docType]"></select>
+				<span class="mp-error" id="mp-error-212" data-main="#docType"> <?php echo $form_labels[ 'error' ][ '212' ]; ?> </span>
+				<span class="mp-error" id="mp-error-322" data-main="#docType"> <?php echo $form_labels[ 'error' ][ '322' ]; ?> </span>
+	        </div>
+	        <div class="mp-box-inputs mp-col-65 mp-docNumber">
+				<label for="docNumber"><?php echo $form_labels[ 'form' ][ 'document_number' ]; ?> <em>*</em></label>
+				<input type="text" id="docNumber" data-checkout="docNumber" placeholder="" name="mercadopago_custom[docNumber]" autocomplete="off"/>
+				<span class="mp-error" id="mp-error-214" data-main="#docNumber"> <?php echo $form_labels[ 'error' ][ '214' ]; ?> </span>
+				<span class="mp-error" id="mp-error-324" data-main="#docNumber"> <?php echo $form_labels[ 'error' ][ '324' ]; ?> </span>
+			</div>
+      	</div>
+      	<!-- card issuer -->
+	    <div class="mp-box-inputs mp-col-100 mp-issuer">
+	        <label for="issuer"><?php echo $form_labels[ 'form' ][ 'issuer' ]; ?> <em>*</em></label>
+	        <select id="issuer" data-checkout="issuer" name="mercadopago_custom[issuer]"></select>
+	        <span class="mp-error" id="mp-error-220" data-main="#issuer"> <?php echo $form_labels[' error' ][ '220' ]; ?> </span>
+      	</div>
+      	<!-- installments -->
+		<div class="mp-box-inputs mp-col-100">
+	        <label for="installments"><?php echo $form_labels[ 'form' ][ 'installments' ]; ?> <em>*</em></label>
+	        <select id="installments" data-checkout="installments" name="mercadopago_custom[installments]"></select>
+      	</div>
+		<div class="mp-box-inputs mp-line">
+	    	<!-- <div class="mp-box-inputs mp-col-50">
+	    		<input type="submit" value="Pay" id="submit"/>
+	    	</div> -->
+			<div class="mp-box-inputs mp-col-25">
+	    		<div id="mp-box-loading">
+	        	</div>
+			</div>
+		</div>
+		<!-- utilities -->
+		<div class="mp-box-inputs mp-col-100" id="mercadopago-utilities">
+			<input type="hidden" id="public_key" value="<?php echo $public_key; ?>" />
+			<input type="hidden" id="site_id"  name="mercadopago_custom[site_id]"/>
+			<input type="hidden" id="amount" value="<?php echo $amount; ?>" name="mercadopago_custom[amount]"/>
+			<input type="hidden" id="paymentMethodId" name="mercadopago_custom[paymentMethodId]"/>
+			<input type="hidden" id="token" name="mercadopago_custom[token]"/>
+			<input type="hidden" id="cardTruncated" name="mercadopago_custom[cardTruncated]"/>
+		</div>
+
+	</div>
 </fieldset>
+
+<script type="text/javascript">
+
+	var config_mp = {
+	    debug: false,
+	    add_truncated_card: true,
+	    site_id: '<?php echo $site_id; ?>',
+	    public_key: '<?php echo $public_key; ?>',
+	    create_token_on: {
+ 			event: true, //if true create token on event, if false create on click and ignore others events. eg: paste or keyup
+ 			keyup: false,
+ 			paste: true,
+ 		},
+	    inputs_to_create_token: [
+	        "cardNumber",
+	        "cardExpirationMonth",
+	        "cardExpirationYear",
+	        "cardholderName",
+	        "securityCode",
+	        "docType",
+	        "docNumber"
+	    ],
+	    selectors: {
+	        cardId: "#cardId",
+
+	        cardNumber: "#cardNumber",
+	        cardExpirationMonth: "#cardExpirationMonth",
+	        cardExpirationYear: "#cardExpirationYear",
+	        cardholderName: "#cardholderName",
+	        securityCode: "#securityCode",
+	        docType: "#docType",
+	        docNumber: "#docNumber",
+	        issuer: "#issuer",
+	        installments: "#installments",
+
+	        paymentMethodId: "#paymentMethodId",
+	        paymentMethodIdSelector: "#paymentMethodIdSelector",
+	        amount: "#amount",
+	        token: "#token",
+	        cardTruncated: "#cardTruncated",
+	        site_id: "#site_id",
+
+	        box_loading: "#mp-box-loading",
+	        submit: "#submit",
+	        form: '#mercadopago-form',
+	        utilities_fields: "#mercadopago-utilities"
+	    },
+	    text: {
+	        choose: "Choose"
+	    },
+	    paths: {
+	        loading: '<?php echo ( $images_path . "loading.gif" ); ?>'
+	    }
+	}
+
+	Initialize();
+
+	/*
+	 *
+	 *
+	 * payment methods
+	 *
+	 */
+
+	function getBin() {
+	    var cardSelector = document.querySelector(config_mp.selectors.cardId);
+	    if (cardSelector && cardSelector[cardSelector.options.selectedIndex].value != "-1") {
+	        return cardSelector[cardSelector.options.selectedIndex].getAttribute('first_six_digits');
+	    }
+	    var ccNumber = document.querySelector(config_mp.selectors.cardNumber);
+	    return ccNumber.value.replace(/[ .-]/g, '').slice(0, 6);
+	}
+
+	function clearOptions() {
+	    var bin = getBin();
+	    if (bin.length == 0) {
+	        hideIssuer();
+
+	        var selectorInstallments = document.querySelector(config_mp.selectors.installments),
+	            fragment = document.createDocumentFragment(),
+	            option = new Option(config_mp.text.choose + "...", '-1');
+
+	        selectorInstallments.options.length = 0;
+	        fragment.appendChild(option);
+	        selectorInstallments.appendChild(fragment);
+	        selectorInstallments.setAttribute('disabled', 'disabled');
+	    }
+	}
+
+	function guessingPaymentMethod(event) {
+
+	    var bin = getBin(),
+	        amount = document.querySelector(config_mp.selectors.amount).value;
+	    if (event.type == "keyup") {
+	        if (bin.length == 6) {
+	            Mercadopago.getPaymentMethod({
+	                "bin": bin
+	            }, setPaymentMethodInfo);
+	        }
+	    } else {
+	        setTimeout(function() {
+	            if (bin.length >= 6) {
+	                Mercadopago.getPaymentMethod({
+	                    "bin": bin
+	                }, setPaymentMethodInfo);
+	            }
+	        }, 100);
+	    }
+	};
+
+	function setPaymentMethodInfo(status, response) {
+	    if (status == 200) {
+
+	        if (config_mp.site_id != "MLM") {
+	            //guessing
+	            document.querySelector(config_mp.selectors.paymentMethodId).value = response[0].id;
+	            document.querySelector(config_mp.selectors.cardNumber).style.background = "url(" + response[0].secure_thumbnail + ") 98% 50% no-repeat #fff";
+	        }
+
+	        // check if the security code (ex: Tarshop) is required
+	        var cardConfiguration = response[0].settings,
+	            bin = getBin(),
+	            amount = document.querySelector(config_mp.selectors.amount).value;
+
+	        //for (var index = 0; index < cardConfiguration.length; index++) {
+	        //    if (bin.match(cardConfiguration[index].bin.pattern) != null && cardConfiguration[index].security_code.length == 0) {
+	        //        /*
+	        //         * In this case you do not need the Security code. You can hide the input.
+	        //         */
+	        //    } else {
+	        //        /*
+	        //         * In this case you NEED the Security code. You MUST show the input.
+	        //         */
+	        //    }
+	        //}
+
+	        Mercadopago.getInstallments({
+	            "bin": bin,
+	            "amount": amount
+	        }, setInstallmentInfo);
+
+	        // check if the issuer is necessary to pay
+	        var issuerMandatory = false,
+	            additionalInfo = response[0].additional_info_needed;
+
+	        for (var i = 0; i < additionalInfo.length; i++) {
+	            if (additionalInfo[i] == "issuer_id") {
+	                issuerMandatory = true;
+	            }
+	        };
+            if (issuerMandatory && config_mp.site_id != "MLM") {
+ 				var payment_method_id = response[0].id;
+ 				getIssuersPaymentMethod(payment_method_id);
+	        } else {
+	            hideIssuer();
+	        }
+	    }
+	};
+
+	function changePaymetMethodSelector() {
+ 		var payment_method_id = document.querySelector(config_mp.selectors.paymentMethodIdSelector).value;
+		getIssuersPaymentMethod(payment_method_id);
+ 	}
+
+	/*
+	 *
+	 *
+	 * Issuers
+	 *
+	 */
+	function getIssuersPaymentMethod(payment_method_id) {
+ 		Mercadopago.getIssuers(payment_method_id, showCardIssuers);
+ 		addEvent(document.querySelector(config_mp.selectors.issuer), 'change', setInstallmentsByIssuerId);
+ 	}
+
+	function showCardIssuers(status, issuers) {
+		//if the API does not return any bank
+ 		if (issuers.length > 0) {
+	 		var issuersSelector = document.querySelector(config_mp.selectors.issuer),
+	 		fragment = document.createDocumentFragment();
+		    issuersSelector.options.length = 0;
+	 		var option = new Option(config_mp.text.choose + "...", '-1');
+			fragment.appendChild(option);
+            for (var i = 0; i < issuers.length; i++) {
+		 		if (issuers[i].name != "default") {
+		 			option = new Option(issuers[i].name, issuers[i].id);
+		 		} else {
+		 			option = new Option("Otro", issuers[i].id);
+		 		}
+		 		fragment.appendChild(option);
+	        }
+			issuersSelector.appendChild(fragment);
+			issuersSelector.removeAttribute('disabled');
+	        //document.querySelector(config_mp.selectors.issuer).removeAttribute('style');
+	    } else {
+	        hideIssuer();
+	    }
+	};
+
+	function setInstallmentsByIssuerId(status, response) {
+	    var issuerId = document.querySelector(config_mp.selectors.issuer).value,
+	        amount = document.querySelector(config_mp.selectors.amount).value;
+
+	    if (issuerId === '-1') {
+	        return;
+	    }
+
+	    Mercadopago.getInstallments({
+	        "bin": getBin(),
+	        "amount": amount,
+	        "issuer_id": issuerId
+	    }, setInstallmentInfo);
+	};
+
+
+
+	function hideIssuer() {
+	    var $issuer = document.querySelector(config_mp.selectors.issuer);
+	    var opt = document.createElement('option');
+	    opt.value = "-1";
+	    opt.innerHTML = "Other Bank";
+
+	    $issuer.innerHTML = "";
+	    $issuer.appendChild(opt);
+	    $issuer.setAttribute('disabled', 'disabled');
+	}
+
+	/*
+	 *
+	 *
+	 * Installments
+	 *
+	 */
+
+	function setInstallmentInfo(status, response) {
+	    var selectorInstallments = document.querySelector(config_mp.selectors.installments);
+
+	    if (response.length > 0) {
+
+	        var html_option = '<option value="-1">' + config_mp.text.choose + '...</option>';
+	        payerCosts = response[0].payer_costs;
+
+	        // fragment.appendChild(option);
+	        for (var i = 0; i < payerCosts.length; i++) {
+	            html_option += '<option value="' + payerCosts[i].installments + '">' + (payerCosts[i].recommended_message || payerCosts[i].installments) + '</option>';
+	        }
+
+	        // not take the user's selection if equal
+	        if (selectorInstallments.innerHTML != html_option) {
+	            selectorInstallments.innerHTML = html_option;
+	        }
+
+	        selectorInstallments.removeAttribute('disabled');
+	    }
+	};
+
+
+	/*
+	 *
+	 *
+	 * Customer & Cards
+	 *
+	 */
+
+	function cardsHandler() {
+	    clearOptions();
+	    var cardSelector = document.querySelector(config_mp.selectors.cardId),
+	        amount = document.querySelector(config_mp.selectors.amount).value;
+
+	    if (cardSelector && cardSelector[cardSelector.options.selectedIndex].value != "-1") {
+	        var _bin = cardSelector[cardSelector.options.selectedIndex].getAttribute("first_six_digits");
+	        Mercadopago.getPaymentMethod({
+	            "bin": _bin
+	        }, setPaymentMethodInfo);
+	    }
+	}
+
+
+	/*
+	 * Payment Methods
+	 *
+	 */
+
+	function getPaymentMethods() {
+	    var paymentMethodsSelector = document.querySelector(config_mp.selectors.paymentMethodIdSelector)
+
+	    //set loading
+	    paymentMethodsSelector.style.background = "url(" + config_mp.paths.loading + ") 95% 50% no-repeat #fff";
+
+	    Mercadopago.getAllPaymentMethods(function(code, payment_methods) {
+	        fragment = document.createDocumentFragment();
+	        option = new Option(config_mp.text.choose + "...", '-1');
+	        fragment.appendChild(option);
+
+
+	        for (var x = 0; x < payment_methods.length; x++) {
+	            var pm = payment_methods[x];
+
+	            if ((pm.payment_type_id == "credit_card" ||
+	                    pm.payment_type_id == "debit_card" ||
+	                    pm.payment_type_id == "prepaid_card") &&
+	                pm.status == "active") {
+
+	                option = new Option(pm.name, pm.id);
+	                fragment.appendChild(option);
+
+	            } //end if
+
+	        } //end for
+
+	        paymentMethodsSelector.appendChild(fragment);
+	        paymentMethodsSelector.style.background = "#fff";
+	    });
+	}
+
+	/*
+	 *
+	 * Functions related to Create Tokens
+	 *
+	 */
+
+
+	function createTokenByEvent() {
+	    for (var x = 0; x < document.querySelectorAll('[data-checkout]').length; x++) {
+	        var element = document.querySelectorAll('[data-checkout]')[x];
+
+	        //add events only in the required fields
+	        if (config_mp.inputs_to_create_token.indexOf(element.getAttribute("data-checkout")) > -1) {
+	            
+	            addEvent(element, "focusout", validateInputsCreateToken);
+	            addEvent(element, "change", validateInputsCreateToken);
+
+	            if (config_mp.create_token_on.keyup) {
+	                addEvent(element, "keyup", validateInputsCreateToken);
+	            }
+	            
+	            if (config_mp.create_token_on.paste) {
+ 					addEvent(element, "paste", validateInputsCreateToken);
+ 				}
+
+	        }
+	    }
+	}
+
+	function createTokenBySubmit() {
+	    addEvent(document.querySelector(config_mp.selectors.form), 'submit', doPay);
+	}
+
+	var doSubmit = false;
+
+	function doPay(event) {
+	    event.preventDefault();
+	    if (!doSubmit) {
+	        createToken();
+	        return false;
+	    }
+	};
+
+	function validateInputsCreateToken() {
+	    var valid_to_create_token = true;
+
+	    for (var x = 0; x < document.querySelectorAll('[data-checkout]').length; x++) {
+	        var element = document.querySelectorAll('[data-checkout]')[x];
+
+	        //check is a input to create token
+	        if (config_mp.inputs_to_create_token.indexOf(element.getAttribute("data-checkout")) > -1) {
+	            if (element.value == -1 || element.value == "") {
+	                valid_to_create_token = false;
+	            } //end if check values
+	        } //end if check data-checkout
+	    } //end for
+
+	    if (valid_to_create_token) {
+	        createToken();
+	    }
+	}
+
+	function createToken() {
+	    hideErrors();
+
+	    //show loading
+	    document.querySelector(config_mp.selectors.box_loading).style.background = "url(" + config_mp.paths.loading + ") 0 50% no-repeat #fff";
+
+	    //form
+	    var $form = document.querySelector(config_mp.selectors.form);
+
+	    Mercadopago.createToken($form, sdkResponseHandler);
+
+	    return false;
+	}
+
+	function sdkResponseHandler(status, response) {
+	    //hide loading
+	    document.querySelector(config_mp.selectors.box_loading).style.background = "";
+
+	    if (status != 200 && status != 201) {
+	        showErrors(response);
+	    } else {
+	        var token = document.querySelector(config_mp.selectors.token);
+	        token.value = response.id;
+
+	        if (config_mp.add_truncated_card) {
+	            var card = truncateCard(response);
+	            document.querySelector(config_mp.selectors.cardTruncated).value = card;
+	        }
+
+	        if (!config_mp.create_token_on.event) {
+	            doSubmit = true;
+	            btn = document.querySelector(config_mp.selectors.form);
+	            btn.submit();
+	        }
+	    }
+	}
+
+	/*
+	 *
+	 *
+	 * useful functions
+	 *
+	 */
+
+
+	function truncateCard(response_card_token) {
+	    var first_six_digits = response_card_token.first_six_digits.match(/.{1,4}/g)
+	    var card = first_six_digits[0] + " " + first_six_digits[1] + "** **** " + response_card_token.last_four_digits;
+	    return card;
+	}
+
+	/*
+	 *
+	 *
+	 * Show errors
+	 *
+	 */
+
+	function showErrors(response) {
+	    console.log(response);
+
+	    for (var x = 0; x < response.cause.length; x++) {
+	        var error = response.cause[x];
+	        var $span = document.querySelector('#mp-error-' + error.code);
+	        var $input = document.querySelector($span.getAttribute("data-main"));
+
+	        $span.style.display = 'inline-block';
+	        $input.classList.add("mp-error-input");
+
+	    }
+
+	    return;
+	}
+
+	function hideErrors() {
+
+	    for (var x = 0; x < document.querySelectorAll('[data-checkout]').length; x++) {
+	        var $field = document.querySelectorAll('[data-checkout]')[x];
+	        $field.classList.remove("mp-error-input");
+
+	    } //end for
+
+	    for (var x = 0; x < document.querySelectorAll('.mp-error').length; x++) {
+	        var $span = document.querySelectorAll('.mp-error')[x];
+	        $span.style.display = 'none';
+
+	    }
+
+	    return;
+	}
+
+	/*
+	 *
+	 * Add events to guessing
+	 *
+	 */
+
+
+	function addEvent(el, eventName, handler) {
+	    if (el.addEventListener) {
+	        el.addEventListener(eventName, handler);
+	    } else {
+	        el.attachEvent('on' + eventName, function() {
+	            handler.call(el);
+	        });
+	    }
+	};
+
+
+	addEvent(document.querySelector(config_mp.selectors.cardNumber), 'keyup', guessingPaymentMethod);
+	addEvent(document.querySelector(config_mp.selectors.cardNumber), 'keyup', clearOptions);
+	addEvent(document.querySelector(config_mp.selectors.cardNumber), 'change', guessingPaymentMethod);
+	cardsHandler();
+
+
+	/*
+	 *
+	 *
+	 * Initialization function
+	 *
+	 */
+
+	function Initialize() {
+
+	    if (config_mp.create_token_on.event) {
+	        createTokenByEvent();
+	    } else {
+	        createTokenBySubmit()
+	    }
+
+	    Mercadopago.setPublishableKey(config_mp.public_key);
+
+	    if (config_mp.site_id != "MLM") {
+	        Mercadopago.getIdentificationTypes();
+	    }
+
+	    if (config_mp.site_id == "MLM") {
+
+	        //hide documento for mex
+	        document.querySelector(".mp-doc").style.display = 'none';
+	        document.querySelector(".mp-paymentMethodsSelector").removeAttribute('style');
+
+	        //removing not used fields for this country
+	        config_mp.inputs_to_create_token.splice(config_mp.inputs_to_create_token.indexOf("docType"), 1);
+	        config_mp.inputs_to_create_token.splice(config_mp.inputs_to_create_token.indexOf("docNumber"), 1);
+
+	        addEvent(document.querySelector(config_mp.selectors.paymentMethodIdSelector), 'change', changePaymetMethodSelector);
+
+	        //get payment methods and populate selector
+	        getPaymentMethods();
+	    }
+
+	    if (config_mp.site_id == "MLB") {
+
+	        document.querySelector(".mp-docType").style.display = 'none';
+	        document.querySelector(".mp-issuer").style.display = 'none';
+	        //ajust css
+	        document.querySelector(".mp-docNumber").classList.remove("mp-col-75");
+	        document.querySelector(".mp-docNumber").classList.add("mp-col-100");
+
+	    } else if (config_mp.site_id == "MCO") {
+	        document.querySelector(".mp-issuer").style.display = 'none';
+	    }
+
+	    document.querySelector(config_mp.selectors.site_id).value = config_mp.site_id;
+
+	    if (config_mp.debug) {
+	        document.querySelector(config_mp.selectors.utilities_fields).style.display = 'inline-block';
+	        console.log(config_mp);
+	    }
+	}
+	
+</script>
