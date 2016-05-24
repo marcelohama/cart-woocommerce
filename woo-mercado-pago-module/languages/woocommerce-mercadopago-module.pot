@@ -567,3 +567,54 @@ msgid ""
 "mediation or it was "
 "charged-back."
 msgstr ""
+
+msgid " as it appears in your card ..."
+msgstr ""
+
+msgid "Done, your payment was accredited!"
+msgstr ""
+
+msgid "We are processing the payment. In less than an hour we will e-mail you the results."
+msgstr ""
+
+msgid "We are processing the payment. In less than 2 business days we will tell you by e-mail whether it has accredited or we need more information."
+msgstr ""
+
+msgid "Check the card number."
+msgstr ""
+
+msgid "Check the expiration date."
+msgstr ""
+
+msgid "Check the information."
+msgstr ""
+
+msgid "Check the security code."
+msgstr ""
+
+msgid "We could not process your payment."
+msgstr ""
+
+msgid "You must authorize the payment of your orders."
+msgstr ""
+
+msgid "Call your card issuer to activate your card. The phone is on the back of your card."
+msgstr ""
+
+msgid "You already made a payment for that amount. If you need to repay, use another card or other payment method."
+msgstr ""
+
+msgid "Your payment was rejected. Choose another payment method. We recommend cash."
+msgstr ""
+
+msgid "Your payment do not have sufficient funds."
+msgstr ""
+
+msgid "Your payment does not process payments with selected installments."
+msgstr ""
+
+msgid "You have reached the limit of allowed attempts. Choose another card or another payment method."
+msgstr ""
+
+msgid "This payment method did not process the payment."
+msgstr ""

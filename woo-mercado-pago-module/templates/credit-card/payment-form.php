@@ -80,7 +80,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	  	<!-- card holder name -->
 	  	<div class="mp-box-inputs mp-col-100">
 	        <label for="cardholderName"><?php echo $form_labels[ 'form' ][ 'card_holder_name' ]; ?> <em>*</em></label>
-	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder=" as it appears in your card ... " autocomplete="off" />
+	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder="<?php echo $form_labels[ 'form' ][ 'card_holder_placeholder' ] ?>" autocomplete="off" />
 	        <span class="mp-error" id="mp-error-221" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '221' ]; ?> </span>
 	        <span class="mp-error" id="mp-error-316" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '316' ]; ?> </span>
 		</div>
@@ -144,7 +144,7 @@ if ( !defined( 'ABSPATH' ) ) {
 <script type="text/javascript">
 
 	var config_mp = {
-	    debug: true,
+	    debug: false,
 	    add_truncated_card: true,
 	    site_id: '<?php echo $site_id; ?>',
 	    public_key: '<?php echo $public_key; ?>',
@@ -259,24 +259,22 @@ if ( !defined( 'ABSPATH' ) ) {
 	            document.querySelector(config_mp.selectors.cardNumber).style.background = "url(" + response[0].secure_thumbnail + ") 98% 50% no-repeat #fff";
 	        }
 
-
-
 	        // check if the security code (ex: Tarshop) is required
 	        var cardConfiguration = response[0].settings,
 	            bin = getBin(),
 	            amount = document.querySelector(config_mp.selectors.amount).value;
 
-	        for (var index = 0; index < cardConfiguration.length; index++) {
-	            if (bin.match(cardConfiguration[index].bin.pattern) != null && cardConfiguration[index].security_code.length == 0) {
-	                /*
-	                 * In this case you do not need the Security code. You can hide the input.
-	                 */
-	            } else {
-	                /*
-	                 * In this case you NEED the Security code. You MUST show the input.
-	                 */
-	            }
-	        }
+	        //for (var index = 0; index < cardConfiguration.length; index++) {
+	        //    if (bin.match(cardConfiguration[index].bin.pattern) != null && cardConfiguration[index].security_code.length == 0) {
+	        //        /*
+	        //         * In this case you do not need the Security code. You can hide the input.
+	        //         */
+	        //    } else {
+	        //        /*
+	        //         * In this case you NEED the Security code. You MUST show the input.
+	        //         */
+	        //    }
+	        //}
 
 	        Mercadopago.getInstallments({
 	            "bin": bin,
@@ -292,15 +290,19 @@ if ( !defined( 'ABSPATH' ) ) {
 	                issuerMandatory = true;
 	            }
 	        };
-	        if (issuerMandatory) {
-	            Mercadopago.getIssuers(response[0].id, showCardIssuers);
-	            addEvent(document.querySelector(config_mp.selectors.issuer), 'change', setInstallmentsByIssuerId);
+            if (issuerMandatory && config_mp.site_id != "MLM") {
+ 				var payment_method_id = response[0].id;
+ 				getIssuersPaymentMethod(payment_method_id);
 	        } else {
 	            hideIssuer();
 	        }
 	    }
 	};
 
+	function changePaymetMethodSelector() {
+ 		var payment_method_id = document.querySelector(config_mp.selectors.paymentMethodIdSelector).value;
+		getIssuersPaymentMethod(payment_method_id);
+ 	}
 
 	/*
 	 *
@@ -308,27 +310,33 @@ if ( !defined( 'ABSPATH' ) ) {
 	 * Issuers
 	 *
 	 */
+	function getIssuersPaymentMethod(payment_method_id) {
+ 		Mercadopago.getIssuers(payment_method_id, showCardIssuers);
+ 		addEvent(document.querySelector(config_mp.selectors.issuer), 'change', setInstallmentsByIssuerId);
+ 	}
 
 	function showCardIssuers(status, issuers) {
-
-	    var issuersSelector = document.querySelector(config_mp.selectors.issuer),
-	        fragment = document.createDocumentFragment();
-
-	    issuersSelector.options.length = 0;
-	    var option = new Option(config_mp.text.choose + "...", '-1');
-	    fragment.appendChild(option);
-
-	    for (var i = 0; i < issuers.length; i++) {
-	        if (issuers[i].name != "default") {
-	            option = new Option(issuers[i].name, issuers[i].id);
-	        } else {
-	            option = new Option("Otro", issuers[i].id);
+		//if the API does not return any bank
+ 		if (issuers.length > 0) {
+	 		var issuersSelector = document.querySelector(config_mp.selectors.issuer),
+	 		fragment = document.createDocumentFragment();
+		    issuersSelector.options.length = 0;
+	 		var option = new Option(config_mp.text.choose + "...", '-1');
+			fragment.appendChild(option);
+            for (var i = 0; i < issuers.length; i++) {
+		 		if (issuers[i].name != "default") {
+		 			option = new Option(issuers[i].name, issuers[i].id);
+		 		} else {
+		 			option = new Option("Otro", issuers[i].id);
+		 		}
+		 		fragment.appendChild(option);
 	        }
-	        fragment.appendChild(option);
+			issuersSelector.appendChild(fragment);
+			issuersSelector.removeAttribute('disabled');
+	        //document.querySelector(config_mp.selectors.issuer).removeAttribute('style');
+	    } else {
+	        hideIssuer();
 	    }
-	    issuersSelector.appendChild(fragment);
-	    issuersSelector.removeAttribute('disabled');
-	    //document.querySelector(config_mp.selectors.issuer).removeAttribute('style');
 	};
 
 	function setInstallmentsByIssuerId(status, response) {
@@ -351,7 +359,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	function hideIssuer() {
 	    var $issuer = document.querySelector(config_mp.selectors.issuer);
 	    var opt = document.createElement('option');
-	    opt.value = "1";
+	    opt.value = "-1";
 	    opt.innerHTML = "Other Bank";
 
 	    $issuer.innerHTML = "";
@@ -654,6 +662,8 @@ if ( !defined( 'ABSPATH' ) ) {
 	        //removing not used fields for this country
 	        config_mp.inputs_to_create_token.splice(config_mp.inputs_to_create_token.indexOf("docType"), 1);
 	        config_mp.inputs_to_create_token.splice(config_mp.inputs_to_create_token.indexOf("docNumber"), 1);
+
+	        addEvent(document.querySelector(config_mp.selectors.paymentMethodIdSelector), 'change', changePaymetMethodSelector);
 
 	        //get payment methods and populate selector
 	        getPaymentMethods();

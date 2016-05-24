@@ -304,14 +304,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				wp_enqueue_script(
 					'woocommerce-mercadopago-v1',
 					'https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js' );
-				/*wp_localize_script(
-					'woocommerce-checkout-font-awesome',
-					'wc_mercadopago_params',
-					array(
-						'session_id'         => $session_id,
-						'payment_method'     => __( 'Payment Method', 'woocommerce-mercadopago-module' )
-					)
-				);*/
 			}
 		}
 	}
@@ -329,6 +321,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'amount' => $amount,
 				'form_labels' => array(
 					"form" => array(
+						"card_holder_placeholder" => __( " as it appears in your card ...", 'woocommerce-mercadopago-module' ),
 				        "payment_method" => __( "Payment Method", 'woocommerce-mercadopago-module' ),
 				        "credit_card_number" => __( "Credit card number", 'woocommerce-mercadopago-module' ),
 				        "expiration_month" => __( "Expiration month", 'woocommerce-mercadopago-module' ),
@@ -396,7 +389,10 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	            switch ( $response[ 'status' ] ) {
 	            	case 'approved':
 	            		WC()->cart->empty_cart();
-	            		//$order->reduce_order_stock();
+	            		wc_add_notice(
+	            			'<p>' . __( $this->getOrderStatus( 'accredited' ), 'woocommerce-mercadopago-module') . '</p>',
+	            			'notice'
+	            		);
 	            		$order->add_order_note(
 							'Mercado Pago: ' .
 							__( 'Payment approved.', 'woocommerce-mercadopago-module' )
@@ -411,12 +407,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	                case 'in_process':
 	                	// for pending, we don't know if the purchase will be made, so we must inform this status
 	                	WC()->cart->empty_cart();
-	                	//$order->reduce_order_stock();
 						wc_add_notice(
-							__( 'Your payment is under review. In less than 1h, you should be notified by email.', 'woocommerce-mercadopago-module' ) .
-							'<br><a class="button" href="' . esc_url( $order->get_checkout_order_received_url() ) . '">' .
-							__( 'Check your order resume', 'woocommerce-mercadopago-module' ) .
-							'</a>',
+							'<p>' . __( $this->getOrderStatus( $response[ 'status_detail' ] ), 'woocommerce-mercadopago-module') . '</p>' .
+							'<p><a class="button" href="' . esc_url( $order->get_checkout_order_received_url() ) . '">' .
+								__( 'Check your order resume', 'woocommerce-mercadopago-module' ) .
+							'</a></p>',
 							'notice'
 						);
 						return array(
@@ -428,12 +423,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	                	// if rejected is received, the order will not proceed until another payment try,
 	                	// so we must inform this status
 						wc_add_notice(
-							__( 'Your payment was refused. You can try again.', 'woocommerce-mercadopago-module' ) .
-							'<br>' . __( $response[ 'status' ], 'woocommerce-mercadopago-module' ) .
-							': ' . __( $response[ 'status_detail' ], 'woocommerce-mercadopago-module' ) .
-							'<br><a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
-							__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
-							'</a>',
+							'<p>' . __( 'Your payment was refused. You can try again.', 'woocommerce-mercadopago-module' ) .
+							'<br>' . __( $this->getOrderStatus( $response[ 'status_detail' ] ), 'woocommerce-mercadopago-module') . '</p>' .
+							'<p><a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
+								__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
+							'</a></p>',
 							'error'
 						);
 						return array(
@@ -452,7 +446,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		} else {
 			// process when fields are imcomplete
 			wc_add_notice(
-				__( 'A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module' ),
+				'<p>' . __( 'A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module' ) . '</p>',
 				'error'
 			);
 			return array(
@@ -798,27 +792,44 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	public function showOrderStatus( $status, $status_detail ) {
-		if ( $status == "in_process" ) {
-			$html =
-				'<p>' . 'Mercado Pago: ' .
-					__( 'Your payment is under review. In less than 1h, you should be notified by email.', 'woocommerce-mercadopago-module' ) .
-				'</p>';
-			$html .=
-				'<a class="button" href="' . esc_url( $order->get_checkout_order_received_url() ) . '">' .
-				__( 'Click to check your order', 'woocommerce-mercadopago-module' ) .
-				'</a>';
-			echo $html;
-		} else if ( $status == "rejected" ) {
-			$html =
-				'<p>' . __( 'An error occurred when proccessing your payment. Please try again or contact us for assistence.', 'woocommerce-mercadopago-module' ) . '</p>';
-			$html .=
-				'<p>' . __( 'Reason is: ', 'woocommerce-mercadopago-module' ) . $status_detail . '.</p>';
-			$html .=
-				'<a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' .
-				__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
-				'</a>';
-			echo $html;
+	public function getOrderStatus( $status_detail ) {
+		switch ( $status_detail ) {
+			case 'accredited':
+				return __( 'Done, your payment was accredited!', 'woocommerce-mercadopago-module' );
+			case 'pending_contingency':
+				return __( 'We are processing the payment. In less than an hour we will e-mail you the results.', 'woocommerce-mercadopago-module' );
+			case 'pending_review_manual':
+				return __( 'We are processing the payment. In less than 2 business days we will tell you by e-mail whether it has accredited or we need more information.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_bad_filled_card_number':
+				return __( 'Check the card number.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_bad_filled_date':
+				return __( 'Check the expiration date.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_bad_filled_other':
+				return __( 'Check the information.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_bad_filled_security_code':
+				return __( 'Check the security code.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_blacklist':
+				return __( 'We could not process your payment.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_call_for_authorize':
+				return __( 'You must authorize the payment of your orders.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_card_disabled':
+				return __( 'Call your card issuer to activate your card. The phone is on the back of your card.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_card_error':
+				return __( 'We could not process your payment.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_duplicated_payment':
+				return __( 'You already made a payment for that amount. If you need to repay, use another card or other payment method.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_high_risk':
+				return __( 'Your payment was rejected. Choose another payment method. We recommend cash.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_insufficient_amount':
+				return __( 'Your payment do not have sufficient funds.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_invalid_installments':
+				return __( 'Your payment does not process payments with selected installments.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_max_attempts':
+				return __( 'You have reached the limit of allowed attempts. Choose another card or another payment method.', 'woocommerce-mercadopago-module' );
+			case 'cc_rejected_other_reason':
+				return __( 'This payment method did not process the payment.', 'woocommerce-mercadopago-module' );
+			default:
+				return __( 'This payment method did not process the payment.', 'woocommerce-mercadopago-module' );
 		}
 	}
 	

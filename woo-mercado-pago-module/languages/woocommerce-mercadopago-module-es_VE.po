@@ -327,7 +327,7 @@ msgstr "Año"
 
 #: mercadopago/mercadopago-custom-gateway.php:337
 msgid "Month"
-msgstr "Meus"
+msgstr "Mes"
 
 #: mercadopago/mercadopago-custom-gateway.php:338
 msgid "Card holder name"
@@ -704,3 +704,54 @@ msgid ""
 msgstr ""
 "Sus credenciales Client_id/Client_secret de Mercado Pago parecen no estar "
 "debidamente configuradas."
+
+msgid " as it appears in your card ..."
+msgstr " tal como aparece en su tarjeta ..."
+
+msgid "Done, your payment was accredited!"
+msgstr "Listo, su pago ha sido aceptado!"
+
+msgid "We are processing the payment. In less than an hour we will e-mail you the results."
+msgstr "Estamos procesando su pago. En menos de una hora se le notificará por correo electrónico."
+
+msgid "We are processing the payment. In less than 2 business days we will tell you by e-mail whether it has accredited or we need more information."
+msgstr "Estamos procesando su pago. En menos de 2 días se le notificará por correo electrónico si se ha aprobado el pago o si se necesita información adicional."
+
+msgid "Check the card number."
+msgstr "Compruebe el número de tarjeta."
+
+msgid "Check the expiration date."
+msgstr "Compruebe la fecha de expiración."
+
+msgid "Check the information."
+msgstr "Compruebe la información informada."
+
+msgid "Check the security code."
+msgstr "Compruebe el código de seguridad informado."
+
+msgid "We could not process your payment."
+msgstr "No se puede procesar su pago."
+
+msgid "You must authorize the payment of your orders."
+msgstr "Usted debe autorizar pagos de sus órdenes."
+
+msgid "Call your card issuer to activate your card. The phone is on the back of your card."
+msgstr "Póngase en contacto con el emisor de su tarjeta para activarla. El teléfono se encuentra en la parte posterior de su tarjeta."
+
+msgid "You already made a payment for that amount. If you need to repay, use another card or other payment method."
+msgstr "Usted ya realizó el pago de esta cantidad. Si tiene que pagar de nuevo, utilizar otra tarjeta u otro método de pago."
+
+msgid "Your payment was rejected. Choose another payment method. We recommend cash."
+msgstr "Su pago fue rechazado. Por favor seleccione otro método de pago. Se recomienda dinero."
+
+msgid "Your payment do not have sufficient funds."
+msgstr "Su pago no tiene fondos suficientes."
+
+msgid "Your payment does not process payments with selected installments."
+msgstr "El pago no puede procesar la cuota seleccionada."
+
+msgid "You have reached the limit of allowed attempts. Choose another card or another payment method."
+msgstr "Has alcanzado el límite de intentos permitidos. Elija otra tarjeta u otro método de pago."
+
+msgid "This payment method did not process the payment."
+msgstr "Esta forma de pago no puede procesar su pago."
