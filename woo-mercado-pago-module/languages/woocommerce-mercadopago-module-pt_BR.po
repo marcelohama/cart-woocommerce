@@ -14,8 +14,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Textdomain-Support: yesX-Generator: Poedit 1.6.4\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-KeywordsList: __;_e;esc_html_e;esc_html_x:1,2c;esc_html__;esc_attr_e;esc_attr_x:1,2c;esc_attr__;_ex:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;_x:1,2c;_n:1,2;_n_noop:1,2;"
-"__ngettext:1,2;__ngettext_noop:1,2;_c,_nc:4c,1,2\n"
+"X-Poedit-KeywordsList: __;_e;esc_html_e;esc_html_x:1,2c;esc_html__;esc_attr_e;esc_attr_x:1,2c;esc_attr__;_ex:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;_x:1,2c;_n:1,2;_n_noop:1,2;__ngettext:1,2;__ngettext_noop:1,2;_c,_nc:4c,1,2\n"
 "X-Poedit-Basepath: ../Documents/woocommerce (MAMP)/wp-content/plugins/woo-mercado-pago-module\n"
 "X-Generator: Poedit 1.8.7\n"
 "Last-Translator: \n"
@@ -195,11 +194,8 @@ msgid "Please, inform a prefix to your store."
 msgstr "Por favor, informe um prefixo para sua loja."
 
 #: mercadopago/mercadopago-custom-gateway.php:244 mercadopago/mercadopago-gateway.php:266
-msgid ""
-"If you use your Mercado Pago account on multiple stores you should make sure that this prefix is unique as Mercado Pago will not allow orders with same identificators."
-msgstr ""
-"Se estiver usando sua conta Mercado Pago para múltiplas lojas então você deverá assegurar-se que este prefixo seja único pois o Mercado Pago não permitirá pedidos com um "
-"mesmo identificador."
+msgid "If you use your Mercado Pago account on multiple stores you should make sure that this prefix is unique as Mercado Pago will not allow orders with same identificators."
+msgstr "Se estiver usando sua conta Mercado Pago para múltiplas lojas então você deverá assegurar-se que este prefixo seja único pois o Mercado Pago não permitirá pedidos com um mesmo identificador."
 
 #: mercadopago/mercadopago-custom-gateway.php:248 mercadopago/mercadopago-gateway.php:318
 msgid "Test and Debug Options"
@@ -502,12 +498,8 @@ msgid "Integration Method"
 msgstr "Método de Integração"
 
 #: mercadopago/mercadopago-gateway.php:272
-msgid ""
-"Select how your clients should interact with Mercado Pago. Modal Window (inside your store), Redirect (Client is redirected to Mercado Pago), or iFrame (an internal "
-"window is embedded to the page layout)."
-msgstr ""
-"Selecione como seus clientes irão interagir com o Mercado Pago. Janela Modal (Dentro de sua loja), Redirecionamento (O cliente é redirecionado ao Mercado Pago), ou iFrame "
-"(Uma janela de pagamento é incorporada ao layout da página)."
+msgid "Select how your clients should interact with Mercado Pago. Modal Window (inside your store), Redirect (Client is redirected to Mercado Pago), or iFrame (an internal window is embedded to the page layout)."
+msgstr "Selecione como seus clientes irão interagir com o Mercado Pago. Janela Modal (Dentro de sua loja), Redirecionamento (O cliente é redirecionado ao Mercado Pago), ou iFrame (Uma janela de pagamento é incorporada ao layout da página)."
 
 #: mercadopago/mercadopago-gateway.php:275
 msgid "iFrame"
@@ -619,3 +611,40 @@ msgstr "Você atingiu o limite de tentativas permitidas. Escolha outro cartão o
 
 msgid "This payment method did not process the payment."
 msgstr "Este método de pagamento não pôde processar o seu pagamento."
+
+msgid "Mercado Pago - Ticket"
+msgstr "Mercado Pago - Boleto"
+
+msgid "Mercado Pago - Credit Card"
+msgstr "Mercado Pago - Cartão de Crédito"
+
+msgid "Ticket Options"
+msgstr "Opções do Boleto"
+
+msgid "Enable Ticket Payment Method"
+msgstr "Habilitar o Método de Pagamento por Boleto"
+
+msgid "Other Bank"
+msgstr "Outro Banco"
+
+msgid "Choose"
+msgstr "Escolha"
+
+msgid "A problem was occurred when processing your payment. Please, try again."
+msgstr "Um problema ocorreu ao processar seu pagamento. Por favor, tente novamente."
+
+msgid "Thank you for your order. Please, pay the ticket to get your order approved."
+msgstr "Obrigado pelo seu pedido. Por favor, pague o boleto para ter seu pedido aprovado."
+
+msgid "Waiting for the ticket payment."
+msgstr "Aguardando o pagamento do boleto."
+
+msgid "Print the Ticket"
+msgstr "Imprimir o boleto"
+
+msgid "To reprint the ticket click "
+msgstr "Para reimprimir o boleto clique "
+
+msgid "here"
+msgstr "aqui"
+

@@ -619,3 +619,39 @@ msgstr "Has alcanzado el límite de intentos permitidos. Elija otra tarjeta u ot
 
 msgid "This payment method did not process the payment."
 msgstr "Esta forma de pago no puede procesar su pago."
+
+msgid "Mercado Pago - Ticket"
+msgstr "Mercado Pago - Boleto"
+
+msgid "Mercado Pago - Credit Card"
+msgstr "Mercado Pago - Tarjeta de Crédito"
+
+msgid "Ticket Options"
+msgstr "Opciones de Boleto"
+
+msgid "Enable Ticket Payment Method"
+msgstr "Habilitar Pago con Boleto"
+
+msgid "Other Bank"
+msgstr "Otro Banco"
+
+msgid "Choose"
+msgstr "Escoger"
+
+msgid "A problem was occurred when processing your payment. Please, try again."
+msgstr "Un problema se produjo al procesar su pago. Por favor, inténtelo de nuevo."
+
+msgid "Thank you for your order. Please, pay the ticket to get your order approved."
+msgstr "Gracias por su orden. Por favor, pagar el boleto para tener su solicitud aprobada."
+
+msgid "Waiting for the ticket payment."
+msgstr "Esperando el pago del boleto."
+
+msgid "Print the Ticket"
+msgstr "Imprimir el boleto"
+
+msgid "To reprint the ticket click "
+msgstr "Para imprimir nuevamente el boleto hace clic "
+
+msgid "here"
+msgstr "aquí"

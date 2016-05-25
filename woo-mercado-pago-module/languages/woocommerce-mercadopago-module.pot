@@ -618,3 +618,42 @@ msgstr ""
 
 msgid "This payment method did not process the payment."
 msgstr ""
+
+msgid "Ticket"
+msgstr ""
+
+msgid "Mercado Pago - Ticket"
+msgstr ""
+
+msgid "Mercado Pago - Credit Card"
+msgstr ""
+
+msgid "Ticket Options"
+msgstr ""
+
+msgid "Enable Ticket Payment Method"
+msgstr ""
+
+msgid "Other Bank"
+msgstr ""
+
+msgid "Choose"
+msgstr ""
+
+msgid "A problem was occurred when processing your payment. Please, try again."
+msgstr ""
+
+msgid "Thank you for your order. Please, pay the ticket to get your order approved."
+msgstr ""
+
+msgid "Waiting for the ticket payment."
+msgstr ""
+
+msgid "Print the Ticket"
+msgstr ""
+
+msgid "To reprint the ticket click "
+msgstr ""
+
+msgid "here"
+msgstr ""
