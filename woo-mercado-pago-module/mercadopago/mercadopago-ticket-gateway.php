@@ -6,18 +6,6 @@ require_once "sdk/lib/mercadopago.php";
 // Extending from WooCommerce Payment Gateway class.
 // This extension implements the ticket payment method.
 class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
-
-	// This array stores each banner image, depending on the country it belongs to or on
-	// the type of checkout we use.
-	private $banners_mercadopago_credit = array(
-		"MLA" => 'MLA/credit_card.png',
-        "MLB" => 'MLB/credit_card.png',
-        "MCO" => 'MCO/credit_card.png',
-        "MLC" => 'MLC/credit_card.png',
-        "MLV" => 'MLV/credit_card.png',
-        "MLM" => 'MLM/credit_card.png'
-        // TODO: Peru rollout
-    );
     
     // Sponsor ID array by country
     private $sponsor_id = array(
@@ -40,6 +28,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		$this->domain = get_site_url() . '/index.php';
 		$this->site_id = null;
 		$this->isTestUser = false;
+		$this->payment_methods = array();
 		$this->store_categories_id = array();
     	$this->store_categories_description = array();
     	
@@ -78,6 +67,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		add_action( // Used in settings page to hook "save settings" action.
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array( $this, 'process_admin_options' )
+		);
+		add_action( // Scripts for custom checkout
+			'wp_enqueue_scripts',
+			array( $this, 'ticketCheckoutScripts' )
 		);
 		
 		// Verify if public_key or client_secret is empty.
@@ -130,6 +123,13 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				$get_request = $mp->get( "/users/me?access_token=" . $this->access_token );
 				$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
 				$this->site_id = $get_request[ 'response' ][ 'site_id' ];
+				$payments = $mp->get( "/v1/payment_methods/?access_token=" . $this->access_token );
+				foreach ( $payments[ "response" ] as $payment ) {
+					if ( $payment[ 'payment_type_id' ] != 'account_money' && $payment[ 'payment_type_id' ] != 'credit_card' &&
+ 						 $payment[ 'payment_type_id' ] != 'debit_card' && $payment[ 'payment_type_id' ] != 'prepaid_card' ) {
+						array_push( $this->payment_methods, $payment );
+					}
+				}
 				$this->credentials_message = '<img width="12" height="12" src="' .
 					plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
 					' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
@@ -270,16 +270,30 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 	
+	public function ticketCheckoutScripts() {
+		if ( is_checkout() && $this->is_available() ) {
+			if ( !get_query_var( 'order-received' ) ) {
+				wp_enqueue_style(
+					'woocommerce-mercadopago-style', plugins_url(
+						'assets/css/custom_checkout_mercadopago.css',
+						plugin_dir_path( __FILE__ ) ) );
+			}
+		}
+	}
+
 	public function payment_fields() {
 		$amount = $this->get_order_total();
 		wc_get_template(
-			'ticket/payment-form.php',
+			'ticket/ticket-form.php',
 			array(
+				'form_labels' => array(
+					"payment_instructions" => __( 'Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it.', 'woocommerce-mercadopago-module' ),
+					"ticket_note" => __( 'Important: The order will be confirmed only after the payment approval.', 'woocommerce-mercadopago-module' )
+				),
+				'payment_methods' => $this->payment_methods,
 				'public_key' => $this->public_key,
 				'site_id' => $this->site_id,
 				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
-				'banner_path' => plugins_url( 'images/' .
-					$this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
 				'amount' => $amount
 			),
 			'woocommerce/mercadopago/',
