@@ -1,30 +1,16 @@
 <?php
+/**
+ * Part of Woo Mercado Pago Module
+ * Author - Mercado Pago
+ * Developer - Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
+ * Copyright - Copyright(c) MercadoPago [http://www.mercadopago.com]
+ * License - http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
+ */
+
 if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-
-<!-- VISA TEST CARDS
- Argentina: 4509 9535 6623 3704
- Brazil: 4235 6477 2802 5682
- Mexico: 4357 6064 1502 1810
- Venezuela: 4966 3823 3110 9310
- Colombia: 4013 5406 8274 6260
--->
-<!-- MASTERCARD TEST CARDS
- Argentina: 5031 7557 3453 0604
- Brazil: 5031 4332 1540 6351
- Mexico: 5031 7531 3431 1717
- Venezuela: 5177 0761 6430 0010
- Colombia: 5254 1336 7440 3564
--->
-<!-- AMEX TEST CARDS
- Argentina: 3711 803032 57522
- Brazil: 3753 651535 56885
- Mexico: not available
- Venezuela: not available
- Colombia: 3743 781877 55283
--->
 
 <div width="100%" style="margin:1px; padding:36px 36px 16px 36px; background:white; ">
 	<img class="logo" src="<?php echo ( $images_path . 'mplogo.png' ); ?>" width="156" height="40" />

@@ -1,4 +1,12 @@
 <?php
+/**
+ * Part of Woo Mercado Pago Module
+ * Author - Mercado Pago
+ * Developer - Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
+ * Copyright - Copyright(c) MercadoPago [http://www.mercadopago.com]
+ * License - http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
+ */
+ 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
