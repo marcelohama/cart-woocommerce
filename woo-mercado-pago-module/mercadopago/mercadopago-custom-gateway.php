@@ -387,6 +387,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 							'Mercado Pago: ' .
 							__( 'Payment approved.', 'woocommerce-mercadopago-module' )
 						);
+						return array(
+							'result' => 'success',
+							'redirect' => $order->get_checkout_order_received_url()
+						);
+						break;
 	                case 'pending':
 	                	// order approved/pending, we just redirect to the thankyou page
 	                    return array(
@@ -484,7 +489,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[createUrl] - payment creation failed with exception: ' .
-					json_encode( $e, JSON_PRETTY_PRINT ) );
+					print_r( $e, true ) );
 			}
 			return false;
 		}
@@ -875,7 +880,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[check_ipn_request_is_valid] - MercadoPagoException: ' .
-					json_encode( $e, JSON_PRETTY_PRINT ) );
+					print_r( $e, true ) );
 			}
 			return false;
 		}

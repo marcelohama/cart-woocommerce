@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</p>
 		<div class="mp-box-inputs mp-col-100">
 			<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
+				<option value="-1"> <?php echo $form_labels[ 'label_choose' ] . " ..."; ?> </option>
 				<?php foreach ( $payment_methods as $payment ) { ?>
 		  			<option value="<?php echo $payment[ 'id' ]; ?>"> <?php echo $payment[ 'name' ]; ?></option>
 				<?php } ?>

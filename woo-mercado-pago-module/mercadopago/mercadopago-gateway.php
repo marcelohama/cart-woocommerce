@@ -77,22 +77,23 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		// Hook actions for WordPress.
 		add_action( // Used by IPN to receive IPN incomings.
 			'woocommerce_api_wc_woomercadopago_gateway',
-			array($this, 'check_ipn_response' )
+			array( $this, 'check_ipn_response' )
 		);
 		add_action( // Used by IPN to process valid incomings.
 			'valid_mercadopago_ipn_request',
-			array($this, 'successful_request' )
+			array( $this, 'successful_request' )
 		);
 		add_action( // Used by WordPress to render the custom checkout page.
 			'woocommerce_receipt_' . $this->id,
-			array($this, 'receipt_page' )
+			array( $this, 'receipt_page' )
 		);
 		add_action( // Used to fix CSS in some older WordPress/WooCommerce versions.
-			'wp_head', array($this, 'css' )
+			'wp_head',
+			array( $this, 'css' )
 		);
 		add_action( // Used in settings page to hook "save settings" action.
 			'woocommerce_update_options_payment_gateways_' . $this->id,
-			array($this, 'process_admin_options' )
+			array( $this, 'process_admin_options' )
 		);
 		
 		// Verify if client_id or client_secret is empty.
@@ -506,7 +507,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
     	    	}
         	} catch ( MercadoPagoException $e ) {
         		if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id . ': @[DEBUG] - excluded payments: exception caught: ' . json_encode( $e, JSON_PRETTY_PRINT ) );
+					$this->log->add( $this->id, $this->id . ': @[DEBUG] - excluded payments: exception caught: ' . print_r( $e, true ) );
 				}
     	    }
     	}
@@ -615,7 +616,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[createUrl] - payment creation failed with exception: ' . json_encode( $e, JSON_PRETTY_PRINT ) );
+				$this->log->add( $this->id, $this->id . ': @[createUrl] - payment creation failed with exception: ' . print_r( $e, true ) );
 			}
 			return false;
 		}
@@ -794,7 +795,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' . $e->getMessage() );
+				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' . print_r( $e, true ) );
 			}
 			return false;
 		}
