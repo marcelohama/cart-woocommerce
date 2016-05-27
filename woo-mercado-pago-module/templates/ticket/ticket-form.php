@@ -24,16 +24,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<br />
 			<?php echo $form_labels[ 'ticket_note' ] ?>
 		</p>
-		<div class="mp-box-inputs mp-col-100">
-			<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
-				<?php if ( count( $payment_methods ) > 1 ) { ?>
+		<?php if ( count( $payment_methods ) > 1 ) { ?>
+			<div class="mp-box-inputs mp-col-100">
+				<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
 					<option value="-1"> <?php echo $form_labels[ 'label_choose' ] . " ..."; ?> </option>
-				<?php } ?>
-				<?php foreach ( $payment_methods as $payment ) { ?>
-		  			<option value="<?php echo $payment[ 'id' ]; ?>"> <?php echo $payment[ 'name' ]; ?></option>
-				<?php } ?>
-			</select>
-		</div>
+					<?php foreach ( $payment_methods as $payment ) { ?>
+			  			<option value="<?php echo $payment[ 'id' ]; ?>"> <?php echo $payment[ 'name' ]; ?></option>
+					<?php } ?>
+				</select>
+			</div>
+		<?php } else { ?>
+			<div class="mp-box-inputs mp-col-100" style="display:none;">
+				<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
+					<?php foreach ( $payment_methods as $payment ) { ?>
+			  			<option value="<?php echo $payment[ 'id' ]; ?>"> <?php echo $payment[ 'name' ]; ?></option>
+					<?php } ?>
+				</select>
+			</div>
+		<?php } ?>
 
 		<div class="mp-box-inputs mp-line">
 	    	<!-- <div class="mp-box-inputs mp-col-50">
