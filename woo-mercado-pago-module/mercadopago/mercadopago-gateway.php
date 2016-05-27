@@ -699,7 +699,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// Notify that Client_id and/or Client_secret are not valid.
 	public function clientIdOrSecretMissingMessage() {
 		echo '<div class="error"><p><strong>' . 
-			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Standard Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'Your Mercado Pago credentials Client_id/Client_secret appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',

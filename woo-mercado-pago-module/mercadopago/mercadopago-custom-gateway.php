@@ -746,7 +746,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Notify that public_key and/or access_token are not valid.
 	public function credentialsMissingMessage() {
 		echo '<div class="error"><p><strong>' . 
-			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Custom Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'Your Mercado Pago credentials Public Key/Access Token appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
