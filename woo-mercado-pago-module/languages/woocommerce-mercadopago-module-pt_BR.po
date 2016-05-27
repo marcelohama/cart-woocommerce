@@ -648,3 +648,11 @@ msgstr "Para reimprimir o boleto clique "
 msgid "here"
 msgstr "aqui"
 
+msgid "Custom Checkout is Inactive"
+msgstr "O Checkout Customizado está Inativo"
+
+msgid "Standard Checkout is Inactive"
+msgstr "O Checkout Padrão está Inativo"
+
+msgid "Ticket is Inactive"
+msgstr "O Boleto está Inativo"

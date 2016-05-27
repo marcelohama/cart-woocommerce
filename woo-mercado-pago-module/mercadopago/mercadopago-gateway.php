@@ -710,7 +710,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// Notify that currency is not supported.
 	public function currencyNotSupportedMessage() {
 		echo '<div class="error"><p><strong>' .
-			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Standard Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'The currency' ) . ' <code>%s</code> ' . __( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, VEF.', 'woocommerce-mercadopago-module' ),

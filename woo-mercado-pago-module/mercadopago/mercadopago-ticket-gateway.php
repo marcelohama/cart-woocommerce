@@ -641,7 +641,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	// TODO: Peru rollout
 	public function currencyNotSupportedMessage() {
 		echo '<div class="error"><p><strong>' .
-			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Ticket is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'The currency' ) . ' <code>%s</code> ' .

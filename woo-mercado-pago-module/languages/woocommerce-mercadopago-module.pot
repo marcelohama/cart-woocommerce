@@ -657,3 +657,12 @@ msgstr ""
 
 msgid "here"
 msgstr ""
+
+msgid "Custom Checkout is Inactive"
+msgstr ""
+
+msgid "Standard Checkout is Inactive"
+msgstr ""
+
+msgid "Ticket is Inactive"
+msgstr ""
