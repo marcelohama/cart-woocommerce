@@ -168,15 +168,15 @@ msgstr "Al cargar una tarjeta de crédito, sólo los estados [aprobado] o [recha
 
 #: mercadopago/mercadopago-custom-gateway.php:229
 msgid "Ticket"
-msgstr "Boleto"
+msgstr "Ticket"
 
 #: mercadopago/mercadopago-custom-gateway.php:231
 msgid "Enable Ticket for Custom Checkout"
-msgstr "Habilitar Boleto para Checkout Custom"
+msgstr "Habilitar Ticket para Checkout Custom"
 
 #: mercadopago/mercadopago-custom-gateway.php:233
 msgid "Let your customer pay you with tickets"
-msgstr "Deje que su cliente le paga con boletos"
+msgstr "Deje que su cliente le paga con tickets"
 
 #: mercadopago/mercadopago-custom-gateway.php:236 mercadopago/mercadopago-gateway.php:258
 msgid "Store Category"
@@ -621,16 +621,16 @@ msgid "This payment method did not process the payment."
 msgstr "Esta forma de pago no puede procesar su pago."
 
 msgid "Mercado Pago - Ticket"
-msgstr "Mercado Pago - Boleto"
+msgstr "Mercado Pago - Ticket"
 
 msgid "Mercado Pago - Credit Card"
 msgstr "Mercado Pago - Tarjeta de Crédito"
 
 msgid "Ticket Options"
-msgstr "Opciones de Boleto"
+msgstr "Opciones de Ticket"
 
 msgid "Enable Ticket Payment Method"
-msgstr "Habilitar Pago con Boleto"
+msgstr "Habilitar Pago con Ticket"
 
 msgid "Other Bank"
 msgstr "Otro Banco"
@@ -642,16 +642,16 @@ msgid "A problem was occurred when processing your payment. Please, try again."
 msgstr "Un problema se produjo al procesar su pago. Por favor, inténtelo de nuevo."
 
 msgid "Thank you for your order. Please, pay the ticket to get your order approved."
-msgstr "Gracias por su orden. Por favor, pagar el boleto para tener su solicitud aprobada."
+msgstr "Gracias por su orden. Por favor, pagar el ticket para tener su solicitud aprobada."
 
 msgid "Waiting for the ticket payment."
-msgstr "Esperando el pago del boleto."
+msgstr "Esperando el pago del ticket."
 
 msgid "Print the Ticket"
-msgstr "Imprimir el boleto"
+msgstr "Imprimir el ticket"
 
 msgid "To reprint the ticket click "
-msgstr "Para imprimir nuevamente el boleto hace clic "
+msgstr "Para imprimir nuevamente el ticket hace clic "
 
 msgid "here"
 msgstr "aquí"
@@ -663,4 +663,13 @@ msgid "Standard Checkout is Inactive"
 msgstr "Checkout Estándar Inactivo"
 
 msgid "Ticket is Inactive"
-msgstr "Boleto Inactivo"
+msgstr "Ticket Inactivo"
+
+msgid "Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it."
+msgstr "Por favor, seleccione el emisor de su elección y haga clic en el botón "PLACE ORDER". El ticket será generado y usted será redirigido a imprimirlo."
+
+msgid "Important: The order will be confirmed only after the payment approval."
+msgstr "Importante: La solicitud sólo será confirmada después de la aprobación del pago."
+
+msgid "Your Mercado Pago credential Access Token appears to be misconfigured."
+msgstr "Su credencial Access Token de Mercado de Pago parece estar desconfigurado."

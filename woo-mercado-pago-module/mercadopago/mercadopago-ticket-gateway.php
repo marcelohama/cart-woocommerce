@@ -48,14 +48,11 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			'</strong>';
 		
 		// These fields are used in our Mercado Pago Module configuration page.
-		$this->public_key = $this->get_option( 'public_key' );
 		$this->access_token = $this->get_option( 'access_token' );
 		$this->title = $this->get_option( 'title' );
 		$this->description = $this->get_option( 'description' );
-		$this->statement_descriptor = $this->get_option( 'statement_descriptor' );
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
-		$this->sandbox = $this->get_option( 'sandbox', false );
 		$this->debug = $this->get_option( 'debug' );
 		
 		// Render our configuration page and init/load fields.
@@ -80,8 +77,8 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			array( $this, 'ticketCheckoutScripts' )
 		);
 		
-		// Verify if public_key or client_secret is empty.
-		if ( empty( $this->public_key ) || empty( $this->access_token ) ) {
+		// Verify if access token is empty.
+		if ( empty( $this->access_token ) ) {
 			add_action( 'admin_notices', array( $this, 'credentialsMissingMessage' ) );
 		}
 		
@@ -123,7 +120,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			__( 'Venezuela', 'woocommerce-mercadopago-module' )
 		);
 		
-		// Trigger API to get payment methods and site_id, also validates public_key/access_token.
+		// Trigger API to get payment methods and site_id, also validates access_token.
 		if ( $this->validateCredentials() ) {
 			try {
 				$mp = new MP( $this->access_token );
@@ -173,13 +170,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'type' => 'title',
 				'description' => sprintf( '%s', $this->credentials_message ) . '<br>' . sprintf( __( 'You can obtain your credentials for', 'woocommerce-mercadopago-module' ) . ' %s.', $api_secret_locale )
 			),
-			'public_key' => array(
-				'title' => 'Public key',
-				'type' => 'text',
-				'description' => __( 'Insert your Mercado Pago Public key.', 'woocommerce-mercadopago-module' ),
-				'default' => '',
-				'required' => true
-			),
 			'access_token' => array(
 				'title' => 'Access token',
 				'type' => 'text',
@@ -201,19 +191,13 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Title', 'woocommerce-mercadopago-module' ),
 				'type' => 'text',
 				'description' => __( 'Title shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
-				'default' => __( 'Mercado Pago', 'woocommerce-mercadopago-module' )
+				'default' => __( 'Ticket', 'woocommerce-mercadopago-module' )
 			),
 			'description' => array(
 				'title' => __( 'Description', 'woocommerce-mercadopago-module' ),
 				'type' => 'textarea',
 				'description' => __( 'Description shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
 				'default' => __( 'Pay with Mercado Pago', 'woocommerce-mercadopago-module' )
-			),
-			'statement_descriptor' => array(
-				'title' => __( 'Statement Descriptor', 'woocommerce-mercadopago-module' ),
-				'type' => 'text',
-				'description' => __( 'The description that will be shown in your customer\'s invoice.', 'woocommerce-mercadopago-module' ),
-				'default' => __( 'Mercado Pago', 'woocommerce-mercadopago-module' )
 			),
 			'category_id' => array(
 				'title' => __( 'Store Category', 'woocommerce-mercadopago-module' ),
@@ -231,13 +215,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Test and Debug Options', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
 				'description' => ''
-			),
-			'sandbox' => array(
-				'title' => __( 'Mercado Pago Sandbox', 'woocommerce-mercadopago-module' ),
-				'type' => 'checkbox',
-				'label' => __( 'Enable Mercado Pago Sandbox', 'woocommerce-mercadopago-module' ),
-				'default' => 'no',
-				'description' => __( 'This option allows you to test payments inside a sandbox environment.', 'woocommerce-mercadopago-module' ),
 			),
 			'debug' => array(
 				'title' => __( 'Debug and Log', 'woocommerce-mercadopago-module' ),
@@ -299,7 +276,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					"ticket_note" => __( 'Important: The order will be confirmed only after the payment approval.', 'woocommerce-mercadopago-module' )
 				),
 				'payment_methods' => $this->payment_methods,
-				'public_key' => $this->public_key,
 				'site_id' => $this->site_id,
 				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
 				'amount' => $amount
@@ -339,15 +315,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	protected function createUrl( $order, $post_from_form ) {
 
 		$mp = new MP( $this->access_token );
-		// Checks for sandbox mode
-		if ( 'yes' == $this->sandbox ) {
-			$mp->sandbox_mode( true );
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[createUrl] - sandbox mode is enabled' );
-			}
-		} else {
-			$mp->sandbox_mode( false );
-		}
+		$mp->sandbox_mode( false );
 
 		// Creates the order parameters by checking the cart configuration
 		$preferences = $this->createPreferences( $order, $post_from_form );
@@ -380,7 +348,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 							__( 'Cancel order &amp; Clear cart', 'woocommerce-mercadopago-module' ) .
 							'</a>';
 						$html .=
-							'<a id="submit-payment" href="' . $response[ 'transaction_details' ][ 'external_resource_url' ] . '" class="button alt">' .
+							'<a id="submit-payment" target="_blank" href="' . $response[ 'transaction_details' ][ 'external_resource_url' ] . '" class="button alt">' .
 							__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
 							'</a> ';
 
@@ -518,7 +486,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
             	'email' => $order->billing_email
             ),
             'external_reference' => $this->invoice_prefix . $order->id,
-            'statement_descriptor' => $this->statement_descriptor,
             'additional_info' => array(
                 'items' => $items,
                 'payer' => $payer_additional_info,
@@ -578,9 +545,8 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 	// Check if we have valid credentials.
 	public function validateCredentials() {
-		if ( empty( $this->public_key ) ) return false;
 		if ( empty( $this->access_token ) ) return false;
-		if ( strlen( $this->public_key ) > 0 && strlen( $this->access_token ) > 0 ) {
+		if ( strlen( $this->access_token ) > 0 ) {
 			try {
 				$mp = new MP( $this->access_token );
 				return true;
@@ -607,7 +573,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	// Called automatically by WooCommerce, verify if Module is available to use.
 	public function is_available() {
 		$available = ( 'yes' == $this->settings[ 'enabled' ] ) &&
-			! empty( $this->public_key ) &&
 			! empty( $this->access_token ) &&
 			$this->isSupportedCurrency();
 		return $available;
@@ -625,13 +590,13 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		);
 	}
 
-	// Notify that public_key and/or access_token are not valid.
+	// Notify that access_token are not valid.
 	public function credentialsMissingMessage() {
 		echo '<div class="error"><p><strong>' . 
 			__( 'Ticket is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
-				__( 'Your Mercado Pago credentials Public Key/Access Token appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
+				__( 'Your Mercado Pago credentials Access Token appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
 				'<a href="' . $this->admin_url() . '">' .
 				__( 'Click here and configure!', 'woocommerce-mercadopago-module' ) . '</a>' ) .
 			'</p></div>';
@@ -704,10 +669,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			return false; // No ID? No process!
 		}
 		$mp = new MP( $this->access_token );
-		if ( 'yes' == $this->sandbox )
-			$mp->sandbox_mode( true );
-		else
-			$mp->sandbox_mode( false );
+		$mp->sandbox_mode( false );
 		try {
 			$access_token = array( "access_token" => $mp->get_access_token() );
 			if ( $data[ "type" ] == 'payment' ) {
