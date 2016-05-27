@@ -191,7 +191,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Title', 'woocommerce-mercadopago-module' ),
 				'type' => 'text',
 				'description' => __( 'Title shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
-				'default' => __( 'Ticket', 'woocommerce-mercadopago-module' )
+				'default' => __( 'Mercado Pago - Ticket', 'woocommerce-mercadopago-module' )
 			),
 			'description' => array(
 				'title' => __( 'Description', 'woocommerce-mercadopago-module' ),
