@@ -29,7 +29,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<!-- card number -->
 		<div class="mp-box-inputs mp-col-100">
 	        <label for="cardNumber"><?php echo $form_labels[ 'form' ][ 'credit_card_number' ]; ?> <em>*</em></label>
-	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" autocomplete="off" />
+	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="" autocomplete="off" />
 	        <span class="mp-error" id="mp-error-205" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ '205' ]; ?> </span>
 	        <span class="mp-error" id="mp-error-E301" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ 'E301' ]; ?> </span>
 		</div>

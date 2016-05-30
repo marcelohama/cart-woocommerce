@@ -26,18 +26,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</p>
 		<?php if ( count( $payment_methods ) > 1 ) { ?>
 			<div class="mp-box-inputs mp-col-100">
-				<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
-					<option value="-1"> <?php echo $form_labels[ 'label_choose' ] . " ..."; ?> </option>
-					<?php foreach ( $payment_methods as $payment ) { ?>
-			  			<option value="<?php echo $payment[ 'id' ]; ?>"> <?php echo $payment[ 'name' ]; ?></option>
-					<?php } ?>
-				</select>
+				<!--<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
+					<option value="-1"> <?php /*echo $form_labels[ 'label_choose' ] . " ...";*/ ?> </option>-->
+				<?php foreach ( $payment_methods as $payment ) { ?>
+		  			<!--<option value="<?php /*echo $payment[ 'id' ];*/ ?>"> <?php /*echo $payment[ 'name' ];*/ ?></option>-->
+	  				<div class="mp-box-inputs mp-line">
+						<div class="mp-box-inputs mp-col-25">
+	  						<label>
+			  					<img src="<?php echo $payment[ 'thumbnail' ]; ?>" alt="<?php echo $payment[ 'name' ]; ?>" /> 
+			  				</label>
+			  			</div>
+			  			<div class="mp-box-inputs mp-col-45">
+							<?php echo $payment[ 'name' ]; ?>
+			  			</div>
+			  			<div id="paymentMethodId" class="mp-box-inputs mp-col-10">
+			  				<input type="radio" class="input-radio" name="mercadopago_ticket[paymentMethodId]"
+		  						style="height:16px; width:16px;" value="<?php echo $payment[ 'id' ]; ?>" />
+			  			</div>
+	  				</div>
+				<?php } ?>
+				<!--</select>-->
 			</div>
 		<?php } else { ?>
 			<div class="mp-box-inputs mp-col-100" style="display:none;">
 				<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
 					<?php foreach ( $payment_methods as $payment ) { ?>
-			  			<option value="<?php echo $payment[ 'id' ]; ?>"> <?php echo $payment[ 'name' ]; ?></option>
+			  			<option value="<?php echo $payment[ 'id' ]; ?>"
+			  				style="padding: 8px; background: url( 'http://img.mlstatic.com/org-img/MP3/API/logos/bapropagos.gif' ); ?> ) 98% 50% no-repeat;"> <?php echo $payment[ 'name' ]; ?></option>
 					<?php } ?>
 				</select>
 			</div>

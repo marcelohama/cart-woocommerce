@@ -343,10 +343,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		        		$html = '<p></p><p>' . wordwrap(
 		        			__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module'),
 							60, '<br>') . '</p>';
-						$html .=
+						/*$html .=
 							'<a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' .
 							__( 'Cancel order &amp; Clear cart', 'woocommerce-mercadopago-module' ) .
-							'</a>';
+							'</a>';*/
 						$html .=
 							'<a id="submit-payment" target="_blank" href="' . $response[ 'transaction_details' ][ 'external_resource_url' ] . '" class="button alt">' .
 							__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
