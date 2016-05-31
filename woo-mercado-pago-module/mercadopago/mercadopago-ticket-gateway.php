@@ -377,8 +377,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[createUrl] - payment creation failed with exception: ' . print_r( $e, true ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[createUrl] - payment creation failed with exception: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 		}
 		return false;
@@ -688,9 +690,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
+				$this->log->add(
+					$this->id, $this->id .
 					': @[check_ipn_request_is_valid] - MercadoPagoException: ' .
-					print_r( $e, true ) );
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}

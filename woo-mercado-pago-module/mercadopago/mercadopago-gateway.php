@@ -514,7 +514,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
     	    	}
         	} catch ( MercadoPagoException $e ) {
         		if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id . ': @[DEBUG] - excluded payments: exception caught: ' . print_r( $e, true ) );
+					$this->log->add(
+						$this->id, $this->id .
+						': @[DEBUG] - excluded payments: exception caught: ' .
+						json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 				}
     	    }
     	}
@@ -584,7 +587,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$preferences[ 'auto_return' ] = "approved";
 		}
 		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id . ': @[buildPaymentPreference] - requesting mercado pago preference creation with following structure: ' . json_encode( $preferences, JSON_PRETTY_PRINT ) );
+			$this->log->add(
+				$this->id, $this->id . 
+				': @[buildPaymentPreference] - requesting mercado pago preference creation with following structure: ' .
+				json_encode( $preferences, JSON_PRETTY_PRINT ) );
 		}
 		$preferences = apply_filters( 'woocommerce_mercadopago_module_preferences', $preferences, $order );
 		return $preferences;
@@ -613,7 +619,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				return false;
 			} else {
 				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id . ': @[createUrl] - payment link generated with success from mercado pago, with structure as follow: ' . json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
+					$this->log->add( $this->id, $this->id .
+						': @[createUrl] - payment link generated with success from mercado pago, with structure as follow: ' .
+						json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
 				}
 				if ( 'yes' == $this->sandbox ) {
 					return $checkout_info[ 'response' ][ 'sandbox_init_point' ];
@@ -623,7 +631,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[createUrl] - payment creation failed with exception: ' . print_r( $e, true ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[createUrl] - payment creation failed with exception: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}
@@ -746,12 +757,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		if ( $data ) {
 			header( 'HTTP/1.1 200 OK' );
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - received _get call with following content: ' . json_encode( $data, JSON_PRETTY_PRINT ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[check_ipn_response] - received _get call with following content: ' .
+					json_encode( $data, JSON_PRETTY_PRINT ) );
 			}
 			do_action( 'valid_mercadopago_ipn_request', $data );
 		} else {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - Mercado Pago Request Failure: ' . json_encode( $_GET, JSON_PRETTY_PRINT ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[check_ipn_response] - Mercado Pago Request Failure: ' .
+					json_encode( $_GET, JSON_PRETTY_PRINT ) );
 			}
 			wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );
 		}
@@ -762,11 +779,16 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// processed by successful_request function.
 	public function check_ipn_request_is_valid( $data ) {
 		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - received ipn message from mercado pago, checking validity with $data containing: ' . json_encode( $data, JSON_PRETTY_PRINT ) );
+			$this->log->add(
+				$this->id, $this->id .
+				': @[check_ipn_request_is_valid] - received ipn message from mercado pago, checking validity with $data containing: ' .
+				json_encode( $data, JSON_PRETTY_PRINT ) );
 		}
 		if ( !isset( $data[ 'id' ] ) ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - failing due to ID absent' );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[check_ipn_request_is_valid] - failing due to ID absent' );
 			}
 			return false; // No ID? No process!
 		}
@@ -802,7 +824,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' . print_r( $e, true ) );
+				$this->log->add( $this->id, $this->id .
+					': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}

@@ -499,7 +499,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[createUrl] - payment creation failed with exception: ' .
-					print_r( $e, true ) );
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}
@@ -890,7 +890,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[check_ipn_request_is_valid] - MercadoPagoException: ' .
-					print_r( $e, true ) );
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}
