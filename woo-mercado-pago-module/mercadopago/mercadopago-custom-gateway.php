@@ -142,11 +142,17 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$get_request = $mp->get( "/users/me?access_token=" . $this->access_token );
 				$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
 				$this->site_id = $get_request[ 'response' ][ 'site_id' ];
-				$this->credentials_message = '<img width="12" height="12" src="' .
-					plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
-					' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
-					': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
-					plugins_url( 'images/' . $this->site_id . '/' . $this->site_id . '.png', plugin_dir_path( __FILE__ ) ) . '"> ';
+				if ( $this->site_id == "MLC" ) { // Chile isn't fully integrated with custom checkout
+					$this->credentials_message = '<img width="12" height="12" src="' .
+						plugins_url( 'images/error.png', plugin_dir_path( __FILE__ ) ) . '">' .
+						' ' . __( 'Your credentials are <strong>not valid</strong>!', 'woocommerce-mercadopago-module' );
+				} else {
+					$this->credentials_message = '<img width="12" height="12" src="' .
+						plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
+						' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
+						': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
+						plugins_url( 'images/' . $this->site_id . '/' . $this->site_id . '.png', plugin_dir_path( __FILE__ ) ) . '"> ';
+				}
 			} catch ( MercadoPagoException $e ) {
 				$this->credentials_message = '<img width="12" height="12" src="' .
 					plugins_url( 'images/error.png', plugin_dir_path( __FILE__ ) ) . '">' .

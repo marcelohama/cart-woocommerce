@@ -146,7 +146,8 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 	
 v2.0.0 (??/??/????)
 * Custom Checkout for LatAm;
-* Ticket.
+* Ticket for LatAm;
+* Removed possibility to setting supportable but invalid currency.
 	
 == Upgrade Notice ==
 

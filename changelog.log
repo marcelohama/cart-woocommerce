@@ -42,3 +42,5 @@ v2.0.0 (??/??/????)
 	- Tickets;
 	- Max installments and payment method exclusion setup;
 	- Sandbox and debug options.
+-> Bug Fix
+	- Removed possibility to setting supportable but invalid currency.

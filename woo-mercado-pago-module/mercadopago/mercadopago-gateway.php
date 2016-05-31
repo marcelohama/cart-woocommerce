@@ -494,7 +494,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
 						'unit_price' => (float) $item[ 'line_total' ],
-						'currency_id' => get_woocommerce_currency()
+						'currency_id' => $this->getCurrencyId($this->site_id)
 					));
 				}
 			}
@@ -673,6 +673,19 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'VEF' ) );
 	}
 
+	// Get currency id for a country
+	protected function getCurrencyId( $site_id ) {
+		switch ( $site_id ) {
+			case 'MLA': return 'ARS';
+			case 'MLB': return 'BRL';
+			case 'MCO': return 'CLP';
+			case 'MLC': return 'COP';
+			case 'MLM': return 'MXN';
+			case 'MLV': return 'VEF';
+			default: return '';
+		}
+	}
+
 	// Called automatically by WooCommerce, verify if Module is available to use.
 	public function is_available() {
 		// Test if is valid for use.
@@ -730,7 +743,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	}
 	
 	public function getCountryName( $site_id ) {
-		$country = $site_id;
 		switch ( $site_id ) {
 			case 'MLA': return __( 'Argentine', 'woocommerce-mercadopago-module' );
 			case 'MLB': return __( 'Brazil', 'woocommerce-mercadopago-module' );
