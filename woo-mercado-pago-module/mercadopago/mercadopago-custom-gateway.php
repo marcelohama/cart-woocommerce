@@ -98,9 +98,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 		
 		// Verify if currency is supported.
-		if ( !$this->isSupportedCurrency() ) {
-			add_action( 'admin_notices', array( $this, 'currencyNotSupportedMessage' ) );
-		}
+		//if ( !$this->isSupportedCurrency() ) {
+		//	add_action( 'admin_notices', array( $this, 'currencyNotSupportedMessage' ) );
+		//}
 
 		// Logging and debug.
 		if ( 'yes' == $this->debug ) {
