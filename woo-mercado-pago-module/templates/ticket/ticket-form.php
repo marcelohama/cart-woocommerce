@@ -28,22 +28,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="mp-box-inputs mp-col-100">
 				<!--<select id="paymentMethodId" name="mercadopago_ticket[paymentMethodId]">
 					<option value="-1"> <?php /*echo $form_labels[ 'label_choose' ] . " ...";*/ ?> </option>-->
+				<?php $atFirst = true; ?>
 				<?php foreach ( $payment_methods as $payment ) { ?>
 		  			<!--<option value="<?php /*echo $payment[ 'id' ];*/ ?>"> <?php /*echo $payment[ 'name' ];*/ ?></option>-->
 	  				<div class="mp-box-inputs mp-line">
-						<div class="mp-box-inputs mp-col-25">
-	  						<label>
-			  					<img src="<?php echo $payment[ 'thumbnail' ]; ?>" alt="<?php echo $payment[ 'name' ]; ?>" /> 
-			  				</label>
+						<div id="paymentMethodId" class="mp-box-inputs mp-col-5">
+	  						<input type="radio" class="input-radio" name="mercadopago_ticket[paymentMethodId]"
+		  						style="height:16px; width:16px;" value="<?php echo $payment[ 'id' ]; ?>"
+		  						<?php if ( $atFirst ) { ?> checked="checked" } <?php } ?> />
 			  			</div>
 			  			<div class="mp-box-inputs mp-col-45">
-							<?php echo $payment[ 'name' ]; ?>
-			  			</div>
-			  			<div id="paymentMethodId" class="mp-box-inputs mp-col-10">
-			  				<input type="radio" class="input-radio" name="mercadopago_ticket[paymentMethodId]"
-		  						style="height:16px; width:16px;" value="<?php echo $payment[ 'id' ]; ?>" />
+							<label>
+			  					<img src="<?php echo $payment[ 'thumbnail' ]; ?>" alt="<?php echo $payment[ 'name' ]; ?>" /> 
+			  					&nbsp;(<?php echo $payment[ 'name' ]; ?>)
+			  				</label>
 			  			</div>
 	  				</div>
+	  				<?php $atFirst = false; ?>
 				<?php } ?>
 				<!--</select>-->
 			</div>
