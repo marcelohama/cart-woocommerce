@@ -21,6 +21,10 @@ msgstr ""
 "Language: pt_BR\n"
 "X-Poedit-SearchPath-0: .\n"
 
+#. Description of the plugin/theme
+msgid "This is the <strong>oficial</strong> module of Mercado Pago for WooCommerce plugin. This module enables WooCommerce to use Mercado Pago as a payment Gateway for purchases made in your e-commerce store."
+msgstr "Este é o módulo <strong>oficial</strong> do Mercado Pago para o plugin WooCommerce. Este módulo habilita o WooCommerce a usar o Mercado Pago como meio de pagamento para compras realizadas em sua loja virtual."
+
 #: mercadopago-module.php:69
 #, php-format
 msgid "Woo Mercado Pago Module depends on the last version of %s to execute!"
