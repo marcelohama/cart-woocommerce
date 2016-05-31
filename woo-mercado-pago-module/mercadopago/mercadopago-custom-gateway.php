@@ -426,15 +426,15 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	                	// so we must inform this status
 						wc_add_notice(
 							'<p>' . __( 'Your payment was refused. You can try again.', 'woocommerce-mercadopago-module' ) .
-							'<br>' . __( $this->getOrderStatus( $response[ 'status_detail' ] ), 'woocommerce-mercadopago-module') . '</p>',
-							//'<p><a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
-							//	__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
-							//'</a></p>',
+							'<br>' . __( $this->getOrderStatus( $response[ 'status_detail' ] ), 'woocommerce-mercadopago-module') . '</p>' .
+							'<p><a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
+								__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
+							'</a></p>',
 							'error'
 						);
 						return array(
-							'result' => 'fail',
-							'redirect' => $order->get_checkout_payment_url()
+							'result' => 'success',
+							'redirect' => $order->get_checkout_payment_url( true )
 						);
 						break;
 					case 'cancelled':
