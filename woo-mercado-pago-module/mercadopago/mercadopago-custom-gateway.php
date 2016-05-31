@@ -728,7 +728,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Return boolean indicating if currency is supported.
 	// TODO: Peru rollout
 	protected function isSupportedCurrency() {
-		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'COP', 'MXN', 'VEF' ) );
+		return in_array( $this->site_id, array( 'MLA', 'MLB', 'MCO', 'MLM', 'MLV' ) );
 	}
 
 	// Called automatically by WooCommerce, verify if Module is available to use.
