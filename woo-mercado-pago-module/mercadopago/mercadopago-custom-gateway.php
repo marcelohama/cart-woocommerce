@@ -120,14 +120,14 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$api_secret_locale = sprintf(
 			'<a href="https://www.mercadopago.com/mla/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mlb/account/credentials?type=custom" target="_blank">%s</a>, ' .
-			'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
+			//'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mco/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			// TODO: Peru rollout
 			'<a href="https://www.mercadopago.com/mlm/account/credentials?type=custom" target="_blank">%s</a> %s ' .
 			'<a href="https://www.mercadopago.com/mlv/account/credentials?type=custom" target="_blank">%s</a>',
 			__( 'Argentine', 'woocommerce-mercadopago-module' ),
 			__( 'Brazil', 'woocommerce-mercadopago-module' ),
-			__( 'Chile', 'woocommerce-mercadopago-module' ),
+			//__( 'Chile', 'woocommerce-mercadopago-module' ),
 			__( 'Colombia', 'woocommerce-mercadopago-module' ),
 			__( 'Mexico', 'woocommerce-mercadopago-module' ),
 			// TODO: __( 'Peru', 'woocommerce-mercadopago-module' ),
@@ -728,7 +728,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Return boolean indicating if currency is supported.
 	// TODO: Peru rollout
 	protected function isSupportedCurrency() {
-		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'VEF' ) );
+		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'COP', 'MXN', 'VEF' ) );
 	}
 
 	// Called automatically by WooCommerce, verify if Module is available to use.
