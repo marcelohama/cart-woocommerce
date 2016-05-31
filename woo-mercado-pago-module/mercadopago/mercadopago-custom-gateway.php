@@ -434,7 +434,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 						);
 						return array(
 							'result' => 'fail',
-							'redirect' => ''
+							'redirect' => $order->get_checkout_payment_url()
 						);
 						break;
 					case 'cancelled':
