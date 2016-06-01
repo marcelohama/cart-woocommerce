@@ -311,9 +311,12 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	
 	public function payment_fields() {
 		$amount = $this->get_order_total();
+		$mercadopago = new MP( $this->access_token );
+		$customer = $mercadopago->get_or_create_customer( wp_get_current_user()->user_email );
 		wc_get_template(
 			'credit-card/payment-form.php',
 			array(
+				'customer_cards' => $customer[ 'cards' ],
 				'public_key' => $this->public_key,
 				'site_id' => $this->site_id,
 				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
@@ -324,6 +327,10 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
 				'form_labels' => array(
 					"form" => array(
+						"your_card" => __( "Your Card", 'woocommerce-mercadopago-module' ),
+						"other_cards" => __( "Other Cards", 'woocommerce-mercadopago-module' ),
+				        "other_card" => __( "Other Card", 'woocommerce-mercadopago-module' ),
+				        "ended_in" => __( "ended in", 'woocommerce-mercadopago-module' ),
 						"card_holder_placeholder" => __( " as it appears in your card ...", 'woocommerce-mercadopago-module' ),
 				        "payment_method" => __( "Payment Method", 'woocommerce-mercadopago-module' ),
 				        "credit_card_number" => __( "Credit card number", 'woocommerce-mercadopago-module' ),
