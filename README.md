@@ -107,10 +107,10 @@ On your store administration, go to *WooCommerce > Settings > Checkout* tab. In 
 	*Description*: This is the description of the payment option that will be shown to your customers;<br />
 	*Store Category*: Sets up the category of the store;<br />
 	*Store Identificator*: A prefix to identify your store, when you have multiple stores for only one Mercado Pago account;<br />
-	**Integration Method**: How your customers will interact with Mercado Pago to pay their orders;<br />
-	**iFrame Width**: The width, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
-	**iFrame Height**: The height, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
-	**Auto Return**: If set, the platform will return to your store when the payment is approved.
+	*Integration Method*: How your customers will interact with Mercado Pago to pay their orders;<br />
+	*iFrame Width*: The width, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
+	*iFrame Height*: The height, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
+	*Auto Return*: If set, the platform will return to your store when the payment is approved.
 
 5. **Payment Options**: This part allows you to customize how the payment should be made;
 
@@ -164,36 +164,15 @@ On your store administration, go to *WooCommerce > Settings > Checkout* tab. In 
 <a name="ticket_configuration"></a>
 ##Ticket Configuration##
 
------------
+On your store administration, go to *WooCommerce > Settings > Checkout* tab. In *Checkout Options*, click in *Mercado Pago - Ticket*. You should get the following page:
 
+![Installation Instructions](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/ticket.png)
 
+1. **Solution Header**: This part is the header, where you can enable/disable the solution;
 
-	
+2. **Mercado Pago Credentials**: In this part, you should configure your credential *Access Token*;
 
-
-
-
------------
-
-1. Go to *WooCommerce > Configuration > Checkout Tab* and look for **Mercado Pago - Standard Checkout** or **Mercado Pago - Custom Checkout**. <br />
-For **Mercado Pago - Standard Checkout**, you need to configure your credentials **Client_id** and **Client_secret** in Standard Checkout Credentials section.
-	
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/standard_checkout.png)
-	
-	You can obtain your **Client_id** and **Client_secret**, accordingly to your country, in the following links:
-
-	* Argentina: https://www.mercadopago.com/mla/herramientas/aplicaciones
-	* Brazil: https://www.mercadopago.com/mlb/ferramentas/aplicacoes
-	* Chile: https://www.mercadopago.com/mlc/herramientas/aplicaciones
-	* Colombia: https://www.mercadopago.com/mco/herramientas/aplicaciones
-	* Mexico: https://www.mercadopago.com/mlm/herramientas/aplicaciones
-	* Venezuela: https://www.mercadopago.com/mlv/herramientas/aplicaciones
-
-For **Mercado Pago - Custom Checkout**, you need to configure your credentials **Public Key**  and **Access Token** in Custom Checkout Credentials section.
-
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_credentials_custom.png) <br />
-	
-	You can obtain your **Public Key** and **Access Token**, accordingly to your country, in the following links:
+	Remember that you can obtain your *Access Token*, accordingly to your country, in the following links:
 
 	* Argentina: https://www.mercadopago.com/mla/account/credentials?type=custom
 	* Brazil: https://www.mercadopago.com/mlb/account/credentials?type=custom
@@ -201,35 +180,20 @@ For **Mercado Pago - Custom Checkout**, you need to configure your credentials *
 	* Colombia: https://www.mercadopago.com/mco/account/credentials?type=custom
 	* Mexico: https://www.mercadopago.com/mlm/account/credentials?type=custom
 	* Venezuela: https://www.mercadopago.com/mlv/account/credentials?type=custom
-	
-2. Common configurations for **Standard Checkout** and **Custom Checkout**. <br />
-	* **Instant Payment Notification (IPN) URL**
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_ipn.png) <br />
-	The highlighted URL is where you will get notified about payment updates.<br /><br />
-	* **Checkout Options**
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_checkout.png) <br />
-	**Title**: This is the title of the payment option that will be shown to your customers;<br />
-	**Description**: This is the description of the payment option that will be shown to your customers;<br />
-	**Store Category**: Sets up the category of the store;<br />
-	**Store Identificator**: A prefix to identify your store, when you have multiple stores for only one Mercado Pago account;<br /><br />
-	* **Payment Options**
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_payment.png) <br />
-	**Max Installments**: The maximum installments allowed for your customers;<br />
-	**Exclude Payment Methods**: Select the payment methods that you want to not work with Mercado Pago.<br /><br />
-	* **Test and Debug Options**
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_testdebug.png) <br />
-	**Mercado Pago Sandboxs**: Test your payments in Mercado Pago sandbox environment;<br />
-	**Debug and Log**: Enables/disables system logs.<br />
-	
-3. Specific configurations for **Standard Checkout**. <br />
-	* **Checkout Options**
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_checkout_standard.png) <br />
-	**Integration Method**: How your customers will interact with Mercado Pago to pay their orders;<br />
-	**iFrame Width**: The width, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
-	**iFrame Height**: The height, in pixels, of the iFrame (used only with iFrame Integration Method);<br />
-	**Auto Return**: If set, the platform will return to your store when the payment is approved.<br />
 
-4. Specific configurations for **Custom Checkout**. <br />
-	* **Checkout Options**
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_checkout_custom.png) <br />
-	**Ticket**: Enable this option to let your customer to pay via ticket;<br />
+3. **Instant Payment Notification (IPN) URL**: In this part, you can check your IPN URL, where you will get notified about payment updates;
+
+4. **Ticket Options**: This part allows you to customize your general ticket fields;
+
+	*Title*: This is the title of the payment option that will be shown to your customers;<br />
+	*Description*: This is the description of the payment option that will be shown to your customers;<br />
+	*Statement Descriptor*: The description that will be shown in your customer's invoice;<br />
+	*Store Category*: Sets up the category of the store;<br />
+	*Store Identificator*: A prefix to identify your store, when you have multiple stores for only one Mercado Pago account.
+
+5. **Test and Debug Options**: This part allows you to configure debug and test features.
+
+	*Mercado Pago Sandbox*: Test your payments in Mercado Pago sandbox environment;<br />
+	*Debug and Log*: Enables/disables system logs.
+	
+-----------
