@@ -8,20 +8,22 @@
 <a name="features"></a>
 ##Features##
 
-**Standard checkout**
+![Features](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/plugin_adm.png)
+
+**Standard checkout**<br />
 This feature allows merchants to have a standard checkout. It includes features like
 customizations of title, description, category, external reference, integrations via
 iframe, modal, and redirection, with configurable auto-returning, max installments,
-payment method exclusion setup, and sandbox/debug options.
+payment method exclusion setup, and sandbox/debug options.<br />
 *Available for Argentina, Brazil, Chile, Colombia, Mexico and Venezuela*
 
-**Custom checkout**
+**Custom checkout**<br />
 This feature enables merchants to have the custom checkout, a more integrated type of
-checkout with customized views and more intuitive flow from the cart to the payment page.
+checkout with customized views and more intuitive flow from the cart to the payment page.<br />
 *Available for Argentina, Brazil, Colombia, Mexico and Venezuela*
 
-**Tickets**
-This option enables merchants to give their customers the option to pay via tickets.
+**Tickets**<br />
+This option enables merchants to give their customers the option to pay via tickets.<br />
 *Available for Argentina, Brazil, Chile, Colombia, Mexico and Venezuela*
 
 <a name="available_versions"></a>
