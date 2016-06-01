@@ -88,7 +88,7 @@ In this module, you can use three solutions: Standard Checkout, Custom Checkout,
 
 2. In *Checkout Options*, click in *Mercado Pago - Standard Checkout*. You should get this following page:
 
-![Installation Instructions](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/wc_setup_credentials.png)
+![Installation Instructions](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/standard_checkout.png)
 
 3. Configure your credentials *Client_id* and *Client_secret* credentials:
 
