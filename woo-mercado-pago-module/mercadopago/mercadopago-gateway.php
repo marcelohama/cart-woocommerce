@@ -1,4 +1,11 @@
 <?php
+/**
+ * Part of Woo Mercado Pago Module
+ * Author - Mercado Pago
+ * Developer - Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
+ * Copyright - Copyright(c) MercadoPago [http://www.mercadopago.com]
+ * License - http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
+ */
 
 // This include Mercado Pago library SDK
 require_once "sdk/lib/mercadopago.php";
@@ -77,22 +84,23 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		// Hook actions for WordPress.
 		add_action( // Used by IPN to receive IPN incomings.
 			'woocommerce_api_wc_woomercadopago_gateway',
-			array($this, 'check_ipn_response' )
+			array( $this, 'check_ipn_response' )
 		);
 		add_action( // Used by IPN to process valid incomings.
 			'valid_mercadopago_ipn_request',
-			array($this, 'successful_request' )
+			array( $this, 'successful_request' )
 		);
 		add_action( // Used by WordPress to render the custom checkout page.
 			'woocommerce_receipt_' . $this->id,
-			array($this, 'receipt_page' )
+			array( $this, 'receipt_page' )
 		);
 		add_action( // Used to fix CSS in some older WordPress/WooCommerce versions.
-			'wp_head', array($this, 'css' )
+			'wp_head',
+			array( $this, 'css' )
 		);
 		add_action( // Used in settings page to hook "save settings" action.
 			'woocommerce_update_options_payment_gateways_' . $this->id,
-			array($this, 'process_admin_options' )
+			array( $this, 'process_admin_options' )
 		);
 		
 		// Verify if client_id or client_secret is empty.
@@ -333,7 +341,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'default' => 'no',
 				'description' => sprintf( __( 'Register event logs of Mercado Pago, such as API requests, in the file', 'woocommerce-mercadopago-module' ) .
 					' %s.', $this->buildLogPathString() . '.<br>' . __( 'File location: ', 'woocommerce-mercadopago-module' ) .
-					'<code>wordpress/wp-content/uploads/wc-logs/' . $this->id . '-' . sanitize_file_name( wp_hash( $this->id ) ) . '.log</code>' )
+					'<code>wordpress/wp-content/uploads/wc-logs/' . $this->id . '-' . sanitize_file_name( wp_hash( $this->id ) ) . '.log</code>')
 			)
 		);
 		
@@ -486,7 +494,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
 						'unit_price' => (float) $item[ 'line_total' ],
-						'currency_id' => get_woocommerce_currency()
+						'currency_id' => $this->getCurrencyId($this->site_id)
 					));
 				}
 			}
@@ -506,7 +514,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
     	    	}
         	} catch ( MercadoPagoException $e ) {
         		if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id . ': @[DEBUG] - excluded payments: exception caught: ' . print_r( $e, true ) );
+					$this->log->add(
+						$this->id, $this->id .
+						': @[DEBUG] - excluded payments: exception caught: ' .
+						json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 				}
     	    }
     	}
@@ -576,7 +587,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$preferences[ 'auto_return' ] = "approved";
 		}
 		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id . ': @[buildPaymentPreference] - requesting mercado pago preference creation with following structure: ' . print_r( $preferences, true ) );
+			$this->log->add(
+				$this->id, $this->id . 
+				': @[buildPaymentPreference] - requesting mercado pago preference creation with following structure: ' .
+				json_encode( $preferences, JSON_PRETTY_PRINT ) );
 		}
 		$preferences = apply_filters( 'woocommerce_mercadopago_module_preferences', $preferences, $order );
 		return $preferences;
@@ -605,7 +619,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				return false;
 			} else {
 				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id . ': @[createUrl] - payment link generated with success from mercado pago, with structure as follow: ' . print_r( $checkout_info, true ) );
+					$this->log->add( $this->id, $this->id .
+						': @[createUrl] - payment link generated with success from mercado pago, with structure as follow: ' .
+						json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
 				}
 				if ( 'yes' == $this->sandbox ) {
 					return $checkout_info[ 'response' ][ 'sandbox_init_point' ];
@@ -615,7 +631,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[createUrl] - payment creation failed with exception: ' . print_r( $e, true ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[createUrl] - payment creation failed with exception: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}
@@ -651,7 +670,20 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	
 	// Return boolean indicating if currency is supported.
 	protected function isSupportedCurrency() {
-		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'USD', 'VEF' ) );
+		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'VEF' ) );
+	}
+
+	// Get currency id for a country
+	protected function getCurrencyId( $site_id ) {
+		switch ( $site_id ) {
+			case 'MLA': return 'ARS';
+			case 'MLB': return 'BRL';
+			case 'MCO': return 'CLP';
+			case 'MLC': return 'COP';
+			case 'MLM': return 'MXN';
+			case 'MLV': return 'VEF';
+			default: return '';
+		}
 	}
 
 	// Called automatically by WooCommerce, verify if Module is available to use.
@@ -691,7 +723,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// Notify that Client_id and/or Client_secret are not valid.
 	public function clientIdOrSecretMissingMessage() {
 		echo '<div class="error"><p><strong>' . 
-			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Standard Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'Your Mercado Pago credentials Client_id/Client_secret appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
@@ -702,7 +734,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// Notify that currency is not supported.
 	public function currencyNotSupportedMessage() {
 		echo '<div class="error"><p><strong>' .
-			__( 'Mercado Pago is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Standard Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'The currency' ) . ' <code>%s</code> ' . __( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, VEF.', 'woocommerce-mercadopago-module' ),
@@ -711,7 +743,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	}
 	
 	public function getCountryName( $site_id ) {
-		$country = $site_id;
 		switch ( $site_id ) {
 			case 'MLA': return __( 'Argentine', 'woocommerce-mercadopago-module' );
 			case 'MLB': return __( 'Brazil', 'woocommerce-mercadopago-module' );
@@ -738,12 +769,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		if ( $data ) {
 			header( 'HTTP/1.1 200 OK' );
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - received _get call with following content: ' . print_r( $data, true ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[check_ipn_response] - received _get call with following content: ' .
+					json_encode( $data, JSON_PRETTY_PRINT ) );
 			}
 			do_action( 'valid_mercadopago_ipn_request', $data );
 		} else {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_response] - Mercado Pago Request Failure: ' . print_r( $_GET, true ) );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[check_ipn_response] - Mercado Pago Request Failure: ' .
+					json_encode( $_GET, JSON_PRETTY_PRINT ) );
 			}
 			wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );
 		}
@@ -754,11 +791,16 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// processed by successful_request function.
 	public function check_ipn_request_is_valid( $data ) {
 		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - received ipn message from mercado pago, checking validity with $data containing: ' . print_r( $data, true ) );
+			$this->log->add(
+				$this->id, $this->id .
+				': @[check_ipn_request_is_valid] - received ipn message from mercado pago, checking validity with $data containing: ' .
+				json_encode( $data, JSON_PRETTY_PRINT ) );
 		}
 		if ( !isset( $data[ 'id' ] ) ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - failing due to ID absent' );
+				$this->log->add(
+					$this->id, $this->id .
+					': @[check_ipn_request_is_valid] - failing due to ID absent' );
 			}
 			return false; // No ID? No process!
 		}
@@ -794,7 +836,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' . $e->getMessage() );
+				$this->log->add( $this->id, $this->id .
+					': @[check_ipn_request_is_valid] - GOT EXCEPTION: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
 			return false;
 		}

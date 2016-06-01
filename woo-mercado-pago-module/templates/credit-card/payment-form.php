@@ -1,30 +1,16 @@
 <?php
+/**
+ * Part of Woo Mercado Pago Module
+ * Author - Mercado Pago
+ * Developer - Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
+ * Copyright - Copyright(c) MercadoPago [http://www.mercadopago.com]
+ * License - http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
+ */
+
 if ( !defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-
-<!-- VISA TEST CARDS
- Argentina: 4509 9535 6623 3704
- Brazil: 4235 6477 2802 5682
- Mexico: 4357 6064 1502 1810
- Venezuela: 4966 3823 3110 9310
- Colombia: 4013 5406 8274 6260
--->
-<!-- MASTERCARD TEST CARDS
- Argentina: 5031 7557 3453 0604
- Brazil: 5031 4332 1540 6351
- Mexico: 5031 7531 3431 1717
- Venezuela: 5177 0761 6430 0010
- Colombia: 5254 1336 7440 3564
--->
-<!-- AMEX TEST CARDS
- Argentina: 3711 803032 57522
- Brazil: 3753 651535 56885
- Mexico: not available
- Venezuela: not available
- Colombia: 3743 781877 55283
--->
 
 <div width="100%" style="margin:1px; padding:36px 36px 16px 36px; background:white; ">
 	<img class="logo" src="<?php echo ( $images_path . 'mplogo.png' ); ?>" width="156" height="40" />
@@ -43,7 +29,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<!-- card number -->
 		<div class="mp-box-inputs mp-col-100">
 	        <label for="cardNumber"><?php echo $form_labels[ 'form' ][ 'credit_card_number' ]; ?> <em>*</em></label>
-	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" autocomplete="off" />
+	        <input type="text" id="cardNumber" data-checkout="cardNumber" placeholder="" autocomplete="off" maxlength="19" />
 	        <span class="mp-error" id="mp-error-205" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ '205' ]; ?> </span>
 	        <span class="mp-error" id="mp-error-E301" data-main="#cardNumber"> <?php echo $form_labels[ 'error' ][ 'E301' ]; ?> </span>
 		</div>
@@ -59,9 +45,7 @@ if ( !defined( 'ABSPATH' ) ) {
           		</select>
         	</div>
         	<div class="mp-box-inputs mp-col-10">
-				<div id="mp-separete-date">
-            	/
-          		</div>
+				<div id="mp-separete-date"></div>
 			</div>
 			<div class="mp-box-inputs mp-col-45">
 				<label for="cardExpirationYear"><?php echo $form_labels[ 'form' ][ 'expiration_year' ]; ?> <em>*</em></label>
@@ -80,7 +64,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	  	<!-- card holder name -->
 	  	<div class="mp-box-inputs mp-col-100">
 	        <label for="cardholderName"><?php echo $form_labels[ 'form' ][ 'card_holder_name' ]; ?> <em>*</em></label>
-	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder="<?php echo $form_labels[ 'form' ][ 'card_holder_placeholder' ] ?>" autocomplete="off" />
+	        <input type="text" id="cardholderName" name="mercadopago_custom[cardholderName]" data-checkout="cardholderName" placeholder="" autocomplete="off" />
 	        <span class="mp-error" id="mp-error-221" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '221' ]; ?> </span>
 	        <span class="mp-error" id="mp-error-316" data-main="#cardholderName"> <?php echo $form_labels[ 'error' ][ '316' ]; ?> </span>
 		</div>
@@ -88,7 +72,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<div class="mp-box-inputs mp-line">
 	        <div class="mp-box-inputs mp-col-45">
 				<label for="securityCode"><?php echo $form_labels[ 'form' ][ 'security_code' ]; ?> <em>*</em></label>
-				<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" name="mercadopago_custom[securityCode]" style="padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;" autocomplete="off"/>
+				<input type="text" id="securityCode" data-checkout="securityCode" placeholder="" name="mercadopago_custom[securityCode]" style="padding: 8px; background: url( <?php echo ( $images_path . 'cvv.png' ); ?> ) 98% 50% no-repeat;" autocomplete="off" maxlength="4"/>
 				<span class="mp-error" id="mp-error-224" data-main="#securityCode"> <?php echo $form_labels[ 'error' ][ '224' ]; ?> </span>
 				<span class="mp-error" id="mp-error-E302" data-main="#securityCode"> <?php echo $form_labels[ 'error' ][ 'E302' ]; ?> </span>
 			</div>
@@ -188,7 +172,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	        utilities_fields: "#mercadopago-utilities"
 	    },
 	    text: {
-	        choose: "Choose"
+	        choose: '<?php echo $label_choose; ?>'
 	    },
 	    paths: {
 	        loading: '<?php echo ( $images_path . "loading.gif" ); ?>'
@@ -360,7 +344,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	    var $issuer = document.querySelector(config_mp.selectors.issuer);
 	    var opt = document.createElement('option');
 	    opt.value = "-1";
-	    opt.innerHTML = "Other Bank";
+	    opt.innerHTML = '<?php echo $label_other_bank; ?>';
 
 	    $issuer.innerHTML = "";
 	    $issuer.appendChild(opt);

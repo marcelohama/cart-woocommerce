@@ -11,20 +11,8 @@
 require_once "sdk/lib/mercadopago.php";
 
 // Extending from WooCommerce Payment Gateway class.
-// This extension implements the custom checkout.
-class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
-
-	// This array stores each banner image, depending on the country it belongs to or on
-	// the type of checkout we use.
-	private $banners_mercadopago_credit = array(
-		"MLA" => 'MLA/credit_card.png',
-        "MLB" => 'MLB/credit_card.png',
-        "MCO" => 'MCO/credit_card.png',
-        "MLC" => 'MLC/credit_card.png',
-        "MLV" => 'MLV/credit_card.png',
-        "MLM" => 'MLM/credit_card.png'
-        // TODO: Peru rollout
-    );
+// This extension implements the ticket payment method.
+class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
     
     // Sponsor ID array by country
     private $sponsor_id = array(
@@ -47,27 +35,24 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->domain = get_site_url() . '/index.php';
 		$this->site_id = null;
 		$this->isTestUser = false;
+		$this->payment_methods = array();
 		$this->store_categories_id = array();
     	$this->store_categories_description = array();
     	
 		// Within your constructor, you should define the following variables.
-		$this->id = 'woocommerce-mercadopago-custom-module';
-		$this->method_title = __( 'Mercado Pago - Custom Checkout', 'woocommerce-mercadopago-module' );
+		$this->id = 'woocommerce-mercadopago-ticket-module';
+		$this->method_title = __( 'Mercado Pago - Ticket', 'woocommerce-mercadopago-module' );
 		$this->method_description = '<img width="200" height="52" src="' .
 			plugins_url( 'images/mplogo.png', plugin_dir_path( __FILE__ ) ) . '"><br><br>' . '<strong>' .
 			wordwrap( __( 'This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module' ), 80, "\n" ) .
 			'</strong>';
 		
 		// These fields are used in our Mercado Pago Module configuration page.
-		$this->public_key = $this->get_option( 'public_key' );
 		$this->access_token = $this->get_option( 'access_token' );
 		$this->title = $this->get_option( 'title' );
 		$this->description = $this->get_option( 'description' );
-		$this->statement_descriptor = $this->get_option( 'statement_descriptor' );
-		$this->binary_mode = $this->get_option( 'binary_mode' );
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
-		$this->sandbox = $this->get_option( 'sandbox', false );
 		$this->debug = $this->get_option( 'debug' );
 		
 		// Render our configuration page and init/load fields.
@@ -76,11 +61,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		
 		// Hook actions for WordPress.
 		add_action( // Used by IPN to receive IPN incomings.
-			'woocommerce_api_wc_woomercadopagocustom_gateway',
+			'woocommerce_api_wc_woomercadopagoticket_gateway',
 			array($this, 'check_ipn_response')
 		);
 		add_action( // Used by IPN to process valid incomings.
-			'valid_mercadopagocustom_ipn_request',
+			'valid_mercadopagoticket_ipn_request',
 			array($this, 'successful_request')
 		);
 		add_action( // Used in settings page to hook "save settings" action.
@@ -89,18 +74,18 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		);
 		add_action( // Scripts for custom checkout
 			'wp_enqueue_scripts',
-			array( $this, 'customCheckoutScripts' )
+			array( $this, 'ticketCheckoutScripts' )
 		);
 		
-		// Verify if public_key or client_secret is empty.
-		if ( empty( $this->public_key ) || empty( $this->access_token ) ) {
+		// Verify if access token is empty.
+		if ( empty( $this->access_token ) ) {
 			add_action( 'admin_notices', array( $this, 'credentialsMissingMessage' ) );
 		}
 		
 		// Verify if currency is supported.
-		//if ( !$this->isSupportedCurrency() ) {
-		//	add_action( 'admin_notices', array( $this, 'currencyNotSupportedMessage' ) );
-		//}
+		if ( !$this->isSupportedCurrency() ) {
+			add_action( 'admin_notices', array( $this, 'currencyNotSupportedMessage' ) );
+		}
 
 		// Logging and debug.
 		if ( 'yes' == $this->debug ) {
@@ -120,14 +105,14 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$api_secret_locale = sprintf(
 			'<a href="https://www.mercadopago.com/mla/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mlb/account/credentials?type=custom" target="_blank">%s</a>, ' .
-			//'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
+			'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mco/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			// TODO: Peru rollout
 			'<a href="https://www.mercadopago.com/mlm/account/credentials?type=custom" target="_blank">%s</a> %s ' .
 			'<a href="https://www.mercadopago.com/mlv/account/credentials?type=custom" target="_blank">%s</a>',
 			__( 'Argentine', 'woocommerce-mercadopago-module' ),
 			__( 'Brazil', 'woocommerce-mercadopago-module' ),
-			//__( 'Chile', 'woocommerce-mercadopago-module' ),
+			__( 'Chile', 'woocommerce-mercadopago-module' ),
 			__( 'Colombia', 'woocommerce-mercadopago-module' ),
 			__( 'Mexico', 'woocommerce-mercadopago-module' ),
 			// TODO: __( 'Peru', 'woocommerce-mercadopago-module' ),
@@ -135,24 +120,25 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			__( 'Venezuela', 'woocommerce-mercadopago-module' )
 		);
 		
-		// Trigger API to get payment methods and site_id, also validates public_key/access_token.
+		// Trigger API to get payment methods and site_id, also validates access_token.
 		if ( $this->validateCredentials() ) {
 			try {
 				$mp = new MP( $this->access_token );
 				$get_request = $mp->get( "/users/me?access_token=" . $this->access_token );
 				$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
 				$this->site_id = $get_request[ 'response' ][ 'site_id' ];
-				if ( $this->site_id == "MLC" ) { // Chile isn't fully integrated with custom checkout
-					$this->credentials_message = '<img width="12" height="12" src="' .
-						plugins_url( 'images/error.png', plugin_dir_path( __FILE__ ) ) . '">' .
-						' ' . __( 'Your credentials are <strong>not valid</strong>!', 'woocommerce-mercadopago-module' );
-				} else {
-					$this->credentials_message = '<img width="12" height="12" src="' .
-						plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
-						' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
-						': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
-						plugins_url( 'images/' . $this->site_id . '/' . $this->site_id . '.png', plugin_dir_path( __FILE__ ) ) . '"> ';
+				$payments = $mp->get( "/v1/payment_methods/?access_token=" . $this->access_token );
+				foreach ( $payments[ "response" ] as $payment ) {
+					if ( $payment[ 'payment_type_id' ] != 'account_money' && $payment[ 'payment_type_id' ] != 'credit_card' &&
+ 						 $payment[ 'payment_type_id' ] != 'debit_card' && $payment[ 'payment_type_id' ] != 'prepaid_card' ) {
+						array_push( $this->payment_methods, $payment );
+					}
 				}
+				$this->credentials_message = '<img width="12" height="12" src="' .
+					plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
+					' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
+					': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
+					plugins_url( 'images/' . $this->site_id . '/' . $this->site_id . '.png', plugin_dir_path( __FILE__ ) ) . '"> ';
 			} catch ( MercadoPagoException $e ) {
 				$this->credentials_message = '<img width="12" height="12" src="' .
 					plugins_url( 'images/error.png', plugin_dir_path( __FILE__ ) ) . '">' .
@@ -176,20 +162,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'enabled' => array(
 				'title' => __( 'Enable/Disable', 'woocommerce-mercadopago-module' ),
 				'type' => 'checkbox',
-				'label' => __( 'Enable Custom Checkout', 'woocommerce-mercadopago-module' ),
+				'label' => __( 'Enable Ticket Payment Method', 'woocommerce-mercadopago-module' ),
 				'default' => 'yes'
 			),
 			'credentials_title' => array(
 				'title' => __( 'Mercado Pago Credentials', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
 				'description' => sprintf( '%s', $this->credentials_message ) . '<br>' . sprintf( __( 'You can obtain your credentials for', 'woocommerce-mercadopago-module' ) . ' %s.', $api_secret_locale )
-			),
-			'public_key' => array(
-				'title' => 'Public key',
-				'type' => 'text',
-				'description' => __( 'Insert your Mercado Pago Public key.', 'woocommerce-mercadopago-module' ),
-				'default' => '',
-				'required' => true
 			),
 			'access_token' => array(
 				'title' => 'Access token',
@@ -204,7 +183,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'description' => sprintf( __( 'Your IPN URL to receive instant payment notifications is', 'woocommerce-mercadopago-module' ) . '<br>%s', '<code>' . $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway' . '</code>.' )
 			),
 			'checkout_options_title' => array(
-				'title' => __( 'Checkout Options', 'woocommerce-mercadopago-module' ),
+				'title' => __( 'Ticket Options', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
 				'description' => ''
 			),
@@ -212,26 +191,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Title', 'woocommerce-mercadopago-module' ),
 				'type' => 'text',
 				'description' => __( 'Title shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
-				'default' => __( 'Mercado Pago - Credit Card', 'woocommerce-mercadopago-module' )
+				'default' => __( 'Mercado Pago - Ticket', 'woocommerce-mercadopago-module' )
 			),
 			'description' => array(
 				'title' => __( 'Description', 'woocommerce-mercadopago-module' ),
 				'type' => 'textarea',
 				'description' => __( 'Description shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
 				'default' => __( 'Pay with Mercado Pago', 'woocommerce-mercadopago-module' )
-			),
-			'statement_descriptor' => array(
-				'title' => __( 'Statement Descriptor', 'woocommerce-mercadopago-module' ),
-				'type' => 'text',
-				'description' => __( 'The description that will be shown in your customer\'s invoice.', 'woocommerce-mercadopago-module' ),
-				'default' => __( 'Mercado Pago', 'woocommerce-mercadopago-module' )
-			),
-			'binary_mode' => array(
-				'title'   => __( 'Binary Mode', 'woocommerce-mercadopago-module' ),
-				'type'    => 'checkbox',
-				'label'   => __( 'Enable binary mode for checkout status', 'woocommerce-mercadopago-module' ),
-				'default' => 'no',
-				'description' => __( 'When charging a credit card, only [approved] or [reject] status will be taken.', 'woocommerce-mercadopago-module' )
 			),
 			'category_id' => array(
 				'title' => __( 'Store Category', 'woocommerce-mercadopago-module' ),
@@ -249,13 +215,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Test and Debug Options', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
 				'description' => ''
-			),
-			'sandbox' => array(
-				'title' => __( 'Mercado Pago Sandbox', 'woocommerce-mercadopago-module' ),
-				'type' => 'checkbox',
-				'label' => __( 'Enable Mercado Pago Sandbox', 'woocommerce-mercadopago-module' ),
-				'default' => 'no',
-				'description' => __( 'This option allows you to test payments inside a sandbox environment.', 'woocommerce-mercadopago-module' ),
 			),
 			'debug' => array(
 				'title' => __( 'Debug and Log', 'woocommerce-mercadopago-module' ),
@@ -294,78 +253,32 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 * CHECKOUT BUSINESS RULES
 	 * ========================================================================
 	 */
-	 
-	public function customCheckoutScripts() {
+	
+	public function ticketCheckoutScripts() {
 		if ( is_checkout() && $this->is_available() ) {
 			if ( !get_query_var( 'order-received' ) ) {
 				wp_enqueue_style(
 					'woocommerce-mercadopago-style', plugins_url(
 						'assets/css/custom_checkout_mercadopago.css',
 						plugin_dir_path( __FILE__ ) ) );
-				wp_enqueue_script(
-					'woocommerce-mercadopago-v1',
-					'https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js' );
 			}
 		}
 	}
-	
+
 	public function payment_fields() {
 		$amount = $this->get_order_total();
 		wc_get_template(
-			'credit-card/payment-form.php',
+			'ticket/ticket-form.php',
 			array(
-				'public_key' => $this->public_key,
+				'form_labels' => array(
+					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
+					"payment_instructions" => __( 'Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it.', 'woocommerce-mercadopago-module' ),
+					"ticket_note" => __( 'Important: The order will be confirmed only after the payment approval.', 'woocommerce-mercadopago-module' )
+				),
+				'payment_methods' => $this->payment_methods,
 				'site_id' => $this->site_id,
 				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
-				'banner_path' => plugins_url( 'images/' .
-					$this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
-				'amount' => $amount,
-				'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
-				'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
-				'form_labels' => array(
-					"form" => array(
-						"card_holder_placeholder" => __( " as it appears in your card ...", 'woocommerce-mercadopago-module' ),
-				        "payment_method" => __( "Payment Method", 'woocommerce-mercadopago-module' ),
-				        "credit_card_number" => __( "Credit card number", 'woocommerce-mercadopago-module' ),
-				        "expiration_month" => __( "Expiration month", 'woocommerce-mercadopago-module' ),
-				        "expiration_year" => __( "Expiration year", 'woocommerce-mercadopago-module' ),
-				        "year" => __( "Year", 'woocommerce-mercadopago-module' ),
-				        "month" => __( "Month", 'woocommerce-mercadopago-module' ),
-				        "card_holder_name" => __( "Card holder name", 'woocommerce-mercadopago-module' ),
-				        "security_code" => __( "Security code", 'woocommerce-mercadopago-module' ),
-				        "document_type" => __( "Document Type", 'woocommerce-mercadopago-module' ),
-				        "document_number" => __( "Document number", 'woocommerce-mercadopago-module' ),
-				        "issuer" => __( "Issuer", 'woocommerce-mercadopago-module' ),
-				        "installments" => __( "Installments", 'woocommerce-mercadopago-module' )
-			      	),
-			      	"error" => array(
-				        //card number
-				        "205" => __( "Parameter cardNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "E301" => __( "Invalid Card Number", 'woocommerce-mercadopago-module' ),
-				        //expiration date
-				        "208" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        "209" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        "325" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        "326" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        //card holder name
-				        "221" => __( "Parameter cardholderName can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "316" => __( "Invalid Card Holder Name", 'woocommerce-mercadopago-module' ),
-				        //security code
-				        "224" => __( "Parameter securityCode can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "E302" => __( "Invalid Security Code", 'woocommerce-mercadopago-module' ),
-				        //doc type
-				        "212" => __( "Parameter docType can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "322" => __( "Invalid Document Type", 'woocommerce-mercadopago-module' ),
-				        //doc number
-				        "214" => __( "Parameter docNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "324" => __( "Invalid Document Number", 'woocommerce-mercadopago-module' ),
-				        //doc sub type
-				        "213" => __( "The parameter cardholder.document.subtype can not be null or empty", 'woocommerce-mercadopago-module' ),
-				        "323" => __( "Invalid Document Sub Type", 'woocommerce-mercadopago-module' ),
-				        //issuer
-				        "220" => __( "Parameter cardIssuerId can not be null/empty", 'woocommerce-mercadopago-module' )
-					)
-				)
+				'amount' => $amount
 			),
 			'woocommerce/mercadopago/',
 			WC_WooMercadoPago_Module::getTemplatesPath()
@@ -382,134 +295,95 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				': @[process_payment] - Received [$_POST] from customer front-end page: ' .
 				json_encode( $_POST, JSON_PRETTY_PRINT ) );
 		}
-		if ( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] == "" ) {
-			$_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] = $_POST[ 'mercadopago_custom' ][ 'paymentMethodIdSelector' ];
-		}
-		if ( isset( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'token' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'token' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && $_POST[ 'mercadopago_custom' ][ 'installments' ] != -1 ) {
-			$post = $_POST;
-			$response = $this->createUrl( $order, $post );
-	        if ( array_key_exists( 'status', $response ) ) {
-	            switch ( $response[ 'status' ] ) {
-	            	case 'approved':
-	            		WC()->cart->empty_cart();
-	            		wc_add_notice(
-	            			'<p>' . __( $this->getOrderStatus( 'accredited' ), 'woocommerce-mercadopago-module') . '</p>',
-	            			'notice'
-	            		);
-	            		$order->add_order_note(
-							'Mercado Pago: ' .
-							__( 'Payment approved.', 'woocommerce-mercadopago-module' )
-						);
-						return array(
-							'result' => 'success',
-							'redirect' => $order->get_checkout_order_received_url()
-						);
-						break;
-	                case 'pending':
-	                	// order approved/pending, we just redirect to the thankyou page
-	                    return array(
-							'result' => 'success',
-							'redirect' => $order->get_checkout_order_received_url()
-						);
-						break;
-	                case 'in_process':
-	                	// for pending, we don't know if the purchase will be made, so we must inform this status
-	                	WC()->cart->empty_cart();
-						wc_add_notice(
-							'<p>' . __( $this->getOrderStatus( $response[ 'status_detail' ] ), 'woocommerce-mercadopago-module') . '</p>' .
-							'<p><a class="button" href="' . esc_url( $order->get_checkout_order_received_url() ) . '">' .
-								__( 'Check your order resume', 'woocommerce-mercadopago-module' ) .
-							'</a></p>',
-							'notice'
-						);
-						return array(
-							'result' => 'success',
-							'redirect' => $order->get_checkout_payment_url( true )
-						);
-						break;
-	                case 'rejected':
-	                	// if rejected is received, the order will not proceed until another payment try,
-	                	// so we must inform this status
-						wc_add_notice(
-							'<p>' . __( 'Your payment was refused. You can try again.', 'woocommerce-mercadopago-module' ) .
-							'<br>' . __( $this->getOrderStatus( $response[ 'status_detail' ] ), 'woocommerce-mercadopago-module') . '</p>' .
-							'<p><a class="button" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' .
-								__( 'Click to try again', 'woocommerce-mercadopago-module' ) .
-							'</a></p>',
-							'error'
-						);
-						return array(
-							'result' => 'success',
-							'redirect' => $order->get_checkout_payment_url( true )
-						);
-						break;
-					case 'cancelled':
-					case 'in_mediation':
-					case 'charged-back':
-						break;
-					default:
-						break;
-				}
-	        }
-		} else {
-			// process when fields are imcomplete
+		
+		if ( isset( $_POST[ 'mercadopago_ticket' ][ 'amount' ] ) && !empty( $_POST[ 'mercadopago_ticket' ][ 'amount' ] ) &&
+			 isset( $_POST[ 'mercadopago_ticket' ][ 'paymentMethodId' ] ) && !empty( $_POST[ 'mercadopago_ticket' ][ 'paymentMethodId' ] ) ) {
+			return $this->createUrl( $order, $_POST );
+	    } else {
+	    	// process when fields are imcomplete
 			wc_add_notice(
-				'<p>' . __( 'A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module' ) . '</p>',
+				'<p>' . __( 'A problem was occurred when processing your payment. Please, try again.', 'woocommerce-mercadopago-module' ) . '</p>',
 				'error'
 			);
-			/*return array(
+			return array(
 				'result'   => 'fail',
 				'redirect' => '',
-			);*/
-		}
+			);
+	    }
 	}
 
 	protected function createUrl( $order, $post_from_form ) {
-		
+
 		$mp = new MP( $this->access_token );
-		// Checks for sandbox mode
-		if ( 'yes' == $this->sandbox ) {
-			$mp->sandbox_mode( true );
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[createUrl] - sandbox mode is enabled' );
-			}
-		} else {
-			$mp->sandbox_mode( false );
-		}
+		$mp->sandbox_mode( false );
 
 		// Creates the order parameters by checking the cart configuration
 		$preferences = $this->createPreferences( $order, $post_from_form );
 		try {
 			// Create order preferences with Mercado Pago API request
-			$checkout_info = $mp->post( "/v1/payments", json_encode( $preferences ) );
+			$ticket_info = $mp->create_payment( json_encode( $preferences ) );
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[createUrl] - Received [$checkout_info] from Mercado Pago API: ' .
-					json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
+					json_encode( $ticket_info, JSON_PRETTY_PRINT ) );
 			}
-			if ( is_wp_error( $checkout_info ) ||
-				$checkout_info[ 'status' ] < 200 || $checkout_info[ 'status' ] >= 300 ) {
+			if ( is_wp_error( $ticket_info ) ||
+				$ticket_info[ 'status' ] < 200 || $ticket_info[ 'status' ] >= 300 ) {
 				if ( 'yes' == $this->debug ) {
 					$this->log->add( $this->id, $this->id .
 						': @[createUrl] - payment creation failed with error: ' .
-						$checkout_info[ 'response' ][ 'status' ] );
+						$ticket_info[ 'response' ][ 'status' ] );
 				}
-				return false;
 			} else {
-				return $checkout_info[ 'response' ];
+				$response = $ticket_info[ 'response' ];
+				if ( array_key_exists( 'status', $response ) ) {
+		        	if ( $response[ 'status' ] == "pending" && $response[ 'status_detail' ] == "pending_waiting_payment" ) {
+		        		WC()->cart->empty_cart();
+
+		        		$html = '<p></p><p>' . wordwrap(
+		        			__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module'),
+							60, '<br>') . '</p>';
+						/*$html .=
+							'<a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' .
+							__( 'Cancel order &amp; Clear cart', 'woocommerce-mercadopago-module' ) .
+							'</a>';*/
+						$html .=
+							'<a id="submit-payment" target="_blank" href="' . $response[ 'transaction_details' ][ 'external_resource_url' ] . '" class="button alt">' .
+							__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
+							'</a> ';
+
+		        		wc_add_notice(
+		        			'<p>' . $html . '</p>',
+		        			'notice'
+		        		);
+		        		$order->add_order_note(
+							'Mercado Pago: ' .
+							__( 'Waiting for the ticket payment.', 'woocommerce-mercadopago-module' )
+						);
+						$order->add_order_note(
+							'Mercado Pago: ' .
+							__( 'To reprint the ticket click ', 'woocommerce-mercadopago-module' ) .
+							'<a href="' . $response[ 'transaction_details' ][ 'external_resource_url' ] . '">' .
+							__( 'here', 'woocommerce-mercadopago-module' ) .
+							'</a>'
+						);
+
+						return array(
+							'result' => 'success',
+							'redirect' => $order->get_checkout_payment_url( true )
+						);
+		        	}
+		        }
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
+				$this->log->add(
+					$this->id, $this->id .
 					': @[createUrl] - payment creation failed with exception: ' .
 					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
-			return false;
 		}
+		return false;
 
 	}
 	
@@ -607,17 +481,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         
         // The payment preference
         $payment_preference = array (
-        	'transaction_amount' => (float) $post_from_form[ 'mercadopago_custom' ][ 'amount' ],
-        	'token' => $post_from_form[ 'mercadopago_custom' ][ 'token' ],
+        	'transaction_amount' => (float) $post_from_form[ 'mercadopago_ticket' ][ 'amount' ],
         	'description' => $purchase_description,
-        	'installments' => (int) $post_from_form[ 'mercadopago_custom' ][ 'installments' ],
-            'payment_method_id' => $post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ],
+            'payment_method_id' => $post_from_form[ 'mercadopago_ticket' ][ 'paymentMethodId' ],
             'payer' => array(
             	'email' => $order->billing_email
             ),
             'external_reference' => $this->invoice_prefix . $order->id,
-            'statement_descriptor' => $this->statement_descriptor,
-            'binary_mode' => ($this->binary_mode == "yes"),
             'additional_info' => array(
                 'items' => $items,
                 'payer' => $payer_additional_info,
@@ -626,38 +496,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         );
 
         // Do not set IPN url if it is a localhost!
-        $notification_url = $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway';
+        $notification_url = $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoTicket_Gateway';
         if ( !strrpos( $notification_url, "localhost" ) ) {
             $payment_preference['notification_url'] = $notification_url;
-        }
-
-        // Customer's Card Feature
-        /*
-        // save the card
-        if ( isset( $post[ 'opcaoPagamentoCreditCard' ] ) && $post[ 'opcaoPagamentoCreditCard' ] == "Cards" ) {
-            $payment_preference[ 'metadata' ] = array( 'opcao_pagamento' => $post[ 'opcaoPagamentoCreditCard' ],
-                'customer_id' => $post[ 'customerID' ],
-                'card_token_id' => $post[ 'card_token_id' ] );
-        }
-        */
-        // add only for creditcard
-        if ( array_key_exists( 'card_token_id', $post_from_form[ 'mercadopago_custom' ] ) ) {
-            // add only it has issuer id
-            if ( array_key_exists( 'issuersOptions', $post_from_form[ 'mercadopago_custom' ] ) ) {
-                $payment_preference[ 'issuer_id' ] =
-                	(integer) $post_from_form[ 'mercadopago_custom' ][ 'issuersOptions' ];
-            }
-            /*
-            if ( "Customer" == $post_from_form[ 'mercadopago_custom' ][ 'opcaoPagamentoCreditCard' ] ) {
-                $customerCards = $post_from_form[ 'mercadopago_custom' ][ "customerCards" ];
-                $customerID = $post_from_form[ 'mercadopago_custom' ][ "customerID" ];
-                $payment_preference[ 'payer' ][ 'id' ] = $customerID;
-                $payment_preference[ 'installments' ] = (integer) $post_from_form[ 'mercadopago_custom' ][ 'installmentsCust' ];
-            } else {
-                $payment_preference[ 'installments' ] = (integer) $post_from_form[ 'mercadopago_custom' ][ 'installments' ];
-            }
-            $payment_preference[ 'token' ] = $post_from_form[ 'mercadopago_custom' ][ 'card_token_id' ];
-            */
         }
 
         // Coupon Feature
@@ -691,7 +532,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 
         $payment_preference = apply_filters(
-        	'woocommerce_mercadopago_module_custom_preferences',
+        	'woocommerce_mercadopago_module_ticket_preferences',
         	$payment_preference, $order
         );
 		return $payment_preference;
@@ -706,9 +547,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 	// Check if we have valid credentials.
 	public function validateCredentials() {
-		if ( empty( $this->public_key ) ) return false;
 		if ( empty( $this->access_token ) ) return false;
-		if ( strlen( $this->public_key ) > 0 && strlen( $this->access_token ) > 0 ) {
+		if ( strlen( $this->access_token ) > 0 ) {
 			try {
 				$mp = new MP( $this->access_token );
 				return true;
@@ -729,13 +569,12 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Return boolean indicating if currency is supported.
 	// TODO: Peru rollout
 	protected function isSupportedCurrency() {
-		return in_array( $this->site_id, array( 'MLA', 'MLB', 'MCO', 'MLM', 'MLV' ) );
+		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'VEF' ) );
 	}
 
 	// Called automatically by WooCommerce, verify if Module is available to use.
 	public function is_available() {
 		$available = ( 'yes' == $this->settings[ 'enabled' ] ) &&
-			! empty( $this->public_key ) &&
 			! empty( $this->access_token ) &&
 			$this->isSupportedCurrency();
 		return $available;
@@ -745,21 +584,21 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	protected function admin_url() {
 		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.1', '>=' ) ) {
 			return admin_url(
-				'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopagocustom_gateway'
+				'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopagoticket_gateway'
 			);
 		}
 		return admin_url(
-			'admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_WooMercadoPagoCustom_Gateway'
+			'admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_WooMercadoPagoTicket_Gateway'
 		);
 	}
 
-	// Notify that public_key and/or access_token are not valid.
+	// Notify that access_token are not valid.
 	public function credentialsMissingMessage() {
 		echo '<div class="error"><p><strong>' . 
-			__( 'Custom Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Ticket is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
-				__( 'Your Mercado Pago credentials Public Key/Access Token appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
+				__( 'Your Mercado Pago credentials Access Token appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
 				'<a href="' . $this->admin_url() . '">' .
 				__( 'Click here and configure!', 'woocommerce-mercadopago-module' ) . '</a>' ) .
 			'</p></div>';
@@ -769,7 +608,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// TODO: Peru rollout
 	public function currencyNotSupportedMessage() {
 		echo '<div class="error"><p><strong>' .
-			__( 'Custom Checkout is Inactive', 'woocommerce-mercadopago-module' ) .
+			__( 'Ticket is Inactive', 'woocommerce-mercadopago-module' ) .
 			'</strong>: ' .
 			sprintf(
 				__( 'The currency' ) . ' <code>%s</code> ' .
@@ -788,47 +627,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			case 'MLM': return __( 'Mexico', 'woocommerce-mercadopago-module' );
 			case 'MLV': return __( 'Venezuela', 'woocommerce-mercadopago-module' );
 			case 'MPE': return __( 'Peru', 'woocommerce-mercadopago-module' );
-		}
-	}
-
-	public function getOrderStatus( $status_detail ) {
-		switch ( $status_detail ) {
-			case 'accredited':
-				return __( 'Done, your payment was accredited!', 'woocommerce-mercadopago-module' );
-			case 'pending_contingency':
-				return __( 'We are processing the payment. In less than an hour we will e-mail you the results.', 'woocommerce-mercadopago-module' );
-			case 'pending_review_manual':
-				return __( 'We are processing the payment. In less than 2 business days we will tell you by e-mail whether it has accredited or we need more information.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_bad_filled_card_number':
-				return __( 'Check the card number.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_bad_filled_date':
-				return __( 'Check the expiration date.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_bad_filled_other':
-				return __( 'Check the information.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_bad_filled_security_code':
-				return __( 'Check the security code.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_blacklist':
-				return __( 'We could not process your payment.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_call_for_authorize':
-				return __( 'You must authorize the payment of your orders.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_card_disabled':
-				return __( 'Call your card issuer to activate your card. The phone is on the back of your card.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_card_error':
-				return __( 'We could not process your payment.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_duplicated_payment':
-				return __( 'You already made a payment for that amount. If you need to repay, use another card or other payment method.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_high_risk':
-				return __( 'Your payment was rejected. Choose another payment method. We recommend cash.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_insufficient_amount':
-				return __( 'Your payment do not have sufficient funds.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_invalid_installments':
-				return __( 'Your payment does not process payments with selected installments.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_max_attempts':
-				return __( 'You have reached the limit of allowed attempts. Choose another card or another payment method.', 'woocommerce-mercadopago-module' );
-			case 'cc_rejected_other_reason':
-				return __( 'This payment method did not process the payment.', 'woocommerce-mercadopago-module' );
-			default:
-				return __( 'This payment method did not process the payment.', 'woocommerce-mercadopago-module' );
 		}
 	}
 	
@@ -873,10 +671,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			return false; // No ID? No process!
 		}
 		$mp = new MP( $this->access_token );
-		if ( 'yes' == $this->sandbox )
-			$mp->sandbox_mode( true );
-		else
-			$mp->sandbox_mode( false );
+		$mp->sandbox_mode( false );
 		try {
 			$access_token = array( "access_token" => $mp->get_access_token() );
 			if ( $data[ "type" ] == 'payment' ) {
@@ -895,7 +690,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			}
 		} catch ( MercadoPagoException $e ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
+				$this->log->add(
+					$this->id, $this->id .
 					': @[check_ipn_request_is_valid] - MercadoPagoException: ' .
 					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
 			}
