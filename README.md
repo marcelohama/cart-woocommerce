@@ -1,4 +1,4 @@
-# WooCommerce - Mercado Pago Module (v2.1.x to 2.5.x)
+# Woo Mercado Pago Module
 
 * [Features](#features)
 * [Available versions](#available_versions)
@@ -7,14 +7,21 @@
 
 <a name="features"></a>
 ##Features##
+
 **Standard checkout**
-
 This feature allows merchants to have a standard checkout. It includes features like
-customizations of title, description, category, and external reference, integrations via
-iframe, modal, and redirection, with configurable auto-returning, max installments and
-payment method exclusion setup, and sandbox/debug options. Starting from version 2.0.0,
-custom checkout is available with all the features of standard checkout plus tickets.
+customizations of title, description, category, external reference, integrations via
+iframe, modal, and redirection, with configurable auto-returning, max installments,
+payment method exclusion setup, and sandbox/debug options.
+*Available for Argentina, Brazil, Chile, Colombia, Mexico and Venezuela*
 
+**Custom checkout**
+This feature enables merchants to have the custom checkout, a more integrated type of
+checkout with customized views and more intuitive flow from the cart to the payment page.
+*Available for Argentina, Brazil, Colombia, Mexico and Venezuela*
+
+**Tickets**
+This option enables merchants to give their customers the option to pay via tickets.
 *Available for Argentina, Brazil, Chile, Colombia, Mexico and Venezuela*
 
 <a name="available_versions"></a>
