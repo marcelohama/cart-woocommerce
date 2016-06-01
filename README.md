@@ -5,6 +5,8 @@
 * [Installation](#installation)
 * [Configuration](#configuration)
 
+-----------
+
 <a name="features"></a>
 ##Features##
 
@@ -23,6 +25,8 @@ checkout with customized views and more intuitive flow from the cart to the paym
 **Tickets**<br />
 This option enables merchants to give their customers the option to pay via tickets.<br />
 *Available for Argentina, Brazil, Chile, Colombia, Mexico and Venezuela*
+
+-----------
 
 <a name="available_versions"></a>
 ##Available versions##
@@ -44,6 +48,8 @@ This option enables merchants to give their customers the option to pay via tick
   </tbody>
 </table>
 
+-----------
+
 <a name="installation"></a>
 ##Installation##
 
@@ -51,21 +57,22 @@ You have two way to install this module: from your WordPress Store, or by downlo
 
 **Install from WordPress**<br />
 1. In the left side menu, go to *Plugins > Add New*;
+
 2. Type "Woo Mercado Pago Module" in the *Search Plugins* text field. Press Enter;
+
 3. You should find the module read to be installed. Click install.
 
 **Manual Download**<br />
 1. Get the module sources from a repository (<a href="https://github.com/mercadopago/cart-woocommerce/archive/master.zip">Github</a> or <a href="https://downloads.wordpress.org/plugin/woo-mercado-pago-module.2.0.0.zip">WordPress Plugin Directory</a>);
+
 2. Unzip the folder and find "woo-mercado-pago-module" directory;
+
 3. Copy "woo-mercado-pago-module" directory to *[WordPressRootDirectory]/wp-content/plugins/* directory.
 
-To confirm that your module is really installed, you can click in **Plugins** item at the left side menu.
+To confirm that your module is really installed, you can click in *Plugins* item at the left side menu and check your just installed module.
 
 ![Features](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/plugin_adm.png)
 
-
-
------------
 -----------
 
 
