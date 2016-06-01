@@ -8,8 +8,6 @@
 <a name="features"></a>
 ##Features##
 
-![Features](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/plugin_adm.png)
-
 **Standard checkout**<br />
 This feature allows merchants to have a standard checkout. It includes features like
 customizations of title, description, category, external reference, integrations via
@@ -28,6 +26,7 @@ This option enables merchants to give their customers the option to pay via tick
 
 <a name="available_versions"></a>
 ##Available versions##
+
 <table>
   <thead>
     <tr>
@@ -47,6 +46,28 @@ This option enables merchants to give their customers the option to pay via tick
 
 <a name="installation"></a>
 ##Installation##
+
+You have two way to install this module: from your WordPress Store, or by downloading and manually copying the module directory.
+
+**Install from WordPress**<br />
+1. In the left side menu, go to *Plugins > Add New*;
+2. Type "Woo Mercado Pago Module" in the *Search Plugins* text field. Press Enter;
+3. You should find the module read to be installed. Click install.
+
+**Manual Download**<br />
+1. Get the module sources from a repository (<a href="https://github.com/mercadopago/cart-woocommerce/archive/master.zip">Github</a> or <a href="https://downloads.wordpress.org/plugin/woo-mercado-pago-module.2.0.0.zip">WordPress Plugin Directory</a>);
+2. Unzip the folder and find "woo-mercado-pago-module" directory;
+3. Copy "woo-mercado-pago-module" directory to *[WordPressRootDirectory]/wp-content/plugins/* directory.
+
+To confirm that your module is really installed, you can click in **Plugins** item at the left side menu.
+
+![Features](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/plugin_adm.png)
+
+
+
+-----------
+-----------
+
 
 1. Copy **cart-woocommerce/woo-mercado-pago-module** folder to **[WordPressRootDirectory]/wp-content/plugins/** folder.
 
