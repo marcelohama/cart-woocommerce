@@ -55,41 +55,58 @@ This option enables merchants to give their customers the option to pay via tick
 
 You have two way to install this module: from your WordPress Store, or by downloading and manually copying the module directory.
 
-**Install from WordPress**<br />
-1. In the left side menu, go to *Plugins > Add New*;
+**Install from WordPress**
 
-2. Type "Woo Mercado Pago Module" in the *Search Plugins* text field. Press Enter;
+1. On your store administration, go to *Plugins* option in sidebar;
+
+2. Click in *Add New* button and type "Woo Mercado Pago Module" in the *Search Plugins* text field. Press Enter;
 
 3. You should find the module read to be installed. Click install.
 
-**Manual Download**<br />
+**Manual Download**
+
 1. Get the module sources from a repository (<a href="https://github.com/mercadopago/cart-woocommerce/archive/master.zip">Github</a> or <a href="https://downloads.wordpress.org/plugin/woo-mercado-pago-module.2.0.0.zip">WordPress Plugin Directory</a>);
 
 2. Unzip the folder and find "woo-mercado-pago-module" directory;
 
 3. Copy "woo-mercado-pago-module" directory to *[WordPressRootDirectory]/wp-content/plugins/* directory.
 
-To confirm that your module is really installed, you can click in *Plugins* item at the left side menu and check your just installed module.
+To confirm that your module is really installed, you can click in *Plugins* item in the store administration menu, and check your just installed module. Just click *enable* to activate it and you should receive the message "Plugin enabled." as a notice in your WordPress.
 
 ![Features](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/plugin_adm.png)
 
 -----------
 
-
-1. Copy **cart-woocommerce/woo-mercado-pago-module** folder to **[WordPressRootDirectory]/wp-content/plugins/** folder.
-
-2. On your store administration, go to **Plugins** option in sidebar.
-
-3. Search by **WooCommerce Mercado Pago** and click enable. <br />
-You will receive the following message: "Plugin enabled." as a notice in your WordPress.
-
 <a name="configuration"></a>
 ##Configuration##
 
-1. Go to **WooCommerce > Configuration > Checkout Tab** and look for **Mercado Pago - Standard Checkout** or **Mercado Pago - Custom Checkout**. <br />
+In this module, you can use three solutions: Standard Checkout, Custom Checkout, and Tickets. Each of them with their specific configurations.
+
+**Standard Checkout**<br />
+
+1. On your store administration, go to *WooCommerce > Settings > Checkout* tab;
+
+2. In *Checkout Options*, click in *Mercado Pago - Standard Checkout*. You should get this following page:
+
+![Installation Instructions](https://raw.github.com/marcelohama/cart-woocommerce/dev_a/README.img/wc_setup_credentials.png)
+
+3. Configure your credentials *Client_id* and *Client_secret* credentials:
+
+	You can obtain your *Client_id* and *Client_secret*, accordingly to your country, in the following links:
+
+	* Argentina: https://www.mercadopago.com/mla/herramientas/aplicaciones
+	* Brazil: https://www.mercadopago.com/mlb/ferramentas/aplicacoes
+	* Chile: https://www.mercadopago.com/mlc/herramientas/aplicaciones
+	* Colombia: https://www.mercadopago.com/mco/herramientas/aplicaciones
+	* Mexico: https://www.mercadopago.com/mlm/herramientas/aplicaciones
+	* Venezuela: https://www.mercadopago.com/mlv/herramientas/aplicaciones
+	
+-----------
+
+1. Go to *WooCommerce > Configuration > Checkout Tab* and look for **Mercado Pago - Standard Checkout** or **Mercado Pago - Custom Checkout**. <br />
 For **Mercado Pago - Standard Checkout**, you need to configure your credentials **Client_id** and **Client_secret** in Standard Checkout Credentials section.
 	
-	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/wc_setup_credentials.png) <br />
+	![Installation Instructions](https://raw.github.com/mercadopago/cart-woocommerce/master/README.img/standard_checkout.png)
 	
 	You can obtain your **Client_id** and **Client_secret**, accordingly to your country, in the following links:
 
