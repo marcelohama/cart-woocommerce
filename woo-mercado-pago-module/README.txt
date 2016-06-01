@@ -1,5 +1,5 @@
 === Woo Mercado Pago Module ===
-Contributors: mercadopago, mercadolivre
+Contributors: mercadopago, mercadolivre, marcelohama, matiasgordon
 Donate link: https://www.mercadopago.com.br/developers/
 Tags: ecommerce, mercadopago
 Requires at least: WooCommerce 2.1.x
@@ -25,6 +25,19 @@ Download now and receive payments with Mercado Pago.<br /><br />
 - Anticipation of receivables in D+2 or D+14 (According to Mercado Pago terms and conditions);<br />
 - Payment in one click with Mercado Pago standard checkout;<br />
 - Seller's Protection Program;<br />
+
+Standard checkout<br />
+This feature allows merchants to have a standard checkout. It includes features like
+customizations of title, description, category, external reference, integrations via
+iframe, modal, and redirection, with configurable auto-returning, max installments,
+payment method exclusion setup, and sandbox/debug options.<br />
+
+Custom checkout:<br />
+This feature enables merchants to have the custom checkout, a more integrated type of
+checkout with customized views and more intuitive flow from the cart to the payment page.<br />
+
+Tickets<br />
+This option enables merchants to give their customers the option to pay via tickets.<br />
 
 == Installation ==
 
@@ -111,7 +124,11 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 
 == Screenshots ==
 
-1. `/README.img/wc_mp_settings.png`
+1. `/README.img/std_config_screenshot.png`
+
+2. `/README.img/order_custom.png`
+
+3. `/README.img/order_ticket.png`
 
 == Changelog ==
 
@@ -144,11 +161,11 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 * Translation to es_ES;
 * Some bug fixes and code improvements.
 	
-v2.0.0 (??/??/????)
+v2.0.0 (01/06/2016)
 * Custom Checkout for LatAm;
 * Ticket for LatAm;
 * Removed possibility to setting supportable but invalid currency.
 	
 == Upgrade Notice ==
 
-Please refer to our github repo.
+If you're migrating from version 1.x.x to 2.x.x, please be sure to make a backup of your site and database, as there are many additional features and modifications between these versions.
