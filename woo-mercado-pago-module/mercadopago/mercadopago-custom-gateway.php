@@ -311,22 +311,34 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	
 	public function payment_fields() {
 		$amount = $this->get_order_total();
-		$mercadopago = new MP( $this->access_token );
-		$customer = $mercadopago->get_or_create_customer( wp_get_current_user()->user_email );
+
+		if ( wp_get_current_user()->ID == 0 ) {
+			$customer_cards = array();
+		} else {
+			$mp = new MP( $this->access_token );
+			$logged_user_email = wp_get_current_user()->user_email;
+			$customer_cards = ( $mp->get_or_create_customer( $logged_user_email ) )[ 'cards' ];
+			if ( 'yes' == $this->debug && count( $customer_cards ) > 0 ) {
+				$this->log->add( $this->id, $this->id .
+					': @[process_fields] - Logged user cards: ' .
+					json_encode( $customer_cards, JSON_PRETTY_PRINT ) );
+			}
+		}
+
 		wc_get_template(
 			'credit-card/payment-form.php',
 			array(
-				'customer_cards' => $customer[ 'cards' ],
+				'customer_cards' => $customer_cards,
 				'public_key' => $this->public_key,
 				'site_id' => $this->site_id,
 				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
 				'banner_path' => plugins_url( 'images/' .
 					$this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
 				'amount' => $amount,
-				'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
-				'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
 				'form_labels' => array(
 					"form" => array(
+						'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
+						'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
 						"your_card" => __( "Your Card", 'woocommerce-mercadopago-module' ),
 						"other_cards" => __( "Other Cards", 'woocommerce-mercadopago-module' ),
 				        "other_card" => __( "Other Card", 'woocommerce-mercadopago-module' ),
