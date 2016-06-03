@@ -312,80 +312,84 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	public function payment_fields() {
 		$amount = $this->get_order_total();
 
-		if ( wp_get_current_user()->ID == 0 ) {
-			$customer_cards = array();
-		} else {
+		$parameters = array(
+			'public_key' => $this->public_key,
+			'site_id' => $this->site_id,
+			'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
+			'banner_path' => plugins_url( 'images/' .
+				$this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
+			'amount' => $amount,
+			'form_labels' => array(
+				"form" => array(
+					'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
+					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
+					"your_card" => __( "Your Card", 'woocommerce-mercadopago-module' ),
+					"other_cards" => __( "Other Cards", 'woocommerce-mercadopago-module' ),
+			        "other_card" => __( "Other Card", 'woocommerce-mercadopago-module' ),
+			        "ended_in" => __( "ended in", 'woocommerce-mercadopago-module' ),
+					"card_holder_placeholder" => __( " as it appears in your card ...", 'woocommerce-mercadopago-module' ),
+			        "payment_method" => __( "Payment Method", 'woocommerce-mercadopago-module' ),
+			        "credit_card_number" => __( "Credit card number", 'woocommerce-mercadopago-module' ),
+			        "expiration_month" => __( "Expiration month", 'woocommerce-mercadopago-module' ),
+			        "expiration_year" => __( "Expiration year", 'woocommerce-mercadopago-module' ),
+			        "year" => __( "Year", 'woocommerce-mercadopago-module' ),
+			        "month" => __( "Month", 'woocommerce-mercadopago-module' ),
+			        "card_holder_name" => __( "Card holder name", 'woocommerce-mercadopago-module' ),
+			        "security_code" => __( "Security code", 'woocommerce-mercadopago-module' ),
+			        "document_type" => __( "Document Type", 'woocommerce-mercadopago-module' ),
+			        "document_number" => __( "Document number", 'woocommerce-mercadopago-module' ),
+			        "issuer" => __( "Issuer", 'woocommerce-mercadopago-module' ),
+			        "installments" => __( "Installments", 'woocommerce-mercadopago-module' )
+		      	),
+		      	"error" => array(
+			        //card number
+			        "205" => __( "Parameter cardNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
+			        "E301" => __( "Invalid Card Number", 'woocommerce-mercadopago-module' ),
+			        //expiration date
+			        "208" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+			        "209" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+			        "325" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+			        "326" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
+			        //card holder name
+			        "221" => __( "Parameter cardholderName can not be null/empty", 'woocommerce-mercadopago-module' ),
+			        "316" => __( "Invalid Card Holder Name", 'woocommerce-mercadopago-module' ),
+			        //security code
+			        "224" => __( "Parameter securityCode can not be null/empty", 'woocommerce-mercadopago-module' ),
+			        "E302" => __( "Invalid Security Code", 'woocommerce-mercadopago-module' ),
+			        //doc type
+			        "212" => __( "Parameter docType can not be null/empty", 'woocommerce-mercadopago-module' ),
+			        "322" => __( "Invalid Document Type", 'woocommerce-mercadopago-module' ),
+			        //doc number
+			        "214" => __( "Parameter docNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
+			        "324" => __( "Invalid Document Number", 'woocommerce-mercadopago-module' ),
+			        //doc sub type
+			        "213" => __( "The parameter cardholder.document.subtype can not be null or empty", 'woocommerce-mercadopago-module' ),
+			        "323" => __( "Invalid Document Sub Type", 'woocommerce-mercadopago-module' ),
+			        //issuer
+			        "220" => __( "Parameter cardIssuerId can not be null/empty", 'woocommerce-mercadopago-module' )
+				)
+			)
+		);
+
+		if ( wp_get_current_user()->ID != 0 ) {
 			$mp = new MP( $this->access_token );
 			$logged_user_email = wp_get_current_user()->user_email;
-			$customer_cards = ( $mp->get_or_create_customer( $logged_user_email ) )[ 'cards' ];
+			$customer = $mp->get_or_create_customer( $logged_user_email );
+			$customer_cards = $customer[ 'cards' ];
 			if ( 'yes' == $this->debug && count( $customer_cards ) > 0 ) {
 				$this->log->add( $this->id, $this->id .
 					': @[process_fields] - Logged user cards: ' .
 					json_encode( $customer_cards, JSON_PRETTY_PRINT ) );
 			}
+			$parameters[ 'customerId' ] = $customer[ 'id' ];
+			$parameters[ 'customer_cards' ] = $customer_cards;
+		} else {
+			// TODO: what should we do if customer is not logged in?
 		}
 
 		wc_get_template(
 			'credit-card/payment-form.php',
-			array(
-				'customer_cards' => $customer_cards,
-				'public_key' => $this->public_key,
-				'site_id' => $this->site_id,
-				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
-				'banner_path' => plugins_url( 'images/' .
-					$this->banners_mercadopago_credit[ $this->site_id ], plugin_dir_path( __FILE__ ) ),
-				'amount' => $amount,
-				'form_labels' => array(
-					"form" => array(
-						'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
-						'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
-						"your_card" => __( "Your Card", 'woocommerce-mercadopago-module' ),
-						"other_cards" => __( "Other Cards", 'woocommerce-mercadopago-module' ),
-				        "other_card" => __( "Other Card", 'woocommerce-mercadopago-module' ),
-				        "ended_in" => __( "ended in", 'woocommerce-mercadopago-module' ),
-						"card_holder_placeholder" => __( " as it appears in your card ...", 'woocommerce-mercadopago-module' ),
-				        "payment_method" => __( "Payment Method", 'woocommerce-mercadopago-module' ),
-				        "credit_card_number" => __( "Credit card number", 'woocommerce-mercadopago-module' ),
-				        "expiration_month" => __( "Expiration month", 'woocommerce-mercadopago-module' ),
-				        "expiration_year" => __( "Expiration year", 'woocommerce-mercadopago-module' ),
-				        "year" => __( "Year", 'woocommerce-mercadopago-module' ),
-				        "month" => __( "Month", 'woocommerce-mercadopago-module' ),
-				        "card_holder_name" => __( "Card holder name", 'woocommerce-mercadopago-module' ),
-				        "security_code" => __( "Security code", 'woocommerce-mercadopago-module' ),
-				        "document_type" => __( "Document Type", 'woocommerce-mercadopago-module' ),
-				        "document_number" => __( "Document number", 'woocommerce-mercadopago-module' ),
-				        "issuer" => __( "Issuer", 'woocommerce-mercadopago-module' ),
-				        "installments" => __( "Installments", 'woocommerce-mercadopago-module' )
-			      	),
-			      	"error" => array(
-				        //card number
-				        "205" => __( "Parameter cardNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "E301" => __( "Invalid Card Number", 'woocommerce-mercadopago-module' ),
-				        //expiration date
-				        "208" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        "209" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        "325" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        "326" => __( "Invalid Expiration Date", 'woocommerce-mercadopago-module' ),
-				        //card holder name
-				        "221" => __( "Parameter cardholderName can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "316" => __( "Invalid Card Holder Name", 'woocommerce-mercadopago-module' ),
-				        //security code
-				        "224" => __( "Parameter securityCode can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "E302" => __( "Invalid Security Code", 'woocommerce-mercadopago-module' ),
-				        //doc type
-				        "212" => __( "Parameter docType can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "322" => __( "Invalid Document Type", 'woocommerce-mercadopago-module' ),
-				        //doc number
-				        "214" => __( "Parameter docNumber can not be null/empty", 'woocommerce-mercadopago-module' ),
-				        "324" => __( "Invalid Document Number", 'woocommerce-mercadopago-module' ),
-				        //doc sub type
-				        "213" => __( "The parameter cardholder.document.subtype can not be null or empty", 'woocommerce-mercadopago-module' ),
-				        "323" => __( "Invalid Document Sub Type", 'woocommerce-mercadopago-module' ),
-				        //issuer
-				        "220" => __( "Parameter cardIssuerId can not be null/empty", 'woocommerce-mercadopago-module' )
-					)
-				)
-			),
+			$parameters,
 			'woocommerce/mercadopago/',
 			WC_WooMercadoPago_Module::getTemplatesPath()
 		);
@@ -660,11 +664,16 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         }
         */
         // add only for creditcard
-        if ( array_key_exists( 'card_token_id', $post_from_form[ 'mercadopago_custom' ] ) ) {
+        if ( array_key_exists( 'token', $post_from_form[ 'mercadopago_custom' ] ) ) {
             // add only it has issuer id
-            if ( array_key_exists( 'issuersOptions', $post_from_form[ 'mercadopago_custom' ] ) ) {
+            if ( array_key_exists( 'issuer', $post_from_form[ 'mercadopago_custom' ] ) ) {
                 $payment_preference[ 'issuer_id' ] =
-                	(integer) $post_from_form[ 'mercadopago_custom' ][ 'issuersOptions' ];
+                	(integer) $post_from_form[ 'mercadopago_custom' ][ 'issuer' ];
+            }
+            if ( array_key_exists( 'CustomerAndCard', $post_from_form[ 'mercadopago_custom' ] ) ) {
+            	if ( $post_from_form[ 'mercadopago_custom' ][ 'CustomerAndCard' ] ) {
+            		$payment_preference[ 'payer' ][ 'id' ] = $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ];
+            	}
             }
             /*
             if ( "Customer" == $post_from_form[ 'mercadopago_custom' ][ 'opcaoPagamentoCreditCard' ] ) {

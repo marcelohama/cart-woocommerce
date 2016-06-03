@@ -152,6 +152,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<input type="hidden" id="token" name="mercadopago_custom[token]"/>
 		<input type="hidden" id="cardTruncated" name="mercadopago_custom[cardTruncated]"/>
 		<input type="hidden" id="CustomerAndCard" name="mercadopago_custom[CustomerAndCard]"/>
+		<input type="hidden" id="CustomerId" value='<?php echo $customerId; ?>' name="mercadopago_custom[CustomerId]"/>
     </div>
 
 </fieldset>
