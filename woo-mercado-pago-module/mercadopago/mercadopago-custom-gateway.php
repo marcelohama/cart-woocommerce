@@ -68,7 +68,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
 		$this->sandbox = $this->get_option( 'sandbox', false );
-		$this->debug = $this->get_option( 'debug' );
+		$this->debug = $this->get_option( 'debug', false );
 		
 		// Render our configuration page and init/load fields.
 		$this->init_form_fields();
@@ -376,15 +376,18 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			$logged_user_email = wp_get_current_user()->user_email;
 			$customer = $mp->get_or_create_customer( $logged_user_email );
 			$customer_cards = $customer[ 'cards' ];
-			if ( 'yes' == $this->debug && count( $customer_cards ) > 0 ) {
+			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
-					': @[process_fields] - Logged user cards: ' .
+					': @[process_fields] - Logged user ' . $logged_user_email . ' cards: ' .
 					json_encode( $customer_cards, JSON_PRETTY_PRINT ) );
 			}
 			$parameters[ 'customerId' ] = $customer[ 'id' ];
 			$parameters[ 'customer_cards' ] = $customer_cards;
 		} else {
-			// TODO: what should we do if customer is not logged in?
+			if ( 'yes' == $this->debug ) {
+				$this->log->add( $this->id, $this->id .
+					': @[process_fields] - Logged user cards: user is not logged in' );
+			}
 		}
 
 		wc_get_template(
@@ -655,37 +658,28 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         }
 
         // Customer's Card Feature
-        /*
-        // save the card
-        if ( isset( $post[ 'opcaoPagamentoCreditCard' ] ) && $post[ 'opcaoPagamentoCreditCard' ] == "Cards" ) {
-            $payment_preference[ 'metadata' ] = array( 'opcao_pagamento' => $post[ 'opcaoPagamentoCreditCard' ],
-                'customer_id' => $post[ 'customerID' ],
-                'card_token_id' => $post[ 'card_token_id' ] );
-        }
-        */
-        // add only for creditcard
         if ( array_key_exists( 'token', $post_from_form[ 'mercadopago_custom' ] ) ) {
             // add only it has issuer id
             if ( array_key_exists( 'issuer', $post_from_form[ 'mercadopago_custom' ] ) ) {
-                $payment_preference[ 'issuer_id' ] =
-                	(integer) $post_from_form[ 'mercadopago_custom' ][ 'issuer' ];
-            }
-            if ( array_key_exists( 'CustomerAndCard', $post_from_form[ 'mercadopago_custom' ] ) ) {
-            	if ( $post_from_form[ 'mercadopago_custom' ][ 'CustomerAndCard' ] ) {
-            		$payment_preference[ 'payer' ][ 'id' ] = $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ];
+            	if ( !empty( $post_from_form[ 'mercadopago_custom' ][ 'issuer' ] ) ) {
+            		$payment_preference[ 'issuer_id' ] = (integer) $post_from_form[ 'mercadopago_custom' ][ 'issuer' ];
             	}
             }
-            /*
-            if ( "Customer" == $post_from_form[ 'mercadopago_custom' ][ 'opcaoPagamentoCreditCard' ] ) {
-                $customerCards = $post_from_form[ 'mercadopago_custom' ][ "customerCards" ];
-                $customerID = $post_from_form[ 'mercadopago_custom' ][ "customerID" ];
-                $payment_preference[ 'payer' ][ 'id' ] = $customerID;
-                $payment_preference[ 'installments' ] = (integer) $post_from_form[ 'mercadopago_custom' ][ 'installmentsCust' ];
-            } else {
-                $payment_preference[ 'installments' ] = (integer) $post_from_form[ 'mercadopago_custom' ][ 'installments' ];
+            if ( array_key_exists( 'CustomerId', $post_from_form[ 'mercadopago_custom' ] ) ) {
+            	if ( !empty( $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ] ) ) {
+            		$payment_preference[ 'payer' ][ 'id' ] = $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ];
+
+            		$mp = new MP( $this->access_token );
+            		$mp->create_card_in_customer(
+            			$post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ],
+            			$post_from_form[ 'mercadopago_custom' ][ 'token' ],
+            			( ( isset( $post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) && !empty( $post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) ) ? 
+            				$post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ] : null ),
+            			( ( isset( $post_from_form[ 'mercadopago_custom' ][ 'issuer' ] ) && !empty( $post_from_form[ 'mercadopago_custom' ][ 'issuer' ] ) ) ? 
+            				$post_from_form[ 'mercadopago_custom' ][ 'issuer' ] : null )
+        			);
+            	}
             }
-            $payment_preference[ 'token' ] = $post_from_form[ 'mercadopago_custom' ][ 'card_token_id' ];
-            */
         }
 
         // Coupon Feature
