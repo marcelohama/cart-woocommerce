@@ -413,7 +413,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 		if ( isset( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'amount' ] ) &&
 			 isset( $_POST[ 'mercadopago_custom' ][ 'token' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'token' ] ) &&
-			 isset( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) &&
 			 isset( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) &&
 			 isset( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && !empty( $_POST[ 'mercadopago_custom' ][ 'installments' ] ) && $_POST[ 'mercadopago_custom' ][ 'installments' ] != -1 ) {
 			$post = $_POST;
@@ -651,35 +650,23 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
             )
         );
 
-        // Do not set IPN url if it is a localhost!
-        $notification_url = $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway';
-        if ( !strrpos( $notification_url, "localhost" ) ) {
-            $payment_preference['notification_url'] = $notification_url;
-        }
-
-        // Customer's Card Feature
+        // Customer's Card Feature, add only it has issuer id
         if ( array_key_exists( 'token', $post_from_form[ 'mercadopago_custom' ] ) ) {
-            // add only it has issuer id
+        	$payment_preference[ 'metadata' ][ 'token' ] = $post_from_form[ 'mercadopago_custom' ][ 'token' ];
             if ( array_key_exists( 'issuer', $post_from_form[ 'mercadopago_custom' ] ) ) {
             	if ( !empty( $post_from_form[ 'mercadopago_custom' ][ 'issuer' ] ) ) {
             		$payment_preference[ 'issuer_id' ] = (integer) $post_from_form[ 'mercadopago_custom' ][ 'issuer' ];
             	}
             }
-            if ( array_key_exists( 'CustomerId', $post_from_form[ 'mercadopago_custom' ] ) ) {
-            	if ( !empty( $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ] ) ) {
-            		$payment_preference[ 'payer' ][ 'id' ] = $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ];
+            if ( !empty( $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ] ) ) {
+        		$payment_preference[ 'payer' ][ 'id' ] = $post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ];
+        	}
+		}
 
-            		$mp = new MP( $this->access_token );
-            		$mp->create_card_in_customer(
-            			$post_from_form[ 'mercadopago_custom' ][ 'CustomerId' ],
-            			$post_from_form[ 'mercadopago_custom' ][ 'token' ],
-            			( ( isset( $post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) && !empty( $post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ] ) ) ? 
-            				$post_from_form[ 'mercadopago_custom' ][ 'paymentMethodId' ] : null ),
-            			( ( isset( $post_from_form[ 'mercadopago_custom' ][ 'issuer' ] ) && !empty( $post_from_form[ 'mercadopago_custom' ][ 'issuer' ] ) ) ? 
-            				$post_from_form[ 'mercadopago_custom' ][ 'issuer' ] : null )
-        			);
-            	}
-            }
+        // Do not set IPN url if it is a localhost!
+        $notification_url = $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway';
+        if ( !strrpos( $notification_url, "localhost" ) ) {
+            $payment_preference['notification_url'] = $notification_url;
         }
 
         // Coupon Feature
@@ -719,6 +706,44 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		return $payment_preference;
 
     }
+
+    public function checkAndSaveCustomerCard( $checkout_info ) {
+    	if ( 'yes' == $this->debug ) {
+			$this->log->add( $this->id, $this->id .
+				': @[checkAndSaveCustomerCard] - Checking info to create card: ' .
+				json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
+		}
+		$custId = null;
+		$token  = null;
+		$issuer_id = null;
+		$payment_method_id = null;
+    	if ( isset( $checkout_info[ 'payer' ][ 'id' ] ) && !empty( $checkout_info[ 'payer' ][ 'id' ] ) ) {
+    		$custId = $checkout_info[ 'payer' ][ 'id' ];
+    	} else {
+    		return;
+    	}
+    	if ( isset( $checkout_info[ 'metadata' ][ 'token' ] ) && !empty( $checkout_info[ 'metadata' ][ 'token' ] ) ) {
+    		$token = $checkout_info[ 'metadata' ][ 'token' ];
+    	} else {
+    		return;
+    	}
+    	if ( isset( $checkout_info[ 'issuer_id' ] ) && !empty( $checkout_info[ 'issuer_id' ] ) ) {
+    		$issuer_id = (integer)( $checkout_info[ 'issuer_id' ] );
+    	}
+    	if ( isset( $checkout_info[ 'payment_method_id' ] ) && !empty( $checkout_info[ 'payment_method_id' ] ) ) {
+    		$payment_method_id = $checkout_info[ 'payment_method_id' ];
+    	}
+    	try {
+	    	$mp = new MP( $this->access_token );
+			$mp->create_card_in_customer( $custId, $token, $payment_method_id, $issuer_id );
+		} catch ( MercadoPagoException $e ) {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add( $this->id, $this->id .
+					': @[checkAndSaveCustomerCard] - card creation failed: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
+			}
+		}
+	}
 
 	/*
 	 * ========================================================================
@@ -975,6 +1000,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 							'Mercado Pago: ' . __( 'Payment approved.',
 								'woocommerce-mercadopago-module' )
 						);
+						$this->checkAndSaveCustomerCard( $data );
 						$order->payment_complete();
 						break;
 					case 'pending':
