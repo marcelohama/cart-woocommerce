@@ -912,7 +912,6 @@ if ( !defined( 'ABSPATH' ) ) {
     }
 
     MPv1.showErrors = function(response) {
-    	alert("Marcelo");
         var $form = MPv1.getForm();
         for (var x = 0; x < response.cause.length; x++) {
             var error = response.cause[x];

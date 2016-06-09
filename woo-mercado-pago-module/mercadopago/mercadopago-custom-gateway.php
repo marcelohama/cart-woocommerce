@@ -120,14 +120,14 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$api_secret_locale = sprintf(
 			'<a href="https://www.mercadopago.com/mla/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mlb/account/credentials?type=custom" target="_blank">%s</a>, ' .
-			//'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
+			'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mco/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			// TODO: Peru rollout
 			'<a href="https://www.mercadopago.com/mlm/account/credentials?type=custom" target="_blank">%s</a> %s ' .
 			'<a href="https://www.mercadopago.com/mlv/account/credentials?type=custom" target="_blank">%s</a>',
 			__( 'Argentine', 'woocommerce-mercadopago-module' ),
 			__( 'Brazil', 'woocommerce-mercadopago-module' ),
-			//__( 'Chile', 'woocommerce-mercadopago-module' ),
+			__( 'Chile', 'woocommerce-mercadopago-module' ),
 			__( 'Colombia', 'woocommerce-mercadopago-module' ),
 			__( 'Mexico', 'woocommerce-mercadopago-module' ),
 			// TODO: __( 'Peru', 'woocommerce-mercadopago-module' ),
@@ -142,17 +142,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$get_request = $mp->get( "/users/me?access_token=" . $this->access_token );
 				$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
 				$this->site_id = $get_request[ 'response' ][ 'site_id' ];
-				if ( $this->site_id == "MLC" ) { // Chile isn't fully integrated with custom checkout
-					$this->credentials_message = '<img width="12" height="12" src="' .
-						plugins_url( 'images/error.png', plugin_dir_path( __FILE__ ) ) . '">' .
-						' ' . __( 'Your credentials are <strong>not valid</strong>!', 'woocommerce-mercadopago-module' );
-				} else {
-					$this->credentials_message = '<img width="12" height="12" src="' .
-						plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
-						' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
-						': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
-						plugins_url( 'images/' . $this->site_id . '/' . $this->site_id . '.png', plugin_dir_path( __FILE__ ) ) . '"> ';
-				}
+				$this->credentials_message = '<img width="12" height="12" src="' .
+					plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
+					' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
+					': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
+					plugins_url( 'images/' . $this->site_id . '/' . $this->site_id . '.png', plugin_dir_path( __FILE__ ) ) . '"> ';
 			} catch ( MercadoPagoException $e ) {
 				$this->credentials_message = '<img width="12" height="12" src="' .
 					plugins_url( 'images/error.png', plugin_dir_path( __FILE__ ) ) . '">' .
@@ -371,22 +365,31 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			)
 		);
 
-		if ( wp_get_current_user()->ID != 0 ) {
-			$mp = new MP( $this->access_token );
-			$logged_user_email = wp_get_current_user()->user_email;
-			$customer = $mp->get_or_create_customer( $logged_user_email );
-			$customer_cards = $customer[ 'cards' ];
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[process_fields] - Logged user ' . $logged_user_email . ' cards: ' .
-					json_encode( $customer_cards, JSON_PRETTY_PRINT ) );
+		try {
+			if ( wp_get_current_user()->ID != 0 ) {
+				$mp = new MP( $this->access_token );
+				$logged_user_email = wp_get_current_user()->user_email;
+				$customer = $mp->get_or_create_customer( $logged_user_email );
+				$customer_cards = $customer[ 'cards' ];
+				if ( 'yes' == $this->debug ) {
+					$this->log->add( $this->id, $this->id .
+						': @[process_fields] - Logged user ' . $logged_user_email . ' cards: ' .
+						json_encode( $customer_cards, JSON_PRETTY_PRINT ) );
+				}
+				$parameters[ 'customerId' ] = $customer[ 'id' ];
+				$parameters[ 'customer_cards' ] = $customer_cards;
+			} else {
+				if ( 'yes' == $this->debug ) {
+					$this->log->add( $this->id, $this->id .
+						': @[process_fields] - Logged user cards: user is not logged in' );
+				}
 			}
-			$parameters[ 'customerId' ] = $customer[ 'id' ];
-			$parameters[ 'customer_cards' ] = $customer_cards;
-		} else {
+		} catch (Exception $e) {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
-					': @[process_fields] - Logged user cards: user is not logged in' );
+					': @[process_fields] - There is a problem when retrieving information for cards: ' .
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
+				);
 			}
 		}
 
@@ -486,10 +489,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'<p>' . __( 'A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module' ) . '</p>',
 				'error'
 			);
-			/*return array(
-				'result'   => 'fail',
-				'redirect' => '',
-			);*/
 		}
 	}
 
@@ -776,7 +775,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Return boolean indicating if currency is supported.
 	// TODO: Peru rollout
 	protected function isSupportedCurrency() {
-		return in_array( $this->site_id, array( 'MLA', 'MLB', 'MCO', 'MLM', 'MLV' ) );
+		return in_array( $this->site_id, array( 'MLA', 'MLB', 'MLC', 'MCO', 'MLM', 'MLV' ) );
 	}
 
 	// Called automatically by WooCommerce, verify if Module is available to use.
