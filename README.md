@@ -43,7 +43,7 @@ This option enables merchants to give their customers the option to pay via tick
   <thead>
   <tbody>
     <tr>
-      <td>v2.0.0</td>
+      <td>v2.0.1</td>
       <td>Stable (Current version)</td>
       <td>WooCommerce 2.1.x - 2.5.x</td>
     </tr>

@@ -4,7 +4,7 @@ Donate link: https://www.mercadopago.com.br/developers/
 Tags: ecommerce, mercadopago, woocommerce
 Requires at least: WooCommerce 2.1.x
 Tested up to: WooCommerce 2.5.x
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -113,7 +113,9 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 
 2. `/README.img/order_custom.png`
 
-3. `/README.img/order_ticket.png`
+3. `/README.img/order_cust_card.png`
+
+4. `/README.img/order_ticket.png`
 
 == Changelog ==
 
@@ -146,10 +148,15 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 * Translation to es_ES;
 * Some bug fixes and code improvements.
 	
-v2.0.0 (01/06/2016)
+= v2.0.0 (01/06/2016) =
 * Custom Checkout for LatAm;
 * Ticket for LatAm;
 * Removed possibility to setting supportable but invalid currency.
+
+= v2.0.1 (09/06/2016) =
+* Customer Cards (One Click Payment)
+* SSL verifications for custom checkout and ticket;
+* Enabling any type of currency without disabling module (now, error message from API).
 	
 == Upgrade Notice ==
 
