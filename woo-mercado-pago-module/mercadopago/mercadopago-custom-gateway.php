@@ -388,7 +388,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[process_fields] - There is a problem when retrieving information for cards: ' .
-					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
+					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) )
 				);
 			}
 		}
