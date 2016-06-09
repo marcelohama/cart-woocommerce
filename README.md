@@ -22,7 +22,7 @@ payment method exclusion setup, and sandbox/debug options.<br />
 **Custom checkout**<br />
 This feature enables merchants to have the custom checkout, a more integrated type of
 checkout with customized views and more intuitive flow from the cart to the payment page.<br />
-*Available for Argentina, Brazil, Colombia, Mexico and Venezuela*
+*Available for Argentina, Brazil, Chile, Colombia, Mexico and Venezuela*
 
 **Tickets**<br />
 This option enables merchants to give their customers the option to pay via tickets.<br />
