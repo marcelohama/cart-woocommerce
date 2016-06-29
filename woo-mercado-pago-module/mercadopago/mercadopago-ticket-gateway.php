@@ -20,9 +20,9 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
     	"MLB" => '208686191',
     	"MCO" => '208687643',
     	"MLC" => '208690789',
+    	"MPE" => '216998692',
     	"MLV" => '208692735',
     	"MLM" => '208692380'
-    	// TODO: Peru rollout
 	);
     	
 	// Required inherited method from WC_Payment_Gateway class: __construct.
@@ -78,7 +78,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		);
 		
 		// Verify if access token is empty.
-		if ( empty( $this->access_token ) ) {
+		if ( empty( $this->access_token ) && $this->enabled == 'yes' ) {
 			add_action( 'admin_notices', array( $this, 'credentialsMissingMessage' ) );
 		}
 		
@@ -106,15 +106,15 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			'<a href="https://www.mercadopago.com/mlb/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
 			'<a href="https://www.mercadopago.com/mco/account/credentials?type=custom" target="_blank">%s</a>, ' .
-			// TODO: Peru rollout
-			'<a href="https://www.mercadopago.com/mlm/account/credentials?type=custom" target="_blank">%s</a> %s ' .
+			'<a href="https://www.mercadopago.com/mlm/account/credentials?type=custom" target="_blank">%s</a>, ' .
+			'<a href="https://www.mercadopago.com/mpe/account/credentials?type=custom" target="_blank">%s</a> %s ' .
 			'<a href="https://www.mercadopago.com/mlv/account/credentials?type=custom" target="_blank">%s</a>',
 			__( 'Argentine', 'woocommerce-mercadopago-module' ),
 			__( 'Brazil', 'woocommerce-mercadopago-module' ),
 			__( 'Chile', 'woocommerce-mercadopago-module' ),
 			__( 'Colombia', 'woocommerce-mercadopago-module' ),
 			__( 'Mexico', 'woocommerce-mercadopago-module' ),
-			// TODO: __( 'Peru', 'woocommerce-mercadopago-module' ),
+			__( 'Peru', 'woocommerce-mercadopago-module' ),
 			__( 'or', 'woocommerce-mercadopago-module' ),
 			__( 'Venezuela', 'woocommerce-mercadopago-module' )
 		);
@@ -133,7 +133,17 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 						array_push( $this->payment_methods, $payment );
 					}
 				}
-				$this->credentials_message = '<img width="12" height="12" src="' .
+				// checking the currency
+				$this->credentials_message = "";
+				if ( !$this->isSupportedCurrency() && 'yes' == $this->settings[ 'enabled' ] ) {
+					$this->credentials_message .= '<img width="12" height="12" src="' .
+						plugins_url( 'images/warning.png', plugin_dir_path( __FILE__ ) ) . '">' .
+						' ' . __( '<strong>ATTENTION: The currency', 'woocommerce-mercadopago-module' ) . ' ' . get_woocommerce_currency() .
+						' ' . __( 'defined in WooCommerce is not supported by Mercado Pago.<br>The currency for transactions in this payment method will be', 'woocommerce-mercadopago-module' ) .
+						' ' . $this->getCurrencyId( $this->site_id ) . ' (' . $this->getCountryName( $this->site_id ) . ').' .
+						' ' . __( 'Currency conversions should be made outside this module.</strong><br><br>', 'woocommerce-mercadopago-module' );
+				}
+				$this->credentials_message .= '<img width="12" height="12" src="' .
 					plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
 					' ' . __( 'Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module' ) .
 					': ' . $this->getCountryName( $this->site_id ) . ' <img width="18.6" height="12" src="' .
@@ -342,10 +352,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		        		$html = '<p></p><p>' . wordwrap(
 		        			__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module'),
 							60, '<br>') . '</p>';
-						/*$html .=
-							'<a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' .
-							__( 'Cancel order &amp; Clear cart', 'woocommerce-mercadopago-module' ) .
-							'</a>';*/
 						$html .=
 							'<a id="submit-payment" target="_blank" href="' . $response[ 'transaction_details' ][ 'external_resource_url' ] . '" class="button alt">' .
 							__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
@@ -410,7 +416,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 						'picture_url' => $product->get_image(),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
-						'unit_price' => (float) $item[ 'line_total' ]
+						'unit_price' => (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ],
 					));
 				}
 			}
@@ -420,7 +426,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
         $shipping_cost = (float) $order->get_total_shipping();
         if ( $shipping_cost > 0 ) {
             $item = array(
-                'title' => __( 'Shipping', 'woocommerce-mercadopago-module' ),
+                'title' => $this->workaroundAmperSandBug( $this->workaroundAmperSandBug( $order->get_shipping_to_display() ) ),
                 'description' => __( 'Shipping service used by store', 'woocommerce-mercadopago-module' ),
                 'quantity' => 1,
                 'category_id' => $this->store_categories_id[ $this->category_id ],
@@ -497,7 +503,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
         // Do not set IPN url if it is a localhost!
         $notification_url = $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoTicket_Gateway';
         if ( !strrpos( $notification_url, "localhost" ) ) {
-            $payment_preference['notification_url'] = $notification_url;
+            $payment_preference['notification_url'] = $this->workaroundAmperSandBug( $notification_url );
         }
 
         // Coupon Feature
@@ -544,6 +550,11 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 
+	// Fix to URL Problem : #038; replaces & and breaks the navigation
+	function workaroundAmperSandBug( $link ) {
+		return str_replace('#038;', '&', $link);
+	}
+
 	// Check if we have valid credentials.
 	public function validateCredentials() {
 		if ( empty( $this->access_token ) ) return false;
@@ -566,9 +577,22 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	}
 	
 	// Return boolean indicating if currency is supported.
-	// TODO: Peru rollout
 	protected function isSupportedCurrency() {
-		return in_array( $this->site_id, array( 'MLA', 'MLB', 'MLC', 'MCO', 'MLM', 'MLV' ) );
+		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'PEN', 'VEF' ) );
+	}
+
+	// Get currency id for a country
+	protected function getCurrencyId( $site_id ) {
+		switch ( $site_id ) {
+			case 'MLA': return 'ARS';
+			case 'MLB': return 'BRL';
+			case 'MCO': return 'COP';
+			case 'MLC': return 'CLP';
+			case 'MLM': return 'MXN';
+			case 'MLV': return 'VEF';
+			case 'MPE': return 'PEN';
+			default: return '';
+		}
 	}
 
 	public function checkSSLAbsence() {
@@ -591,8 +615,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			return false;
 		}
 		$available = ( 'yes' == $this->settings[ 'enabled' ] ) &&
-			! empty( $this->access_token ) &&
-			$this->isSupportedCurrency();
+			! empty( $this->access_token );
 		return $available;
 	}
 	
@@ -617,19 +640,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				__( 'Your Mercado Pago credentials Access Token appears to be misconfigured.', 'woocommerce-mercadopago-module' ) . ' %s',
 				'<a href="' . $this->admin_url() . '">' .
 				__( 'Click here and configure!', 'woocommerce-mercadopago-module' ) . '</a>' ) .
-			'</p></div>';
-	}
-
-	// Notify that currency is not supported.
-	// TODO: Peru rollout
-	public function currencyNotSupportedMessage() {
-		echo '<div class="error"><p><strong>' .
-			__( 'Ticket is Inactive', 'woocommerce-mercadopago-module' ) .
-			'</strong>: ' .
-			sprintf(
-				__( 'The currency' ) . ' <code>%s</code> ' .
-				__( 'is not supported. Supported currencies are: ARS, BRL, CLP, COP, MXN, VEF.', 'woocommerce-mercadopago-module' ),
-				get_woocommerce_currency() ) .
 			'</p></div>';
 	}
 	
