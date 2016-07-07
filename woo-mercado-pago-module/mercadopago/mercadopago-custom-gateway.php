@@ -929,8 +929,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			do_action( 'valid_mercadopagocustom_ipn_request', $data );
 		} else {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add(
-					$this->id, $this->id .
+				$this->log->add( $this->id, $this->id .
 					': @[check_ipn_response] - Mercado Pago Request Failure: ' .
 					json_encode( $_GET, JSON_PRETTY_PRINT ) );
 			}
@@ -948,10 +947,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					': @[check_ipn_request_is_valid] - data_id or type not set: ' .
 					json_encode( $data, JSON_PRETTY_PRINT ) );
 			}
-			// at least, inform MP API that it received the IPN message, because...
-			header( 'HTTP/1.1 200 OK' );
-			// No ID? No process!
-			return false;
+			return false; // No ID? No process!
 		}
 		$mp = new MP( $this->access_token );
 		if ( 'yes' == $this->sandbox )

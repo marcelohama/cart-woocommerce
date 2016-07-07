@@ -189,7 +189,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			'ipn_url' => array(
 				'title' => __( 'Instant Payment Notification (IPN) URL', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
-				'description' => sprintf( __( 'Your IPN URL to receive instant payment notifications is', 'woocommerce-mercadopago-module' ) . '<br>%s', '<code>' . $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoTicket_Gateway' . '</code>.' )
+				'description' => sprintf( __( 'Your IPN URL to receive instant payment notifications is', 'woocommerce-mercadopago-module' ) . '<br>%s', '<code>' . $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway' . '</code>.' )
 			),
 			'checkout_options_title' => array(
 				'title' => __( 'Ticket Options', 'woocommerce-mercadopago-module' ),
@@ -673,7 +673,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		$data = $this->check_ipn_request_is_valid( $_GET );
 		if ( $data ) {
 			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid_mercadopagoticket_ipn_request', $data );
+			do_action( 'valid_mercadopagocustom_ipn_request', $data );
 		} else {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
@@ -690,15 +690,11 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	public function check_ipn_request_is_valid( $data ) {
 		if ( !isset( $data[ 'data_id' ] ) || !isset( $data[ 'type' ] ) ) {
 			if ( 'yes' == $this->debug ) {
-				$this->log->add(
-					$this->id, $this->id .
+				$this->log->add( $this->id, $this->id .
 					': @[check_ipn_request_is_valid] - data_id or type not set: ' .
 					json_encode( $data, JSON_PRETTY_PRINT ) );
 			}
-			// at least, inform MP API that it received the IPN message, because...
-			header( 'HTTP/1.1 200 OK' );
-			// No ID? No process!
-			return false;
+			return false; // No ID? No process!
 		}
 		$mp = new MP( $this->access_token );
 		$mp->sandbox_mode( false );
