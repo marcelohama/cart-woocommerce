@@ -147,7 +147,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					$this->credentials_message .= '<img width="12" height="12" src="' .
 						plugins_url( 'images/warning.png', plugin_dir_path( __FILE__ ) ) . '">' .
 						' ' . __( '<strong>ATTENTION: The currency', 'woocommerce-mercadopago-module' ) . ' ' . get_woocommerce_currency() .
-						' ' . __( 'defined in WooCommerce is not supported by Mercado Pago.<br>The currency for transactions in this payment method will be', 'woocommerce-mercadopago-module' ) .
+						' ' . __( 'defined in WooCommerce is different from the one used in your credentials country.<br>The currency for transactions in this payment method will be', 'woocommerce-mercadopago-module' ) .
 						' ' . $this->getCurrencyId( $this->site_id ) . ' (' . $this->getCountryName( $this->site_id ) . ').' .
 						' ' . __( 'Currency conversions should be made outside this module.</strong><br><br>', 'woocommerce-mercadopago-module' );
 				}
@@ -762,7 +762,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 	// Fix to URL Problem : #038; replaces & and breaks the navigation
 	function workaroundAmperSandBug( $link ) {
-		return str_replace('#038;', '&', $link);
+		return str_replace('&#038;', '&', $link);
 	}
 
 	// Check if we have valid credentials.
@@ -789,7 +789,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	
 	// Return boolean indicating if currency is supported.
 	protected function isSupportedCurrency() {
-		return in_array( get_woocommerce_currency(), array( 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'PEN', 'VEF' ) );
+		return get_woocommerce_currency() == $this->getCurrencyId( $this->site_id );
 	}
 
 	// Get currency id for a country
@@ -927,13 +927,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		if ( $data ) {
 			header( 'HTTP/1.1 200 OK' );
 			do_action( 'valid_mercadopagocustom_ipn_request', $data );
-		} else {
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[check_ipn_response] - Mercado Pago Request Failure: ' .
-					json_encode( $_GET, JSON_PRETTY_PRINT ) );
-			}
-			wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );
 		}
 	}
 	
@@ -941,14 +934,29 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// payment. If we have these information, we return data to be
 	// processed by successful_request function.
 	public function check_ipn_request_is_valid( $data ) {
+		
 		if ( !isset( $data[ 'data_id' ] ) || !isset( $data[ 'type' ] ) ) {
 			if ( 'yes' == $this->debug ) {
 				$this->log->add( $this->id, $this->id .
 					': @[check_ipn_request_is_valid] - data_id or type not set: ' .
 					json_encode( $data, JSON_PRETTY_PRINT ) );
 			}
-			return false; // No ID? No process!
+			// at least, check if its a v0 ipn
+			if ( !isset( $data[ 'id' ] ) || !isset( $data[ 'topic' ] ) ) {
+				if ( 'yes' == $this->debug ) {
+					$this->log->add(
+						$this->id, $this->id .
+						': @[check_ipn_response] - Mercado Pago Request Failure: ' .
+						json_encode( $_GET, JSON_PRETTY_PRINT ) );
+				}
+				wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );
+			} else {
+				header( 'HTTP/1.1 200 OK' );
+			}
+			// No ID? No process!
+			return false;
 		}
+		
 		$mp = new MP( $this->access_token );
 		if ( 'yes' == $this->sandbox )
 			$mp->sandbox_mode( true );
