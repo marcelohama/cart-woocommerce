@@ -20,6 +20,22 @@ if ( !defined( 'ABSPATH' ) ) {
 </div>
 <fieldset style="background:white; ">
 	
+	<div class="mp-box-inputs mp-line" id="mercadopago-form-coupon" style="padding:0px 36px 16px 36px;">
+		<label for="couponCodeLabel"><?php echo $form_labels['form']['coupon_of_discounts']; ?></label>
+      	<div class="mp-box-inputs mp-col-65">
+	        <input type="text" id="couponCode" data-checkout="coupon_code" name="mercadopago_custom[coupon_code]" autocomplete="off" maxlength="24" value="couponcode"/>
+	        <span class="mp-error" id="mpCouponEmpty" > <?php echo $form_labels['coupon_error']['EMPTY']; ?> </span>
+	        <span class="mp-error" id="mpCoupon400" ></span>
+	        <span class="mp-error" id="mpCoupon404" ></span>
+      	</div>
+      	<div class="mp-box-inputs mp-col-10">
+        	<div id="mp-separete-date"></div>
+      	</div>
+      	<div class="mp-box-inputs mp-col-25">
+        	<input type="button" class="button" id="applyCoupon" value="Apply" >
+      	</div>
+    </div>
+
 	<!-- payment method -->
 	<div id="mercadopago-form-customer-and-card" style="padding:0px 36px 0px 36px;">
 		<div class="mp-box-inputs mp-line">
@@ -166,6 +182,11 @@ if ( !defined( 'ABSPATH' ) ) {
 	        add_truncated_card: true,
 	        site_id: '',
 	        public_key: '',
+	        coupon_of_discounts: {
+				discount_action_url: '',
+				default: true,
+				status: true
+    		},
 	        customer_and_card: {
 	            default: true,
 	            status: true
@@ -175,6 +196,12 @@ if ( !defined( 'ABSPATH' ) ) {
 	            keyup: false,
 	            paste: true,
 	        },
+
+	        inputs_to_create_discount: [
+				"couponCode",
+				"applyCoupon"
+			],
+
 	        inputs_to_create_token: [
 	            "cardNumber",
 	            "cardExpirationMonth",
@@ -191,6 +218,12 @@ if ( !defined( 'ABSPATH' ) ) {
 	        ],
 
 	        selectors: {
+
+	        	couponCode: "#couponCode",
+				applyCoupon: "#applyCoupon",
+				mpCouponEmpty: "#mpCouponEmpty",
+				mpCoupon400: "#mpCoupon400",
+				mpCoupon404: "#mpCoupon404",
 
 	            paymentMethodSelector: "#paymentMethodSelector",
 	            pmCustomerAndCards: "#payment-methods-for-customer-and-cards",
@@ -223,6 +256,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	            box_loading: "#mp-box-loading",
 	            submit: "#submit",
 	            form: '#mercadopago-form',
+	            formCoupon: '#mercadopago-form-coupon',
 	            formCustomerAndCard: '#mercadopago-form-customer-and-card',
 	            utilities_fields: "#mercadopago-utilities"
 	        },
@@ -234,6 +268,63 @@ if ( !defined( 'ABSPATH' ) ) {
 	            loading: "images/loading.gif"
 	        }
 	    }
+
+    	/*
+    	 * Coupon of Discounts
+    	 */
+	    MPv1.checkCouponEligibility = function () {
+	    	// do not proceed if we are already checking...
+	    	if (!MPv1.coupon_of_discounts.status)
+	    		return;
+			if ( document.querySelector(MPv1.selectors.couponCode).value != "" ) {
+				document.querySelector(MPv1.selectors.mpCouponEmpty).style.display = 'none';
+				document.querySelector(MPv1.selectors.mpCoupon400).style.display = 'none';
+				document.querySelector(MPv1.selectors.mpCoupon404).style.display = 'none';
+
+				// set loading
+				document.querySelector(MPv1.selectors.couponCode).style.background = "url("+MPv1.paths.loading+") 98% 50% no-repeat #fff";
+
+				/*alert(
+					"\nTransaction Amount: " + document.querySelector(MPv1.selectors.amount).value +
+					"\Payer email: " + MPv1.payer_email +
+					"\nCoupon code: " + document.querySelector(MPv1.selectors.couponCode).value
+				);*/
+				MPv1.coupon_of_discounts.status = false;
+				var request = new XMLHttpRequest();
+				request.open(
+					'GET',
+					MPv1.coupon_of_discounts.discount_action_url +
+						"&coupon_id=" + document.querySelector(MPv1.selectors.couponCode).value +
+						"&amount=" + document.querySelector(MPv1.selectors.amount).value,
+					true
+				);
+				request.onreadystatechange = function() {
+					if (request.readyState == 4) {
+						if (request.status == 200) {
+							var response = JSON.parse(request.responseText);
+							if (response.status == 200) {
+							} else if (response.status == 400) {
+								document.querySelector(MPv1.selectors.mpCoupon400).innerHTML = response.response.message;
+								document.querySelector(MPv1.selectors.mpCoupon400).style.display = 'block';
+							} else if (response.status == 404) {
+								document.querySelector(MPv1.selectors.mpCoupon404).innerHTML = response.response.message;
+								document.querySelector(MPv1.selectors.mpCoupon404).style.display = 'block';
+							}
+						} else {
+							//request failed
+							alert('Stt 400 / Response is ' + request.responseText);
+						}
+						document.querySelector(MPv1.selectors.couponCode).style.background = null;
+						MPv1.coupon_of_discounts.status = true;
+					}
+				};
+				request.send(null);
+			} else {
+				document.querySelector(MPv1.selectors.mpCouponEmpty).style.display = 'block';
+				document.querySelector(MPv1.selectors.mpCoupon400).style.display = 'none';
+				document.querySelector(MPv1.selectors.mpCoupon404).style.display = 'none';
+			}
+		}
 
 	    MPv1.getBin = function() {
 	        var cardSelector = document.querySelector(MPv1.selectors.paymentMethodSelector);
@@ -806,13 +897,22 @@ if ( !defined( 'ABSPATH' ) ) {
 	     *
 	     */
 
-	    MPv1.Initialize = function(site_id, public_key) {
+	    MPv1.Initialize = function(site_id, public_key, coupon_mode, discount_action_url) {
 
 	        //sets
 	        MPv1.site_id = site_id
-	        MPv1.public_key = public_key
+			MPv1.public_key = public_key
+			MPv1.coupon_of_discounts.default = coupon_mode
+			MPv1.coupon_of_discounts.discount_action_url = discount_action_url
 
 	        Mercadopago.setPublishableKey(MPv1.public_key);
+
+	        // flow coupon of discounts
+			if (MPv1.coupon_of_discounts.default) {
+				MPv1.addListenerEvent(document.querySelector(MPv1.selectors.applyCoupon), 'click', MPv1.checkCouponEligibility);
+			} else {
+				document.querySelector(MPv1.selectors.formCoupon).style.display = 'none';
+			}
 
 	        //flow: customer & cards
 	        var selectorPmCustomerAndCards = document.querySelector(MPv1.selectors.pmCustomerAndCards);
@@ -893,6 +993,8 @@ if ( !defined( 'ABSPATH' ) ) {
 
     var mercadopago_site_id = '<?php echo $site_id; ?>';
     var mercadopago_public_key = '<?php echo $public_key; ?>';
+    var mercadopago_coupon_mode = '<?php echo $coupon_mode; ?>';
+    var mercadopago_discount_action_url = '<?php echo $discount_action_url; ?>';
 
     MPv1.text.choose = '<?php echo $form_labels["form"]["label_choose"]; ?>';
     MPv1.text.other_bank = '<?php echo $form_labels["form"]["label_other_bank"]; ?>';
@@ -927,6 +1029,6 @@ if ( !defined( 'ABSPATH' ) ) {
         }
         return;
     }
-    MPv1.Initialize(mercadopago_site_id, mercadopago_public_key);
+    MPv1.Initialize(mercadopago_site_id, mercadopago_public_key, mercadopago_coupon_mode == 'yes', mercadopago_discount_action_url);
 
 </script>
