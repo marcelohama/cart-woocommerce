@@ -334,7 +334,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'discount_action_url' => $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway',
 			'form_labels' => array(
 				"form" => array(
-					"coupon_of_discounts" => __( "Coupon of Discount", "woocommerce-mercadopago-module" ),
+					"coupon_empty" => __( "Please, inform your coupon code", "woocommerce-mercadopago-module" ),
+					'apply' => __( "Apply", "woocommerce-mercadopago-module" ),
+					'remove' => __( "Remove", "woocommerce-mercadopago-module" ),
+					'discount_info' => __( "campaign gave you a discount of", "woocommerce-mercadopago-module" ),
+					'coupon_of_discounts' => __( "Coupon of Discount", "woocommerce-mercadopago-module" ),
 					'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
 					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
 					"your_card" => __( "Your Card", 'woocommerce-mercadopago-module' ),
@@ -381,10 +385,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			        "323" => __( "Invalid Document Sub Type", 'woocommerce-mercadopago-module' ),
 			        //issuer
 			        "220" => __( "Parameter cardIssuerId can not be null/empty", 'woocommerce-mercadopago-module' )
-				),
-				"coupon_error" => array(
-        			"EMPTY" => "Please, inform your coupon code"
-      			)
+				)
 			)
 		);
 
@@ -928,37 +929,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 * IPN MECHANICS
 	 * ========================================================================
 	 */
-	
-	// Process if coupon eligibility to discounts
-	public function check_coupon_eligibility() {
-		/*@ob_clean();
-		if ( isset( $_REQUEST[ 'coupon_id' ] ) && $_REQUEST[ 'coupon_id' ] != '' ) {
-		    
-		} else {
-		    $response = array(
-		        'status' => 400,
-		        'response' => array(
-		            'error' => 'invalid_id',
-		            'message' => 'invalid id'
-		        )
-		    );
-		}
-		header( 'HTTP/1.1 200 OK' );
-		header( 'Content-Type: application/json' );
-		echo json_encode( $response );
-		//do_action( "valid_request_swedbank", $_REQUEST );*/
-		/*@ob_clean();
-		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id .
-				': @[check_ipn_response] - Received _get content: ' .
-				json_encode( $_GET, JSON_PRETTY_PRINT ) );
-		}
-		$data = $this->check_ipn_request_is_valid( $_GET );
-		if ( $data ) {
-			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid_mercadopagocustom_ipn_request', $data );
-		}*/
-	}
 
 	// This call checks any incoming notifications from Mercado Pago server.
 	public function check_ipn_response() {
@@ -986,25 +956,20 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			    header( 'HTTP/1.1 200 OK' );
 			    header( 'Content-Type: application/json' );
 				echo json_encode( $response );
-				exit(0);
 			} else {
-				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id .
-						': @[check_ipn_response] - Logged user cards: user is not logged in' );
-				}
-				$arr = array( '{
-					"status":404,
-					"response":{
-						"message":"' . __( 'PLEASE, LOG IN YOUR ACCOUNT TO USE THIS FEATURE', 'woocommerce-mercadopago-module' ) . '",
-						"error":"payer_not_found",
-						"status":404,
-						"cause":[]
-					}
-				}' );
+				$obj = new stdClass();
+				$obj->status = 404;
+				$obj->response = array(
+					'message' => __( 'PLEASE, LOG IN YOUR ACCOUNT TO USE THIS FEATURE', 'woocommerce-mercadopago-module' ),
+					'error' => 'payer_not_found',
+					'status' => 404,
+					'cause' => array()
+				);
 				header( 'HTTP/1.1 200 OK' );
 			    header( 'Content-Type: application/json' );
-				echo json_encode( $response );
+				echo json_encode( $obj );
 			}
+			exit(0);
 		} else {
 			// process IPN messages
 			$data = $this->check_ipn_request_is_valid( $_GET );
@@ -1031,7 +996,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				if ( 'yes' == $this->debug ) {
 					$this->log->add(
 						$this->id, $this->id .
-						': @[check_ipn_response] - Mercado Pago Request Failure: ' .
+						': @[check_ipn_request_is_valid] - Mercado Pago Request Failure: ' .
 						json_encode( $_GET, JSON_PRETTY_PRINT ) );
 				}
 				wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );

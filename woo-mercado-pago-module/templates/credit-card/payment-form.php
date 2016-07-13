@@ -23,16 +23,15 @@ if ( !defined( 'ABSPATH' ) ) {
 	<div class="mp-box-inputs mp-line" id="mercadopago-form-coupon" style="padding:0px 36px 16px 36px;">
 		<label for="couponCodeLabel"><?php echo $form_labels['form']['coupon_of_discounts']; ?></label>
       	<div class="mp-box-inputs mp-col-65">
-	        <input type="text" id="couponCode" data-checkout="coupon_code" name="mercadopago_custom[coupon_code]" autocomplete="off" maxlength="24" value="couponcode"/>
-	        <span class="mp-error" id="mpCouponEmpty" > <?php echo $form_labels['coupon_error']['EMPTY']; ?> </span>
-	        <span class="mp-error" id="mpCoupon400" ></span>
-	        <span class="mp-error" id="mpCoupon404" ></span>
+	        <input type="text" id="couponCode" data-checkout="coupon_code" name="mercadopago_custom[coupon_code]" autocomplete="off" maxlength="24" />
+	        <span class="mp-discount" id="mpCouponApplyed" ></span>
+	        <span class="mp-error" id="mpCouponError" ></span>
       	</div>
       	<div class="mp-box-inputs mp-col-10">
         	<div id="mp-separete-date"></div>
       	</div>
       	<div class="mp-box-inputs mp-col-25">
-        	<input type="button" class="button" id="applyCoupon" value="Apply" >
+        	<input type="button" class="button" id="applyCoupon" value="<?php echo $form_labels['form']['apply']; ?>" >
       	</div>
     </div>
 
@@ -194,7 +193,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	        create_token_on: {
 	            event: true, //if true create token on event, if false create on click and ignore others events. eg: paste or keyup
 	            keyup: false,
-	            paste: true,
+	            paste: true
 	        },
 
 	        inputs_to_create_discount: [
@@ -221,9 +220,8 @@ if ( !defined( 'ABSPATH' ) ) {
 
 	        	couponCode: "#couponCode",
 				applyCoupon: "#applyCoupon",
-				mpCouponEmpty: "#mpCouponEmpty",
-				mpCoupon400: "#mpCoupon400",
-				mpCoupon404: "#mpCoupon404",
+				mpCouponApplyed: "#mpCouponApplyed",
+				mpCouponError: "#mpCouponError",
 
 	            paymentMethodSelector: "#paymentMethodSelector",
 	            pmCustomerAndCards: "#payment-methods-for-customer-and-cards",
@@ -262,34 +260,70 @@ if ( !defined( 'ABSPATH' ) ) {
 	        },
 	        text: {
 	            choose: "Choose",
-	            other_bank: "Other Bank"
+	            other_bank: "Other Bank",
+	            discount_info: "campaign gave you a discount of",
+	            coupon_empty: "Please, inform your coupon code",
+	            apply: "Apply",
+	            remove: "Remove"
 	        },
 	        paths: {
-	            loading: "images/loading.gif"
+	            loading: "images/loading.gif",
+	            check: "images/check.png",
+	            error: "images/error.png"
 	        }
+	    }
+
+	    MPv1.currencyIdToCurrency = function (currency_id) {
+	    	if ( currency_id == 'ARS' ) {
+				return '$';
+	    	} else if ( currency_id == 'BRL' ) {
+	    		return 'R$';
+	    	} else if ( currency_id == 'COP' ) {
+	    		return '$';
+	    	} else if ( currency_id == 'CLP' ) {
+	    		return '$';
+	    	} else if ( currency_id == 'MXN' ) {
+	    		return '$';
+	    	} else if ( currency_id == 'VEF' ) {
+	    		return 'Bs';
+	    	} else if ( currency_id == 'PEN' ) {
+	    		return 'S/';
+	    	} else {
+	    		return '$';
+	    	}
 	    }
 
     	/*
     	 * Coupon of Discounts
     	 */
 	    MPv1.checkCouponEligibility = function () {
-	    	// do not proceed if we are already checking...
-	    	if (!MPv1.coupon_of_discounts.status)
+
+	    	if ( document.querySelector(MPv1.selectors.couponCode).value == "" ) {
+	    		// coupon code is empty
+	    		document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
+				document.querySelector(MPv1.selectors.mpCouponError).style.display = 'block';
+				document.querySelector(MPv1.selectors.mpCouponError).innerHTML = MPv1.text.coupon_empty;
+				MPv1.coupon_of_discounts.status = false;
+				document.querySelector(MPv1.selectors.couponCode).style.background = null;
+				document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
+	    	} else if ( MPv1.coupon_of_discounts.status ) {
+	    		// we already have a coupon set, so we remove it
+	    		document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
+				document.querySelector(MPv1.selectors.mpCouponError).style.display = 'none';
+				MPv1.coupon_of_discounts.status = false;
+				document.querySelector(MPv1.selectors.applyCoupon).style.background = null;
+	    		document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
+	    		document.querySelector(MPv1.selectors.couponCode).value = "";
+	    		document.querySelector(MPv1.selectors.couponCode).style.background = null;
+	    		// TODO: recallate amount and reload installments
 	    		return;
-			if ( document.querySelector(MPv1.selectors.couponCode).value != "" ) {
-				document.querySelector(MPv1.selectors.mpCouponEmpty).style.display = 'none';
-				document.querySelector(MPv1.selectors.mpCoupon400).style.display = 'none';
-				document.querySelector(MPv1.selectors.mpCoupon404).style.display = 'none';
+	    	} else {
 
 				// set loading
+				document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
+				document.querySelector(MPv1.selectors.mpCouponError).style.display = 'none';
 				document.querySelector(MPv1.selectors.couponCode).style.background = "url("+MPv1.paths.loading+") 98% 50% no-repeat #fff";
-
-				/*alert(
-					"\nTransaction Amount: " + document.querySelector(MPv1.selectors.amount).value +
-					"\Payer email: " + MPv1.payer_email +
-					"\nCoupon code: " + document.querySelector(MPv1.selectors.couponCode).value
-				);*/
-				MPv1.coupon_of_discounts.status = false;
+				document.querySelector(MPv1.selectors.applyCoupon).disabled = true;
 				var request = new XMLHttpRequest();
 				request.open(
 					'GET',
@@ -303,26 +337,35 @@ if ( !defined( 'ABSPATH' ) ) {
 						if (request.status == 200) {
 							var response = JSON.parse(request.responseText);
 							if (response.status == 200) {
-							} else if (response.status == 400) {
-								document.querySelector(MPv1.selectors.mpCoupon400).innerHTML = response.response.message;
-								document.querySelector(MPv1.selectors.mpCoupon400).style.display = 'block';
-							} else if (response.status == 404) {
-								document.querySelector(MPv1.selectors.mpCoupon404).innerHTML = response.response.message;
-								document.querySelector(MPv1.selectors.mpCoupon404).style.display = 'block';
+								document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'block';
+								document.querySelector(MPv1.selectors.mpCouponApplyed).innerHTML =
+									response.response.name + " " +
+									MPv1.text.discount_info + " " +
+									MPv1.currencyIdToCurrency(response.response.currency_id) + " " +
+									response.response.coupon_amount;
+								document.querySelector(MPv1.selectors.mpCouponError).style.display = 'none';
+								MPv1.coupon_of_discounts.status = true;
+								document.querySelector(MPv1.selectors.couponCode).style.background = null;
+								document.querySelector(MPv1.selectors.couponCode).style.background = "url("+MPv1.paths.check+") 98% 50% no-repeat #fff";
+								document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.remove;
+								// TODO: recallate amount and reload installments
+							} else if (response.status == 400 || response.status == 404) {
+								document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
+								document.querySelector(MPv1.selectors.mpCouponError).style.display = 'block';
+								document.querySelector(MPv1.selectors.mpCouponError).innerHTML = response.response.message;
+								MPv1.coupon_of_discounts.status = false;
+								document.querySelector(MPv1.selectors.couponCode).style.background = null;
+								document.querySelector(MPv1.selectors.couponCode).style.background = "url("+MPv1.paths.error+") 98% 50% no-repeat #fff";
+								document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
 							}
 						} else {
-							//request failed
-							alert('Stt 400 / Response is ' + request.responseText);
+							// request failed
+							document.querySelector(MPv1.selectors.couponCode).style.background = null;
 						}
-						document.querySelector(MPv1.selectors.couponCode).style.background = null;
-						MPv1.coupon_of_discounts.status = true;
+						document.querySelector(MPv1.selectors.applyCoupon).disabled = false;
 					}
 				};
 				request.send(null);
-			} else {
-				document.querySelector(MPv1.selectors.mpCouponEmpty).style.display = 'block';
-				document.querySelector(MPv1.selectors.mpCoupon400).style.display = 'none';
-				document.querySelector(MPv1.selectors.mpCoupon404).style.display = 'none';
 			}
 		}
 
@@ -998,7 +1041,13 @@ if ( !defined( 'ABSPATH' ) ) {
 
     MPv1.text.choose = '<?php echo $form_labels["form"]["label_choose"]; ?>';
     MPv1.text.other_bank = '<?php echo $form_labels["form"]["label_other_bank"]; ?>';
+    MPv1.text.discount_info = '<?php echo $form_labels["form"]["discount_info"]; ?>';
+    MPv1.text.apply = '<?php echo $form_labels["form"]["apply"]; ?>';
+    MPv1.text.remove = '<?php echo $form_labels["form"]["remove"]; ?>';
+    MPv1.text.coupon_empty = '<?php echo $form_labels["form"]["coupon_empty"]; ?>';
     MPv1.paths.loading = '<?php echo ( $images_path . "loading.gif" ); ?>';
+    MPv1.paths.check = '<?php echo ( $images_path . "check.png" ); ?>';
+    MPv1.paths.error = '<?php echo ( $images_path . "error.png" ); ?>';
 
     // overriding this function to give form padding attribute
     MPv1.setForm = function() {
