@@ -940,8 +940,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 		if ( isset( $_GET[ 'coupon_id' ] ) && $_GET[ 'coupon_id' ] != '' ) {
 			// process coupon evaluations
-			if ( wp_get_current_user()->ID != 0 ) {
-				$logged_user_email = wp_get_current_user()->user_email;
+			if ( isset( $_GET[ 'payer' ] ) && $_GET[ 'payer' ] != '' ) {
+				$logged_user_email = $_GET[ 'payer' ];
 				$coupon_id = $_GET[ 'coupon_id' ];
 				$mp = new MP( $this->access_token );
 			    if ( 'yes' == $this->sandbox )
@@ -960,7 +960,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$obj = new stdClass();
 				$obj->status = 404;
 				$obj->response = array(
-					'message' => __( 'PLEASE, LOG IN YOUR ACCOUNT TO USE THIS FEATURE', 'woocommerce-mercadopago-module' ),
+					'message' => __( 'Please, inform your email in billing address to use this feature', 'woocommerce-mercadopago-module' ),
 					'error' => 'payer_not_found',
 					'status' => 404,
 					'cause' => array()
