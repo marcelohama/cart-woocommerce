@@ -583,7 +583,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 							substr( $product->post->post_content, 0, 230 ) . "..." :
 							$product->post->post_content
 						),
-						'picture_url' => $product->get_image(),
+						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
 						'unit_price' => (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ],
@@ -606,19 +606,18 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         }
         
         // Discounts features
-        /*
-        $discounts = (double) $cart->getOrderTotal( true, Cart::ONLY_DISCOUNTS );
-        if ( $discounts > 0 ) {
+        if ( isset( $post_from_form[ 'mercadopago_custom' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 ) {
             $item = array(
-                'title' => 'Discount',
-                'description' => 'Discount provided by store',
+                'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
+                'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
                 'quantity' => 1,
-                'category_id' => Configuration::get( 'MERCADOPAGO_CATEGORY' ),
-                'unit_price' => - $discounts
+                'category_id' => $this->store_categories_id[ $this->category_id ],
+                'unit_price' => - ( (float) $post_from_form[ 'mercadopago_custom' ][ 'discount' ] )
             );
             $items[] = $item;
         }
-        */
 
 		// Build additional information from the customer data
         $payer_additional_info = array(
@@ -693,25 +692,16 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
             $payment_preference['notification_url'] = $this->workaroundAmperSandBug( $notification_url );
         }
 
-        // Coupon Feature
-        /*
-        $mercadopago_coupon = isset( $post[ 'mercadopago_coupon' ] ) ? $post[ 'mercadopago_coupon' ] : "";
-        if ( $mercadopago_coupon != "" ) {
-        	$coupon = $this->validCoupon( $mercadopago_coupon );
-            if ( $coupon[ 'status' ] == 200 ) {
-            	$payment_preference[ 'campaign_id' ] =  $coupon[ 'response' ][ 'id' ];
-                $payment_preference[ 'coupon_amount' ] = (float) $coupon[ 'response' ][ 'coupon_amount' ];
-                $payment_preference[ 'coupon_code' ] = strtoupper( $mercadopago_coupon );
-            } else {
-                PrestaShopLogger::addLog ( $coupon['response']['error'] . Tools::jsonEncode($coupon), MP_SDK::ERROR, 0 );
-                $this->context->smarty->assign( array(
-	                'message_error' => $coupon[ 'response' ][ 'error' ],
-	                'version' => $this->getPrestashopVersion()
-                ) );
-                return $this->display ( __file__, '/views/templates/front/error_admin.tpl' );
-            }
+        // Discounts features
+        if ( isset( $post_from_form[ 'mercadopago_custom' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 ) {
+        	$payment_preference[ 'campaign_id' ] =  (int) $post_from_form[ 'mercadopago_custom' ][ 'campaign_id' ];
+            $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_custom' ][ 'discount' ];
+            $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] );
+
+            add_action( 'woocommerce_add_to_cart', 'apply_matched_coupons' );
         }
-        */
 
         if ( !$this->isTestUser ) {
 			$preferences[ 'sponsor_id' ] = (int) ( $this->sponsor_id[ $this->site_id ] );
@@ -730,6 +720,19 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		return $payment_preference;
 
     }
+
+    function apply_matched_coupons() {
+	    // If the current user is a shop admin
+	    if ( current_user_can( 'manage_woocommerce' ) ) return;
+	    // If the user is on the cart or checkout page
+	    //if ( is_cart() || is_checkout() ) return;
+
+	    $coupon_code = 'somecodehere';
+
+	    if ( WC()->cart->has_discount( $coupon_code ) ) return;
+
+	    WC()->cart->add_discount( $coupon_code );
+	}
 
     public function checkAndSaveCustomerCard( $checkout_info ) {
     	if ( 'yes' == $this->debug ) {

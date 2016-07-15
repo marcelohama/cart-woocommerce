@@ -504,7 +504,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 							substr( $product->post->post_content, 0, 230 ) . "..." :
 							$product->post->post_content
 						),
-						'picture_url' => $product->get_image(),
+						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
 						'unit_price' => (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ],
