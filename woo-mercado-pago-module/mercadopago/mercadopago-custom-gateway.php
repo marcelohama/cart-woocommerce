@@ -699,9 +699,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         	$payment_preference[ 'campaign_id' ] =  (int) $post_from_form[ 'mercadopago_custom' ][ 'campaign_id' ];
             $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_custom' ][ 'discount' ];
             $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] );
-
-            $coupon_code = 'UNIQUECODE';
-            $woocommerce->cart->add_discount( sanitize_text_field( $coupon_code ));
         }
 
         if ( !$this->isTestUser ) {
