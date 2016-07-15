@@ -700,7 +700,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
             $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_custom' ][ 'discount' ];
             $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] );
 
-            add_action( 'woocommerce_add_to_cart', 'apply_matched_coupons' );
+            $coupon_code = 'UNIQUECODE';
+            $woocommerce->cart->add_discount( sanitize_text_field( $coupon_code ));
         }
 
         if ( !$this->isTestUser ) {
@@ -720,19 +721,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		return $payment_preference;
 
     }
-
-    function apply_matched_coupons() {
-	    // If the current user is a shop admin
-	    if ( current_user_can( 'manage_woocommerce' ) ) return;
-	    // If the user is on the cart or checkout page
-	    //if ( is_cart() || is_checkout() ) return;
-
-	    $coupon_code = 'somecodehere';
-
-	    if ( WC()->cart->has_discount( $coupon_code ) ) return;
-
-	    WC()->cart->add_discount( $coupon_code );
-	}
 
     public function checkAndSaveCustomerCard( $checkout_info ) {
     	if ( 'yes' == $this->debug ) {
