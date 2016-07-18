@@ -80,11 +80,11 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		// Verify if access token is empty.
 		if ( empty( $this->access_token ) && $this->enabled == 'yes' ) {
 			add_action( 'admin_notices', array( $this, 'credentialsMissingMessage' ) );
+		} else {
+			add_action( // Verify if SSL is supported.
+				'admin_notices', array( $this, 'checkSSLAbsence' )
+			);
 		}
-		
-		add_action( // Verify if SSL is supported.
-			'admin_notices', array( $this, 'checkSSLAbsence' )
-		);
 
 		// Logging and debug.
 		if ( 'yes' == $this->debug ) {
@@ -123,9 +123,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		if ( $this->validateCredentials() ) {
 			try {
 				$mp = new MP( $this->access_token );
-				$get_request = $mp->get( "/users/me?access_token=" . $this->access_token );
-				$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
-				$this->site_id = $get_request[ 'response' ][ 'site_id' ];
 				$payments = $mp->get( "/v1/payment_methods/?access_token=" . $this->access_token );
 				foreach ( $payments[ "response" ] as $payment ) {
 					if ( $payment[ 'payment_type_id' ] != 'account_money' && $payment[ 'payment_type_id' ] != 'credit_card' &&
@@ -561,7 +558,12 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		if ( strlen( $this->access_token ) > 0 ) {
 			try {
 				$mp = new MP( $this->access_token );
-				return true;
+				$get_request = $mp->get( "/users/me?access_token=" . $this->access_token );
+				if ( isset( $get_request[ 'response' ][ 'site_id' ] ) ) {
+					$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
+					$this->site_id = $get_request[ 'response' ][ 'site_id' ];
+					return true;
+				} else return false;
 			} catch ( MercadoPagoException $e ) {
 				return false;
 			}

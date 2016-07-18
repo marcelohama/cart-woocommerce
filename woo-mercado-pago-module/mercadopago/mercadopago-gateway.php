@@ -146,16 +146,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		// Trigger API to get payment methods and site_id, also validates Client_id/Client_secret.
 		if ( $this->validateCredentials() ) {
 			try {
-				$mp = new MP( $this->client_id, $this->client_secret );
-				$access_token = $mp->get_access_token();
-				$get_request = $mp->get( "/users/me?access_token=" . $access_token );
-				$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
-				$this->site_id = $get_request[ 'response' ][ 'site_id' ];
-				$payments = $mp->get( "/v1/payment_methods/?access_token=" . $access_token );
-				array_push( $this->payment_methods, "n/d" );
-				foreach ( $payments[ "response" ] as $payment ) {
-					array_push( $this->payment_methods, str_replace( "_", " ", $payment[ 'id' ] ) );
-				}
 				$this->payment_desc =
 					__( 'Select the payment methods that you <strong>don\'t</strong> want to receive with Mercado Pago.', 'woocommerce-mercadopago-module' );
 				// checking the currency
@@ -681,7 +671,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		if ( strlen( $this->client_id ) > 0 && strlen( $this->client_secret ) > 0 ) {
 			try {
 				$mp = new MP( $this->client_id, $this->client_secret );
-				return true;
+				$access_token = $mp->get_access_token();
+				$get_request = $mp->get( "/users/me?access_token=" . $access_token );
+				if ( isset( $get_request[ 'response' ][ 'site_id' ] ) ) {
+					$this->isTestUser = in_array( 'test_user', $get_request[ 'response' ][ 'tags' ] );
+					$this->site_id = $get_request[ 'response' ][ 'site_id' ];
+					$payments = $mp->get( "/v1/payment_methods/?access_token=" . $access_token );
+					array_push( $this->payment_methods, "n/d" );
+					foreach ( $payments[ "response" ] as $payment ) {
+						array_push( $this->payment_methods, str_replace( "_", " ", $payment[ 'id' ] ) );
+					}
+					return true;
+				} else return false;
 			} catch ( MercadoPagoException $e ) {
 				return false;
 			}
