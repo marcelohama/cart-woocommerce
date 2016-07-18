@@ -614,7 +614,10 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         // Discounts features
         if ( isset( $post_from_form[ 'mercadopago_custom' ][ 'discount' ] ) &&
         	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] != "" &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 ) {
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
+        	isset( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] > 0) {
             $item = array(
                 'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
                 'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
@@ -701,7 +704,10 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         // Discounts features
         if ( isset( $post_from_form[ 'mercadopago_custom' ][ 'discount' ] ) &&
         	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] != "" &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 ) {
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
+        	isset( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] > 0 ) {
         	$payment_preference[ 'campaign_id' ] =  (int) $post_from_form[ 'mercadopago_custom' ][ 'campaign_id' ];
             $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_custom' ][ 'discount' ];
             $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] );
@@ -758,6 +764,30 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$this->log->add( $this->id, $this->id .
 					': @[checkAndSaveCustomerCard] - card creation failed: ' .
 					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
+			}
+		}
+	}
+
+	public function add_discount() {
+		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
+			return;
+		}
+		if ( isset( $post_from_form[ 'mercadopago_custom' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
+			isset( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
+        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] > 0 &&
+			WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
+			$value = $_POST[ 'mercadopago_custom' ][ 'discount' ];
+			global $woocommerce;
+			if ( apply_filters( 'wc_mercadopagocustom_module_apply_discount', 0 < $value, $woocommerce->cart ) ) {
+				$payment_gateways = WC()->payment_gateways->payment_gateways();
+				$gateway = $payment_gateways[ WC()->session->chosen_payment_method ];
+				$woocommerce->cart->add_fee(
+					sprintf( __( 'Discount for %s coupon', 'woocommerce-mercadopago-module' ), esc_attr( $_POST[ 'mercadopago_custom' ][ 'campaign' ] ) ),
+					( $value * -1 ), true
+				);
 			}
 		}
 	}
@@ -835,9 +865,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Called automatically by WooCommerce, verify if Module is available to use.
 	public function is_available() {
 		// check SSL connection, as we can't use normal http in custom checkout
-		/*if ( empty( $_SERVER[ 'HTTPS' ] ) || $_SERVER[ 'HTTPS' ] == 'off' ) {
+		if ( empty( $_SERVER[ 'HTTPS' ] ) || $_SERVER[ 'HTTPS' ] == 'off' ) {
 			return false;
-		}*/
+		}
 		$available = ( 'yes' == $this->settings[ 'enabled' ] ) &&
 			!empty( $this->public_key ) &&
 			!empty( $this->access_token );
@@ -1142,41 +1172,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	protected function calculate_discount( $value, $subtotal ) {
-		if ( strstr( $value, '%' ) ) {
-			$value = ( $subtotal / 100 ) * str_replace( '%', '', $value );
-		}
-		return $value;
-	}
-
-	protected function discount_name( $value, $gateway ) {
-		if ( strstr( $value, '%' ) ) {
-			return sprintf( __( 'Discount for %s (%s off)', 'woocommerce-mercadopago-module' ), esc_attr( $gateway->title ), $value );
-		}
-		return sprintf( __( 'Discount for %s', 'woocommerce-mercadopago-module' ), esc_attr( $gateway->title ) );
-	}
-
-	public function add_discount() {
-		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
-			return;
-		}
-		if ( isset( $_POST[ 'mercadopago_custom' ][ 'discount' ] ) ) {
-			// Gets the gateway discount.
-			$value = $_POST[ 'mercadopago_custom' ][ 'discount' ];
-			global $woocommerce;
-    		$cart = $woocommerce->cart;
-			if ( apply_filters( 'wc_mercadopagocustom_module_apply_discount', 0 < $value, $cart ) ) {
-				// Gets the gateway data.
-				$payment_gateways = WC()->payment_gateways->payment_gateways();
-				$gateway          = $payment_gateways[ WC()->session->chosen_payment_method ];
-				// Generate the discount amount and title.
-				$discount_name = $this->discount_name( $value, $gateway );
-				$cart_discount = $this->calculate_discount( $value, $cart->cart_contents_total ) * -1;
-				// Apply the discount.
-				$cart->add_fee( $discount_name, $cart_discount, true );
-			}
-		}
-	}
 }
 
 new WC_WooMercadoPagoCustom_Gateway();

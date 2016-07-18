@@ -164,6 +164,7 @@ if ( !defined( 'ABSPATH' ) ) {
 		<input type="hidden" id="site_id"  name="mercadopago_custom[site_id]"/>
 		<input type="hidden" id="amount" value='<?php echo $amount; ?>' name="mercadopago_custom[amount]"/>
 		<input type="hidden" id="campaign_id" name="mercadopago_custom[campaign_id]"/>
+		<input type="hidden" id="campaign" name="mercadopago_custom[campaign]"/>
 		<input type="hidden" id="discount" name="mercadopago_custom[discount]"/>
 		<input type="hidden" id="paymentMethodId" name="mercadopago_custom[paymentMethodId]"/>
 		<input type="hidden" id="token" name="mercadopago_custom[token]"/>
@@ -175,22 +176,6 @@ if ( !defined( 'ABSPATH' ) ) {
 </fieldset>
 
 <script type="text/javascript">
-
-	/**
-	 * Updated the checkout when change the payment method.
-	 */
-	/*(function ( $ ) {
-		'use strict';
-		$(function () {
-			$( document.body ).on( 'change', 'input[name="payment_method"]', function () {
-				$( 'body' ).trigger( 'update_checkout' );
-				$.ajax( $fragment_refresh );
-			});
-			$( '#order_review' ).on( 'change', 'input[name=payment_method]', function() {
-				$('body').trigger('update_checkout');
-			});
-		});
-	}( jQuery ));*/
     
     (function() {
 
@@ -266,6 +251,7 @@ if ( !defined( 'ABSPATH' ) ) {
 	            amount: "#amount",
 	            token: "#token",
 	            campaign_id: "#campaign_id",
+	            campaign: "#campaign",
 	            discount: "#discount",
 	            cardTruncated: "#cardTruncated",
 	            site_id: "#site_id",
@@ -396,6 +382,7 @@ if ( !defined( 'ABSPATH' ) ) {
 								document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.remove;
 								MPv1.applyDiscount(response.response.coupon_amount);
 								document.querySelector(MPv1.selectors.campaign_id).value = response.response.id;
+								document.querySelector(MPv1.selectors.campaign).value = response.response.name;
 								document.querySelector(MPv1.selectors.discount).value = response.response.coupon_amount;
 							} else if (response.status == 400 || response.status == 404) {
 								document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
