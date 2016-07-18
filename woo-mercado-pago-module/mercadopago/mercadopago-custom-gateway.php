@@ -232,9 +232,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'default' => __( 'Mercado Pago', 'woocommerce-mercadopago-module' )
 			),
 			'coupon_mode' => array(
-				'title'   => __( 'Coupon Mode', 'woocommerce-mercadopago-module' ),
+				'title'   => __( 'Coupons', 'woocommerce-mercadopago-module' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable coupon mode for discount campaigns', 'woocommerce-mercadopago-module' ),
+				'label'   => __( 'Enable coupons of discounts', 'woocommerce-mercadopago-module' ),
 				'default' => 'no',
 				'description' => __( 'If there is a Mercado Pago campaign, allow your store to give discounts to customers.', 'woocommerce-mercadopago-module' )
 			),
@@ -338,7 +338,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					"coupon_empty" => __( "Please, inform your coupon code", "woocommerce-mercadopago-module" ),
 					'apply' => __( "Apply", "woocommerce-mercadopago-module" ),
 					'remove' => __( "Remove", "woocommerce-mercadopago-module" ),
-					'discount_info' => __( "campaign gave you a discount of", "woocommerce-mercadopago-module" ),
+					'discount_info' => __( "gave a discount of", "woocommerce-mercadopago-module" ),
 					'coupon_of_discounts' => __( "Coupon of Discount", "woocommerce-mercadopago-module" ),
 					'label_other_bank' => __( "Other Bank", "woocommerce-mercadopago-module" ),
 					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
@@ -448,21 +448,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 							'Mercado Pago: ' .
 							__( 'Payment approved.', 'woocommerce-mercadopago-module' )
 						);
-
-						$discount = 100;
-						global $woocommerce;
-				    	$cart = $woocommerce->cart;
-						if ( apply_filters( 'woocommerce_cart_calculate_fees', 0 < $discount, $cart ) ) {
-							// Gets the gateway data.
-							$payment_gateways = WC()->payment_gateways->payment_gateways();
-							$gateway          = $payment_gateways[ WC()->session->chosen_payment_method ];
-							// Generate the discount amount and title.
-							$discount_name = $this->discount_name( $discount, $gateway );
-							$cart_discount = $this->calculate_discount( $discount, $cart->cart_contents_total ) * -1;
-							// Apply the discount.
-							$cart->add_fee( $discount_name, $cart_discount, true );
-						}
-
 						return array(
 							'result' => 'success',
 							'redirect' => $order->get_checkout_order_received_url()

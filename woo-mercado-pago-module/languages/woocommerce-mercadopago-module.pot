@@ -699,3 +699,30 @@ msgstr ""
 
 msgid "Currency conversions should be made outside this module.</strong><br><br>"
 msgstr ""
+
+msgid "Coupons"
+msgstr ""
+
+msgid "Enable coupons of discounts"
+msgstr ""
+
+msgid "If there is a Mercado Pago campaign, allow your store to give discounts to customers."
+msgstr ""
+
+msgid "campaign gave a discount of"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Please, inform your coupon code"
+msgstr ""
+
+msgid "Please, inform your email in billing address to use this feature"
+msgstr ""
+
+msgid "Discount for %s coupon"
+msgstr ""
