@@ -92,8 +92,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'wp_enqueue_scripts',
 			array( $this, 'customCheckoutScripts' )
 		);
-		// Apply the discounts.
-		add_action(
+		add_action( // Apply the discounts
 			'woocommerce_cart_calculate_fees',
 			array( $this, 'add_discount' ), 10
 		);

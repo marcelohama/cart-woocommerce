@@ -51,6 +51,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		$this->access_token = $this->get_option( 'access_token' );
 		$this->title = $this->get_option( 'title' );
 		$this->description = $this->get_option( 'description' );
+		$this->coupon_mode = $this->get_option( 'coupon_mode' );
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
 		$this->debug = $this->get_option( 'debug' );
@@ -62,7 +63,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		// Hook actions for WordPress.
 		add_action( // Used by IPN to receive IPN incomings.
 			'woocommerce_api_wc_woomercadopagoticket_gateway',
-			array($this, 'check_ipn_response')
+			array($this, 'process_http_request')
 		);
 		add_action( // Used by IPN to process valid incomings.
 			'valid_mercadopagoticket_ipn_request',
@@ -75,6 +76,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		add_action( // Scripts for custom checkout
 			'wp_enqueue_scripts',
 			array( $this, 'ticketCheckoutScripts' )
+		);
+		add_action( // Apply the discounts
+			'woocommerce_cart_calculate_fees',
+			array( $this, 'add_discount' ), 10
 		);
 		
 		// Verify if access token is empty.
@@ -205,6 +210,13 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'description' => __( 'Description shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
 				'default' => __( 'Pay with Mercado Pago', 'woocommerce-mercadopago-module' )
 			),
+			'coupon_mode' => array(
+				'title'   => __( 'Coupons', 'woocommerce-mercadopago-module' ),
+				'type'    => 'checkbox',
+				'label'   => __( 'Enable coupons of discounts', 'woocommerce-mercadopago-module' ),
+				'default' => 'no',
+				'description' => __( 'If there is a Mercado Pago campaign, allow your store to give discounts to customers.', 'woocommerce-mercadopago-module' )
+			),
 			'category_id' => array(
 				'title' => __( 'Store Category', 'woocommerce-mercadopago-module' ),
 				'type' => 'select',
@@ -267,25 +279,40 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					'woocommerce-mercadopago-style', plugins_url(
 						'assets/css/custom_checkout_mercadopago.css',
 						plugin_dir_path( __FILE__ ) ) );
+				wp_enqueue_script(
+					'woocommerce-mercadopago-v1',
+					'https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js' );
 			}
 		}
 	}
 
 	public function payment_fields() {
 		$amount = $this->get_order_total();
-		wc_get_template(
-			'ticket/ticket-form.php',
-			array(
-				'form_labels' => array(
+
+		$parameters = array(
+			'payment_methods' => $this->payment_methods,
+			'site_id' => $this->site_id,
+			'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
+			'amount' => $amount,
+			'coupon_mode' => $this->coupon_mode,
+			'discount_action_url' => $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoTicket_Gateway',
+			'form_labels' => array(
+				"form" => array(
+					"coupon_empty" => __( "Please, inform your coupon code", "woocommerce-mercadopago-module" ),
+					'apply' => __( "Apply", "woocommerce-mercadopago-module" ),
+					'remove' => __( "Remove", "woocommerce-mercadopago-module" ),
+					'discount_info' => __( "gave a discount of", "woocommerce-mercadopago-module" ),
+					'coupon_of_discounts' => __( "Coupon of Discount", "woocommerce-mercadopago-module" ),
 					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
 					"payment_instructions" => __( 'Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it.', 'woocommerce-mercadopago-module' ),
 					"ticket_note" => __( 'Important: The order will be confirmed only after the payment approval.', 'woocommerce-mercadopago-module' )
-				),
-				'payment_methods' => $this->payment_methods,
-				'site_id' => $this->site_id,
-				'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
-				'amount' => $amount
-			),
+		      	)
+			)
+		);
+
+		wc_get_template(
+			'ticket/ticket-form.php',
+			$parameters,
 			'woocommerce/mercadopago/',
 			WC_WooMercadoPago_Module::getTemplatesPath()
 		);
@@ -466,6 +493,23 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			)
         );
 
+        // Discounts features
+        if ( isset( $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
+        	isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] > 0) {
+            $item = array(
+                'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
+                'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
+                'quantity' => 1,
+                'category_id' => $this->store_categories_id[ $this->category_id ],
+                'unit_price' => - ( (float) $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] )
+            );
+            $items[] = $item;
+        }
+
         // Create the shipment address information set
         $shipments = array(
         	'receiver_address' => array(
@@ -503,25 +547,17 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
             $payment_preference['notification_url'] = $this->workaroundAmperSandBug( $notification_url );
         }
 
-        // Coupon Feature
-        /*
-        $mercadopago_coupon = isset( $post[ 'mercadopago_coupon' ] ) ? $post[ 'mercadopago_coupon' ] : "";
-        if ( $mercadopago_coupon != "" ) {
-        	$coupon = $this->validCoupon( $mercadopago_coupon );
-            if ( $coupon[ 'status' ] == 200 ) {
-            	$payment_preference[ 'campaign_id' ] =  $coupon[ 'response' ][ 'id' ];
-                $payment_preference[ 'coupon_amount' ] = (float) $coupon[ 'response' ][ 'coupon_amount' ];
-                $payment_preference[ 'coupon_code' ] = strtoupper( $mercadopago_coupon );
-            } else {
-                PrestaShopLogger::addLog ( $coupon['response']['error'] . Tools::jsonEncode($coupon), MP_SDK::ERROR, 0 );
-                $this->context->smarty->assign( array(
-	                'message_error' => $coupon[ 'response' ][ 'error' ],
-	                'version' => $this->getPrestashopVersion()
-                ) );
-                return $this->display ( __file__, '/views/templates/front/error_admin.tpl' );
-            }
+        // Discounts features
+        if ( isset( $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
+        	isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] > 0 ) {
+        	$payment_preference[ 'campaign_id' ] =  (int) $post_from_form[ 'mercadopago_ticket' ][ 'campaign_id' ];
+            $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_ticket' ][ 'discount' ];
+            $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] );
         }
-        */
 
         if ( !$this->isTestUser ) {
 			$preferences[ 'sponsor_id' ] = (int) ( $this->sponsor_id[ $this->site_id ] );
@@ -540,6 +576,30 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		return $payment_preference;
 
     }
+
+    public function add_discount() {
+		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
+			return;
+		}
+		if ( isset( $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
+			isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] > 0 &&
+			WC()->session->chosen_payment_method == "woocommerce-mercadopago-ticket-module" ) {
+			$value = $_POST[ 'mercadopago_ticket' ][ 'discount' ];
+			global $woocommerce;
+			if ( apply_filters( 'wc_mercadopagoticket_module_apply_discount', 0 < $value, $woocommerce->cart ) ) {
+				$payment_gateways = WC()->payment_gateways->payment_gateways();
+				$gateway = $payment_gateways[ WC()->session->chosen_payment_method ];
+				$woocommerce->cart->add_fee(
+					sprintf( __( 'Discount for %s coupon', 'woocommerce-mercadopago-module' ), esc_attr( $_POST[ 'mercadopago_ticket' ][ 'campaign' ] ) ),
+					( $value * -1 ), true
+				);
+			}
+		}
+	}
 
 	/*
 	 * ========================================================================
@@ -664,18 +724,53 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 	
-	// This call checks any incoming notifications from Mercado Pago server.
-	public function check_ipn_response() {
+	// [Server Side] This call checks any incoming notifications from Mercado Pago server.
+	public function process_http_request() {
 		@ob_clean();
 		if ( 'yes' == $this->debug ) {
 			$this->log->add( $this->id, $this->id .
-				': @[check_ipn_response] - Received _get content: ' .
+				': @[process_http_request] - Received _get content: ' .
 				json_encode( $_GET, JSON_PRETTY_PRINT ) );
 		}
-		$data = $this->check_ipn_request_is_valid( $_GET );
-		if ( $data ) {
-			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid_mercadopagoticket_ipn_request', $data );
+		if ( isset( $_GET[ 'coupon_id' ] ) && $_GET[ 'coupon_id' ] != '' ) {
+			// process coupon evaluations
+			if ( isset( $_GET[ 'payer' ] ) && $_GET[ 'payer' ] != '' ) {
+				$logged_user_email = $_GET[ 'payer' ];
+				$coupon_id = $_GET[ 'coupon_id' ];
+				$mp = new MP( $this->access_token );
+			    if ( 'yes' == $this->sandbox )
+					$mp->sandbox_mode( true );
+				else
+					$mp->sandbox_mode( false );
+			    $response = $mp->check_discount_campaigns(
+			    	$_GET[ 'amount' ],
+			    	$logged_user_email,
+			    	$coupon_id
+			    );
+			    header( 'HTTP/1.1 200 OK' );
+			    header( 'Content-Type: application/json' );
+				echo json_encode( $response );
+			} else {
+				$obj = new stdClass();
+				$obj->status = 404;
+				$obj->response = array(
+					'message' => __( 'Please, inform your email in billing address to use this feature', 'woocommerce-mercadopago-module' ),
+					'error' => 'payer_not_found',
+					'status' => 404,
+					'cause' => array()
+				);
+				header( 'HTTP/1.1 200 OK' );
+			    header( 'Content-Type: application/json' );
+				echo json_encode( $obj );
+			}
+			exit(0);
+		} else {
+			// process IPN messages
+			$data = $this->check_ipn_request_is_valid( $_GET );
+			if ( $data ) {
+				header( 'HTTP/1.1 200 OK' );
+				do_action( 'valid_mercadopagoticket_ipn_request', $data );
+			}
 		}
 	}
 	
