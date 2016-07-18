@@ -108,7 +108,8 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 * Mercado Pago Coupon of Discounts
 	- This feature lets Mercado Pago and merchants to use campaigns of discount created in their Mercado Pago accounts.
 * Improvements
-	- Improved credentials validation algorithm.
+	- Improved credentials validation algorithm;
+	- Improved checkout data, with more clean info for product image.
 
 = v2.0.5 (07/07/2016) =
 * Bug fixes

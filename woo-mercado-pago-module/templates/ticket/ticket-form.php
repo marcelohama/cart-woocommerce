@@ -23,8 +23,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php } ?>
 </div>
 <fieldset id="mercadopago-form" style="background:white; ">
-	<div style="padding:0px 36px 0px 36px;">
 
+	<div style="padding:0px 36px 0px 36px;">
 		<p>
 			<?php echo $form_labels[ 'payment_instructions' ] ?>
 			<br />
