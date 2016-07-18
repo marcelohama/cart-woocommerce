@@ -175,6 +175,22 @@ if ( !defined( 'ABSPATH' ) ) {
 </fieldset>
 
 <script type="text/javascript">
+
+	/**
+	 * Updated the checkout when change the payment method.
+	 */
+	/*(function ( $ ) {
+		'use strict';
+		$(function () {
+			$( document.body ).on( 'change', 'input[name="payment_method"]', function () {
+				$( 'body' ).trigger( 'update_checkout' );
+				$.ajax( $fragment_refresh );
+			});
+			$( '#order_review' ).on( 'change', 'input[name=payment_method]', function() {
+				$('body').trigger('update_checkout');
+			});
+		});
+	}( jQuery ));*/
     
     (function() {
 
@@ -328,7 +344,6 @@ if ( !defined( 'ABSPATH' ) ) {
 	    }
 
 	    MPv1.checkCouponEligibility = function () {
-
 	    	if ( document.querySelector(MPv1.selectors.couponCode).value == "" ) {
 	    		// coupon code is empty
 	    		document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
@@ -349,7 +364,6 @@ if ( !defined( 'ABSPATH' ) ) {
 	    		document.querySelector(MPv1.selectors.couponCode).style.background = null;
 	    		MPv1.applyDiscount(0);
 	    	} else {
-
 				// set loading
 				document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
 				document.querySelector(MPv1.selectors.mpCouponError).style.display = 'none';

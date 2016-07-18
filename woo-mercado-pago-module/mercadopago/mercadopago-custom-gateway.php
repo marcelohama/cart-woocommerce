@@ -78,7 +78,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		// Hook actions for WordPress.
 		add_action( // Used by IPN to receive IPN incomings.
 			'woocommerce_api_wc_woomercadopagocustom_gateway',
-			array($this, 'check_ipn_response')
+			array($this, 'process_http_request')
 		);
 		add_action( // Used by IPN to process valid incomings.
 			'valid_mercadopagocustom_ipn_request',
@@ -92,15 +92,20 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'wp_enqueue_scripts',
 			array( $this, 'customCheckoutScripts' )
 		);
+		// Apply the discounts.
+		add_action(
+			'woocommerce_cart_calculate_fees',
+			array( $this, 'add_discount' ), 10
+		);
 		
 		// Verify if public_key or client_secret is empty.
 		if ( ( empty( $this->public_key ) || empty( $this->access_token ) ) && $this->enabled == 'yes' ) {
 			add_action( 'admin_notices', array( $this, 'credentialsMissingMessage' ) );
 		}
 		
-		add_action( // Verify if SSL is supported.
+		/*add_action( // Verify if SSL is supported.
 			'admin_notices', array( $this, 'checkSSLAbsence' )
-		);
+		);*/
 
 		// Logging and debug.
 		if ( 'yes' == $this->debug ) {
@@ -395,18 +400,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$logged_user_email = wp_get_current_user()->user_email;
 				$customer = $mp->get_or_create_customer( $logged_user_email );
 				$customer_cards = $customer[ 'cards' ];
-				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id .
-						': @[process_fields] - Logged user ' . $logged_user_email . ' cards: ' .
-						json_encode( $customer_cards, JSON_PRETTY_PRINT ) );
-				}
 				$parameters[ 'customerId' ] = $customer[ 'id' ];
 				$parameters[ 'customer_cards' ] = $customer_cards;
-			} else {
-				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id .
-						': @[process_fields] - Logged user cards: user is not logged in' );
-				}
 			}
 		} catch (Exception $e) {
 			if ( 'yes' == $this->debug ) {
@@ -425,7 +420,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		);
 	}
 	
-	// This function is called after we clock on [place_order] button, and each field is passed to this
+	// This function is called after we click on [place_order] button, and each field is passed to this
 	// function through $_POST variable.
 	public function process_payment( $order_id ) {
 		$order = new WC_Order( $order_id );
@@ -457,6 +452,21 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 							'Mercado Pago: ' .
 							__( 'Payment approved.', 'woocommerce-mercadopago-module' )
 						);
+
+						$discount = 100;
+						global $woocommerce;
+				    	$cart = $woocommerce->cart;
+						if ( apply_filters( 'woocommerce_cart_calculate_fees', 0 < $discount, $cart ) ) {
+							// Gets the gateway data.
+							$payment_gateways = WC()->payment_gateways->payment_gateways();
+							$gateway          = $payment_gateways[ WC()->session->chosen_payment_method ];
+							// Generate the discount amount and title.
+							$discount_name = $this->discount_name( $discount, $gateway );
+							$cart_discount = $this->calculate_discount( $discount, $cart->cart_contents_total ) * -1;
+							// Apply the discount.
+							$cart->add_fee( $discount_name, $cart_discount, true );
+						}
+
 						return array(
 							'result' => 'success',
 							'redirect' => $order->get_checkout_order_received_url()
@@ -716,7 +726,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         	$payment_preference, $order
         );
 		return $payment_preference;
-
     }
 
     public function checkAndSaveCustomerCard( $checkout_info ) {
@@ -825,9 +834,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Called automatically by WooCommerce, verify if Module is available to use.
 	public function is_available() {
 		// check SSL connection, as we can't use normal http in custom checkout
-		if ( empty( $_SERVER[ 'HTTPS' ] ) || $_SERVER[ 'HTTPS' ] == 'off' ) {
+		/*if ( empty( $_SERVER[ 'HTTPS' ] ) || $_SERVER[ 'HTTPS' ] == 'off' ) {
 			return false;
-		}
+		}*/
 		$available = ( 'yes' == $this->settings[ 'enabled' ] ) &&
 			!empty( $this->public_key ) &&
 			!empty( $this->access_token );
@@ -918,12 +927,12 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 
-	// This call checks any incoming notifications from Mercado Pago server.
-	public function check_ipn_response() {
+	// [Server Side] This call checks any incoming notifications from Mercado Pago server.
+	public function process_http_request() {
 		@ob_clean();
 		if ( 'yes' == $this->debug ) {
 			$this->log->add( $this->id, $this->id .
-				': @[check_ipn_response] - Received _get content: ' .
+				': @[process_http_request] - Received _get content: ' .
 				json_encode( $_GET, JSON_PRETTY_PRINT ) );
 		}
 		if ( isset( $_GET[ 'coupon_id' ] ) && $_GET[ 'coupon_id' ] != '' ) {
@@ -1131,5 +1140,42 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			}
 		}
 	}
-	
+
+	protected function calculate_discount( $value, $subtotal ) {
+		if ( strstr( $value, '%' ) ) {
+			$value = ( $subtotal / 100 ) * str_replace( '%', '', $value );
+		}
+		return $value;
+	}
+
+	protected function discount_name( $value, $gateway ) {
+		if ( strstr( $value, '%' ) ) {
+			return sprintf( __( 'Discount for %s (%s off)', 'woocommerce-mercadopago-module' ), esc_attr( $gateway->title ), $value );
+		}
+		return sprintf( __( 'Discount for %s', 'woocommerce-mercadopago-module' ), esc_attr( $gateway->title ) );
+	}
+
+	public function add_discount() {
+		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
+			return;
+		}
+		if ( isset( $_POST[ 'mercadopago_custom' ][ 'discount' ] ) ) {
+			// Gets the gateway discount.
+			$value = $_POST[ 'mercadopago_custom' ][ 'discount' ];
+			global $woocommerce;
+    		$cart = $woocommerce->cart;
+			if ( apply_filters( 'wc_mercadopagocustom_module_apply_discount', 0 < $value, $cart ) ) {
+				// Gets the gateway data.
+				$payment_gateways = WC()->payment_gateways->payment_gateways();
+				$gateway          = $payment_gateways[ WC()->session->chosen_payment_method ];
+				// Generate the discount amount and title.
+				$discount_name = $this->discount_name( $value, $gateway );
+				$cart_discount = $this->calculate_discount( $value, $cart->cart_contents_total ) * -1;
+				// Apply the discount.
+				$cart->add_fee( $discount_name, $cart_discount, true );
+			}
+		}
+	}
 }
+
+new WC_WooMercadoPagoCustom_Gateway();
