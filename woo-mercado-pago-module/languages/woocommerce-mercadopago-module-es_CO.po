@@ -728,3 +728,6 @@ msgstr "Por favor, introduzca su email en la dirección de facturación para uti
 
 msgid "Discount for %s coupon"
 msgstr "Descuento para el cupón %s"
+
+msgid "Discount provided by store"
+msgstr "Descuento dado por la tienda"

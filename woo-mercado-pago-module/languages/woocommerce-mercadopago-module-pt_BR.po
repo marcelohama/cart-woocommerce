@@ -720,3 +720,6 @@ msgstr "Por favor, informe seu email no endereço de cobrança para fazer uso de
 
 msgid "Discount for %s coupon"
 msgstr "Desconto para o cupom %s"
+
+msgid "Discount provided by store"
+msgstr "Desconto dado pela loja"

@@ -726,3 +726,6 @@ msgstr ""
 
 msgid "Discount for %s coupon"
 msgstr ""
+
+msgid "Discount provided by store"
+msgstr ""
