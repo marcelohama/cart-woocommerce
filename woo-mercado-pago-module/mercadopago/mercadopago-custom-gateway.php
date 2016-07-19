@@ -601,7 +601,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
         	isset( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
         	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] > 0) {
+        	WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
             $item = array(
                 'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
                 'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
@@ -691,7 +691,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
         	isset( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
         	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] > 0 ) {
+        	WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
         	$payment_preference[ 'campaign_id' ] =  (int) $post_from_form[ 'mercadopago_custom' ][ 'campaign_id' ];
             $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_custom' ][ 'discount' ];
             $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] );
@@ -756,12 +756,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
 			return;
 		}
-		if ( isset( $post_from_form[ 'mercadopago_custom' ][ 'discount' ] ) &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] != "" &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
-			isset( $post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
-        	$post_from_form[ 'mercadopago_custom' ][ 'coupon_code' ] > 0 &&
+		if ( isset( $_POST[ 'mercadopago_custom' ][ 'discount' ] ) &&
+        	$_POST[ 'mercadopago_custom' ][ 'discount' ] != "" &&
+        	$_POST[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
+			isset( $_POST[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
+        	$_POST[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
 			WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
 			$value = $_POST[ 'mercadopago_custom' ][ 'discount' ];
 			global $woocommerce;

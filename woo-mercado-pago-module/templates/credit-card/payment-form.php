@@ -303,28 +303,6 @@ if ( !defined( 'ABSPATH' ) ) {
 	    	}
 	    }
 
-	    MPv1.applyDiscount = function(discount) {
-	        /*var cardSelector = document.querySelector(MPv1.selectors.paymentMethodSelector);
-	        var type_checkout = cardSelector[cardSelector.options.selectedIndex].getAttribute("type_checkout");
-	        var amount = MPv1.getAmount()-discount;
-
-            if (cardSelector && cardSelector[cardSelector.options.selectedIndex].value != "-1" && type_checkout == "customer_and_card") {
-                MPv1.clearOptions();
-                var _bin = cardSelector[cardSelector.options.selectedIndex].getAttribute("first_six_digits");
-                Mercadopago.getInstallments({
-                	"bin": _bin,
-	                "amount": amount
-	            }, MPv1.setInstallmentInfo);
-            } else {
-                MPv1.customer_and_card.status = false;
-                MPv1.resetBackgroundCard();
-                MPv1.guessingPaymentMethod({
-                    type: "keyup"
-                });
-            }
-            MPv1.setForm();*/
-	    }
-
 	    MPv1.checkCouponEligibility = function () {
 	    	if ( document.querySelector(MPv1.selectors.couponCode).value == "" ) {
 	    		// coupon code is empty
@@ -334,7 +312,6 @@ if ( !defined( 'ABSPATH' ) ) {
 				MPv1.coupon_of_discounts.status = false;
 				document.querySelector(MPv1.selectors.couponCode).style.background = null;
 				document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
-				//MPv1.applyDiscount(0);
 				document.querySelector(MPv1.selectors.discount).value = 0;
 				MPv1.cardsHandler();
 	    	} else if ( MPv1.coupon_of_discounts.status ) {
@@ -346,7 +323,6 @@ if ( !defined( 'ABSPATH' ) ) {
 	    		document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
 	    		document.querySelector(MPv1.selectors.couponCode).value = "";
 	    		document.querySelector(MPv1.selectors.couponCode).style.background = null;
-	    		//MPv1.applyDiscount(0);
 	    		document.querySelector(MPv1.selectors.discount).value = 0;
 	    		MPv1.cardsHandler();
 	    	} else {
@@ -380,7 +356,6 @@ if ( !defined( 'ABSPATH' ) ) {
 								document.querySelector(MPv1.selectors.couponCode).style.background = null;
 								document.querySelector(MPv1.selectors.couponCode).style.background = "url("+MPv1.paths.check+") 98% 50% no-repeat #fff";
 								document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.remove;
-								//MPv1.applyDiscount(response.response.coupon_amount);
 								document.querySelector(MPv1.selectors.discount).value = response.response.coupon_amount;
 								MPv1.cardsHandler();
 								document.querySelector(MPv1.selectors.campaign_id).value = response.response.id;
@@ -394,7 +369,6 @@ if ( !defined( 'ABSPATH' ) ) {
 								document.querySelector(MPv1.selectors.couponCode).style.background = null;
 								document.querySelector(MPv1.selectors.couponCode).style.background = "url("+MPv1.paths.error+") 98% 50% no-repeat #fff";
 								document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
-								//MPv1.applyDiscount(0);
 								document.querySelector(MPv1.selectors.discount).value = 0;
 								MPv1.cardsHandler();
 							}
@@ -407,7 +381,6 @@ if ( !defined( 'ABSPATH' ) ) {
 				    		document.querySelector(MPv1.selectors.applyCoupon).value = MPv1.text.apply;
 				    		document.querySelector(MPv1.selectors.couponCode).value = "";
 				    		document.querySelector(MPv1.selectors.couponCode).style.background = null;
-				    		//MPv1.applyDiscount(0);
 				    		document.querySelector(MPv1.selectors.discount).value = 0;
 				    		MPv1.cardsHandler();
 						}
