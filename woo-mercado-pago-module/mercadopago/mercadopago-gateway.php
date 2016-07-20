@@ -563,9 +563,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				)
 			),
 			'back_urls' => array(
-				'success' => esc_url( $this->get_return_url( $order ) ),
+				'success' => $this->workaroundAmperSandBug( esc_url( $this->get_return_url( $order ) ) ),
 				'failure' => $this->workaroundAmperSandBug( str_replace( '&amp;', '&', $order->get_cancel_order_url() ) ),
-				'pending' => esc_url( $this->get_return_url( $order ) )
+				'pending' => $this->workaroundAmperSandBug( esc_url( $this->get_return_url( $order ) ) )
 			),
 			//'marketplace' =>
             //'marketplace_fee' =>
