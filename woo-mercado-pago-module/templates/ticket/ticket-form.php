@@ -147,16 +147,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	        }
 	    }
 
-	    MPv1Ticket.addListenerEvent = function(el, eventName, handler) {
-	        if (el.addEventListener) {
-	            el.addEventListener(eventName, handler);
-	        } else {
-	            el.attachEvent('on' + eventName, function() {
-	                handler.call(el);
-	            });
-	        }
-	    };
-
 	    /*
     	 * Coupon of Discounts
     	 */
@@ -190,6 +180,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				MPv1Ticket.coupon_of_discounts.status = false;
 				document.querySelector(MPv1Ticket.selectors.couponCode).style.background = null;
 				document.querySelector(MPv1Ticket.selectors.applyCoupon).value = MPv1Ticket.text.apply;
+				document.querySelector(MPv1.selectors.discount).value = 0;
+				//MPv1.cardsHandler();
 	    	} else if ( MPv1Ticket.coupon_of_discounts.status ) {
 	    		// we already have a coupon set, so we remove it
 	    		document.querySelector(MPv1Ticket.selectors.mpCouponApplyed).style.display = 'none';
@@ -199,6 +191,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	    		document.querySelector(MPv1Ticket.selectors.applyCoupon).value = MPv1Ticket.text.apply;
 	    		document.querySelector(MPv1Ticket.selectors.couponCode).value = "";
 	    		document.querySelector(MPv1Ticket.selectors.couponCode).style.background = null;
+	    		document.querySelector(MPv1.selectors.discount).value = 0;
+	    		//MPv1.cardsHandler();
 	    	} else {
 				// set loading
 				document.querySelector(MPv1Ticket.selectors.mpCouponApplyed).style.display = 'none';
@@ -230,9 +224,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 								document.querySelector(MPv1Ticket.selectors.couponCode).style.background = null;
 								document.querySelector(MPv1Ticket.selectors.couponCode).style.background = "url("+MPv1Ticket.paths.check+") 98% 50% no-repeat #fff";
 								document.querySelector(MPv1Ticket.selectors.applyCoupon).value = MPv1Ticket.text.remove;
+								document.querySelector(MPv1Ticket.selectors.discount).value = response.response.coupon_amount;
+								MPv1.cardsHandler();
 								document.querySelector(MPv1Ticket.selectors.campaign_id).value = response.response.id;
 								document.querySelector(MPv1Ticket.selectors.campaign).value = response.response.name;
-								document.querySelector(MPv1Ticket.selectors.discount).value = response.response.coupon_amount;
 							} else if (response.status == 400 || response.status == 404) {
 								document.querySelector(MPv1Ticket.selectors.mpCouponApplyed).style.display = 'none';
 								document.querySelector(MPv1Ticket.selectors.mpCouponError).style.display = 'block';
@@ -241,6 +236,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 								document.querySelector(MPv1Ticket.selectors.couponCode).style.background = null;
 								document.querySelector(MPv1Ticket.selectors.couponCode).style.background = "url("+MPv1Ticket.paths.error+") 98% 50% no-repeat #fff";
 								document.querySelector(MPv1Ticket.selectors.applyCoupon).value = MPv1Ticket.text.apply;
+								document.querySelector(MPv1.selectors.discount).value = 0;
+								//MPv1.cardsHandler();
 							}
 						} else {
 							// request failed
@@ -251,6 +248,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				    		document.querySelector(MPv1Ticket.selectors.applyCoupon).value = MPv1Ticket.text.apply;
 				    		document.querySelector(MPv1Ticket.selectors.couponCode).value = "";
 				    		document.querySelector(MPv1Ticket.selectors.couponCode).style.background = null;
+				    		document.querySelector(MPv1.selectors.discount).value = 0;
+				    		//MPv1.cardsHandler();
 						}
 						document.querySelector(MPv1Ticket.selectors.applyCoupon).disabled = false;
 					}
@@ -258,12 +257,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 				request.send(null);
 			}
 		}
+
 	    /*
 	     *
 	     *
 	     * Initialization function
 	     *
 	     */
+
+	    MPv1Ticket.addListenerEvent = function(el, eventName, handler) {
+	        if (el.addEventListener) {
+	            el.addEventListener(eventName, handler);
+	        } else {
+	            el.attachEvent('on' + eventName, function() {
+	                handler.call(el);
+	            });
+	        }
+	    };
 
 	    MPv1Ticket.Initialize = function(site_id, coupon_mode, discount_action_url) {
 

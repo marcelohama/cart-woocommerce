@@ -79,7 +79,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		);
 		add_action( // Apply the discounts
 			'woocommerce_cart_calculate_fees',
-			array( $this, 'add_discount' ), 10
+			array( $this, 'add_discount_ticket' ), 10
 		);
 		
 		// Verify if access token is empty.
@@ -437,7 +437,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 							substr( $product->post->post_content, 0, 230 ) . "..." :
 							$product->post->post_content
 						),
-						'picture_url' => $product->get_image(),
+						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
 						'unit_price' => (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ],
@@ -460,19 +460,21 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
         }
         
         // Discounts features
-        /*
-        $discounts = (double) $cart->getOrderTotal( true, Cart::ONLY_DISCOUNTS );
-        if ( $discounts > 0 ) {
+        if ( isset( $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] != "" &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
+        	isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
+        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
+        	WC()->session->chosen_payment_method == "woocommerce-mercadopago-ticket-module" ) {
             $item = array(
-                'title' => 'Discount',
-                'description' => 'Discount provided by store',
+                'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
+                'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
                 'quantity' => 1,
-                'category_id' => Configuration::get( 'MERCADOPAGO_CATEGORY' ),
-                'unit_price' => - $discounts
+                'category_id' => $this->store_categories_id[ $this->category_id ],
+                'unit_price' => - ( (float) $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] )
             );
             $items[] = $item;
         }
-        */
 
 		// Build additional information from the customer data
         $payer_additional_info = array(
@@ -499,7 +501,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
         	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
         	isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
         	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
-        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] > 0) {
+        	WC()->session->chosen_payment_method == "woocommerce-mercadopago-ticket-module" ) {
             $item = array(
                 'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
                 'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
@@ -553,7 +555,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
         	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
         	isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
         	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
-        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] > 0 ) {
+        	WC()->session->chosen_payment_method == "woocommerce-mercadopago-ticket-module" ) {
         	$payment_preference[ 'campaign_id' ] =  (int) $post_from_form[ 'mercadopago_ticket' ][ 'campaign_id' ];
             $payment_preference[ 'coupon_amount' ] = (float) $post_from_form[ 'mercadopago_ticket' ][ 'discount' ];
             $payment_preference[ 'coupon_code' ] = strtoupper( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] );
@@ -577,16 +579,18 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
     }
 
-    public function add_discount() {
+    public function add_discount_ticket() {
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
 			return;
 		}
-		if ( isset( $post_from_form[ 'mercadopago_ticket' ][ 'discount' ] ) &&
-        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] != "" &&
-        	$post_from_form[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
-			isset( $post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
-        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
-        	$post_from_form[ 'mercadopago_ticket' ][ 'coupon_code' ] > 0 &&
+		if ( 'yes' == $this->debug ) {
+			$this->log->add( $this->id, $this->id . ': @[add_discount_ticket] - Ticket trying to apply discount...' );
+		}
+		if ( isset( $_POST[ 'mercadopago_ticket' ][ 'discount' ] ) &&
+        	$_POST[ 'mercadopago_ticket' ][ 'discount' ] != "" &&
+        	$_POST[ 'mercadopago_ticket' ][ 'discount' ] > 0 &&
+			isset( $_POST[ 'mercadopago_ticket' ][ 'coupon_code' ] ) &&
+        	$_POST[ 'mercadopago_ticket' ][ 'coupon_code' ] != "" &&
 			WC()->session->chosen_payment_method == "woocommerce-mercadopago-ticket-module" ) {
 			$value = $_POST[ 'mercadopago_ticket' ][ 'discount' ];
 			global $woocommerce;

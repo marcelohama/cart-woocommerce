@@ -360,7 +360,6 @@ if ( !defined( 'ABSPATH' ) ) {
 								MPv1.cardsHandler();
 								document.querySelector(MPv1.selectors.campaign_id).value = response.response.id;
 								document.querySelector(MPv1.selectors.campaign).value = response.response.name;
-								document.querySelector(MPv1.selectors.discount).value = response.response.coupon_amount;
 							} else if (response.status == 400 || response.status == 404) {
 								document.querySelector(MPv1.selectors.mpCouponApplyed).style.display = 'none';
 								document.querySelector(MPv1.selectors.mpCouponError).style.display = 'block';

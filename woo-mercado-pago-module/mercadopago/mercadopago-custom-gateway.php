@@ -94,7 +94,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		);
 		add_action( // Apply the discounts
 			'woocommerce_cart_calculate_fees',
-			array( $this, 'add_discount' ), 10
+			array( $this, 'add_discount_custom' ), 10
 		);
 		
 		// Verify if public_key or client_secret is empty.
@@ -752,9 +752,12 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	public function add_discount() {
+	public function add_discount_custom() {
 		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
 			return;
+		}
+		if ( 'yes' == $this->debug ) {
+			$this->log->add( $this->id, $this->id . ': @[add_discount_custom] - Custom checkout trying to apply discount...' );
 		}
 		if ( isset( $_POST[ 'mercadopago_custom' ][ 'discount' ] ) &&
         	$_POST[ 'mercadopago_custom' ][ 'discount' ] != "" &&
