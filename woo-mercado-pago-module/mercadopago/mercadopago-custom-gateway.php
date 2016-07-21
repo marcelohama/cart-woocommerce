@@ -768,8 +768,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			$value = $_POST[ 'mercadopago_custom' ][ 'discount' ];
 			global $woocommerce;
 			if ( apply_filters( 'wc_mercadopagocustom_module_apply_discount', 0 < $value, $woocommerce->cart ) ) {
-				$payment_gateways = WC()->payment_gateways->payment_gateways();
-				$gateway = $payment_gateways[ WC()->session->chosen_payment_method ];
 				$woocommerce->cart->add_fee(
 					sprintf( __( 'Discount for %s coupon', 'woocommerce-mercadopago-module' ), esc_attr( $_POST[ 'mercadopago_custom' ][ 'campaign' ] ) ),
 					( $value * -1 ), true
