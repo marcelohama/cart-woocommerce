@@ -661,8 +661,11 @@ msgstr "O Checkout Padrão está Inativo"
 msgid "Ticket is Inactive"
 msgstr "O Boleto está Inativo"
 
-msgid "Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it."
-msgstr "Por favor, selecione o emissor de sua preferência e clique no botão "FINALIZAR COMPRA". O boleto será gerado e você será redirecionado para imprimí-lo."
+msgid "Please, select the ticket issuer of your preference."
+msgstr "Por favor, selecione o emissor de sua preferência."
+
+msgid "Click "Place order" button. The ticket will be generated and you will be redirected to print it."
+msgstr "Clique no botão "FINALIZAR COMPRA". O boleto será gerado e você será redirecionado para imprimí-lo."
 
 msgid "Important: The order will be confirmed only after the payment approval."
 msgstr "Importante: O pedido só será confirmado após a aprovação do pagamento."

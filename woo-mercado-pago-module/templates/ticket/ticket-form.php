@@ -41,6 +41,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div style="padding:0px 36px 0px 36px;">
 		<p>
+			<?php if ( count( $payment_methods ) > 1 ) { ?>
+				<?php echo $form_labels[ 'form' ][ 'issuer_selection' ] ?>
+			<?php } ?>
 			<?php echo $form_labels[ 'form' ][ 'payment_instructions' ] ?>
 			<br />
 			<?php echo $form_labels[ 'form' ][ 'ticket_note' ] ?>

@@ -667,7 +667,10 @@ msgstr ""
 msgid "Ticket is Inactive"
 msgstr ""
 
-msgid "Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it."
+msgid "Please, select the ticket issuer of your preference."
+msgstr ""
+
+msgid "Click "Place order" button. The ticket will be generated and you will be redirected to print it."
 msgstr ""
 
 msgid "Important: The order will be confirmed only after the payment approval."

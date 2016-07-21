@@ -304,7 +304,8 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					'discount_info' => __( "gave a discount of", "woocommerce-mercadopago-module" ),
 					'coupon_of_discounts' => __( "Coupon of Discount", "woocommerce-mercadopago-module" ),
 					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
-					"payment_instructions" => __( 'Please, select the ticket issuer of your preference and then click "Place order" button. The ticket will be generated and you will be redirected to print it.', 'woocommerce-mercadopago-module' ),
+					"issuer_selection" => __( 'Please, select the ticket issuer of your preference.', 'woocommerce-mercadopago-module' ),
+					"payment_instructions" => __( 'Click "Place order" button. The ticket will be generated and you will be redirected to print it.', 'woocommerce-mercadopago-module' ),
 					"ticket_note" => __( 'Important: The order will be confirmed only after the payment approval.', 'woocommerce-mercadopago-module' )
 		      	)
 			)
