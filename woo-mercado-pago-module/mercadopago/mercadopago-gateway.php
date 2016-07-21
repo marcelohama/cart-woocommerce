@@ -45,6 +45,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 		// These fields are declared because we use them dinamically in our gateway class.
 		$this->domain = get_site_url() . '/index.php';
+		$this->currency_ratio = 1;
 		$this->site_id = null;
 		$this->isTestUser = false;
 		$this->payment_methods = array();
@@ -74,6 +75,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		$this->iframe_width = $this->get_option( 'iframe_width', 640 );
 		$this->iframe_height = $this->get_option( 'iframe_height', 800 );
 		$this->auto_return = $this->get_option( 'auto_return', true );
+		$this->currency_conversion = $this->get_option('currency_conversion', false);
 		$this->installments = $this->get_option( 'installments', '24' );
 		$this->ex_payments = $this->get_option( 'ex_payments', 'n/d' );
 		$this->sandbox = $this->get_option('sandbox', false);
@@ -151,12 +153,20 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				// checking the currency
 				$this->credentials_message = "";
 				if ( !$this->isSupportedCurrency() && 'yes' == $this->settings[ 'enabled' ] ) {
-					$this->credentials_message .= '<img width="12" height="12" src="' .
-						plugins_url( 'images/warning.png', plugin_dir_path( __FILE__ ) ) . '">' .
-						' ' . __( '<strong>ATTENTION: The currency', 'woocommerce-mercadopago-module' ) . ' ' . get_woocommerce_currency() .
-						' ' . __( 'defined in WooCommerce is different from the one used in your credentials country.<br>The currency for transactions in this payment method will be', 'woocommerce-mercadopago-module' ) .
-						' ' . $this->getCurrencyId( $this->site_id ) . ' (' . $this->getCountryName( $this->site_id ) . ').' .
-						' ' . __( 'Currency conversions should be made outside this module.</strong><br><br>', 'woocommerce-mercadopago-module' );
+					if ( $this->currency_conversion != 'yes' || $this->currency_ratio == 1 ) {
+						$this->credentials_message .= '<img width="12" height="12" src="' .
+							plugins_url( 'images/warning.png', plugin_dir_path( __FILE__ ) ) . '">' .
+							' ' . __( '<strong>ATTENTION: The currency', 'woocommerce-mercadopago-module' ) . ' ' . get_woocommerce_currency() .
+							' ' . __( 'defined in WooCommerce is different from the one used in your credentials country.<br>The currency for transactions in this payment method will be', 'woocommerce-mercadopago-module' ) .
+							' ' . $this->getCurrencyId( $this->site_id ) . ' (' . $this->getCountryName( $this->site_id ) . ').' .
+							' ' . __( 'Currency conversions should be made outside this module.</strong><br><br>', 'woocommerce-mercadopago-module' );
+					} else {
+						$this->credentials_message .= '<img width="12" height="12" src="' .
+							plugins_url( 'images/warning.png', plugin_dir_path( __FILE__ ) ) . '">' .
+							' ' . __( '<strong>ATTENTION: The currency', 'woocommerce-mercadopago-module' ) . ' ' . get_woocommerce_currency() .
+							' ' . __( 'defined in WooCommerce is different from the one used in your credentials country.<br>The currency conversion ratio from', 'woocommerce-mercadopago-module' )  . ' ' . get_woocommerce_currency() .
+							' ' . __( 'to', 'woocommerce-mercadopago-module' ) . ' ' . $this->getCurrencyId( $this->site_id ) . ' is: ' . $this->currency_ratio . ".</strong><br><br>";
+					}
 				}
 				$this->credentials_message .= '<img width="12" height="12" src="' .
 					plugins_url( 'images/check.png', plugin_dir_path( __FILE__ ) ) . '">' .
@@ -308,10 +318,17 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'default' => 'yes',
 				'description' => __( 'After the payment, client is automatically redirected.', 'woocommerce-mercadopago-module' ),
 			),
-			'testing_title' => array(
+			'payment_title' => array(
 				'title' => __( 'Payment Options', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
 				'description' => ''
+			),
+			'currency_conversion' => array(
+				'title' => __( 'Currency Conversion', 'woocommerce-mercadopago-module' ),
+				'type' => 'checkbox',
+				'label' => __( 'Enable this option to automatically convert currency in transaction', 'woocommerce-mercadopago-module' ),
+				'default' => 'no',
+				'description' => __( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratios.', 'woocommerce-mercadopago-module' ),
 			),
 			'installments' => array(
 				'title' => __( 'Max installments', 'woocommerce-mercadopago-module' ),
@@ -478,7 +495,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	// 3. Create Mercado Pago preference and get init_point URL based in the
 	// order options from the cart.
 	public function buildPaymentPreference( $order ) {
-	
+
 		// Here we build the array that contains ordered itens, from customer cart
 		$items = array();
 		if ( sizeof( $order->get_items() ) > 0 ) {
@@ -497,7 +514,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
-						'unit_price' => (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ],
+						'unit_price' => ( (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ] ) * $this->currency_ratio,
 						'currency_id' => $this->getCurrencyId($this->site_id)
 					));
 				}
@@ -508,7 +525,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
   				'description' => __( 'Shipping service used by store', 'woocommerce-mercadopago-module' ),
  				'category_id' => $this->store_categories_id[$this->category_id],
  				'quantity' => 1,
- 				'unit_price' => (float)$order->get_total_shipping(),
+ 				'unit_price' => (float)$order->get_total_shipping() * $this->currency_ratio,
  				'currency_id' => $this->getCurrencyId($this->site_id)
  			));
 		}
@@ -680,6 +697,20 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 					array_push( $this->payment_methods, "n/d" );
 					foreach ( $payments[ "response" ] as $payment ) {
 						array_push( $this->payment_methods, str_replace( "_", " ", $payment[ 'id' ] ) );
+					}
+					// check for auto converstion of currency
+					$this->currency_ratio = 1;
+					$currency_obj = MPRestClient::get_ml( array( "uri" =>
+						"/currency_conversions/search?from=" .
+						get_woocommerce_currency() .
+						"&to=" .
+						$this->getCurrencyId( $this->site_id )
+					) );
+					if ( isset( $currency_obj[ 'response' ] ) ) {
+						$currency_obj = $currency_obj[ 'response' ];
+						if ( isset( $currency_obj['ratio'] ) ) {
+							$this->currency_ratio = (float) $currency_obj['ratio'];
+						}
 					}
 					return true;
 				} else return false;
