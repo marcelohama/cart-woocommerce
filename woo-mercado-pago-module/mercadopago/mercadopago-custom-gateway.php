@@ -567,12 +567,12 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					array_push( $items, array(
 						'id' => $item[ 'product_id' ],
 						'title' => ( $product->post->post_title . ' x ' . $item[ 'qty' ] ),
-						'description' => (
+						'description' => sanitize_file_name( (
 							// This handles description width limit of Mercado Pago
 							strlen( $product->post->post_content ) > 230 ?
 							substr( $product->post->post_content, 0, 230 ) . "..." :
 							$product->post->post_content
-						),
+						) ),
 						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
