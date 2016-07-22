@@ -514,7 +514,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
 						'category_id' => $this->store_categories_id[ $this->category_id ],
 						'quantity' => 1,
-						'unit_price' => ( (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ] ) * $this->currency_ratio,
+						'unit_price' => ( ( (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ] ) ) * ( (float) $this->currency_ratio ),
 						'currency_id' => $this->getCurrencyId($this->site_id)
 					));
 				}
@@ -525,7 +525,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
   				'description' => __( 'Shipping service used by store', 'woocommerce-mercadopago-module' ),
  				'category_id' => $this->store_categories_id[$this->category_id],
  				'quantity' => 1,
- 				'unit_price' => (float)$order->get_total_shipping() * $this->currency_ratio,
+ 				'unit_price' => (float)$order->get_total_shipping() * ( (float) $this->currency_ratio ),
  				'currency_id' => $this->getCurrencyId($this->site_id)
  			));
 		}
