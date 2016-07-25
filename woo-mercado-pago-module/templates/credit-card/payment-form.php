@@ -354,7 +354,7 @@ if ( !defined( 'ABSPATH' ) ) {
 									"You will save<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) + " " +
 									response.response.coupon_amount + " " + "</strong>with discount from" + " " + response.response.name +
 									".<br>Total of your purchase:<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) +
-									" " + MPv1.getAmountWithoutDiscount() +
+									" " + document.querySelector(MPv1.selectors.amount).value +
 									"</strong><br>Total of your purchase with discount:<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) +
 									" " = MPv1.getAmount() +
 									"*</strong><br><i>*Uppon payment approval</i><br>" +
