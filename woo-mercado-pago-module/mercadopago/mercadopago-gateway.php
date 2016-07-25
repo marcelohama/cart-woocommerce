@@ -11,7 +11,7 @@
 require_once "sdk/lib/mercadopago.php";
 
 // Extending from WooCommerce Payment Gateway class.
-// This class implements Mercado Pago standard checkout.
+// This class implements Mercado Pago Basic checkout.
 class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	
 	// This array stores each banner image, depending on the country it belongs to or on
@@ -403,7 +403,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	 */
 	
 	public function payment_fields() {
-		// standard checkout
+		// basic checkout
 		if ($description = $this->get_description() ) {
             echo wpautop( wptexturize( $description ) );
     	}

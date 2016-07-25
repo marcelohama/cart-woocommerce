@@ -712,7 +712,7 @@ msgstr ""
 msgid "If there is a Mercado Pago campaign, allow your store to give discounts to customers."
 msgstr ""
 
-msgid "gave a discount of"
+msgid "You will save"
 msgstr ""
 
 msgid "Apply"
@@ -748,8 +748,26 @@ msgstr ""
 msgid "If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio"
 msgstr ""
 
-msgid "is: "
+msgid " is: "
 msgstr ""
 
 msgid "Currency Conversion"
+msgstr ""
+
+msgid "with discount from"
+msgstr ""
+
+msgid "Total of your purchase:"
+msgstr ""
+
+msgid "Total of your purchase with discount:"
+msgstr ""
+
+msgid "*Uppon payment approval"
+msgstr ""
+
+msgid "Terms and Conditions of Use"
+msgstr ""
+
+msgid "Payment converted from"
 msgstr ""

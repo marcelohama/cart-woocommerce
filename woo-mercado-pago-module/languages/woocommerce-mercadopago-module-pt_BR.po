@@ -706,8 +706,8 @@ msgstr "Habilitar cupons de desconto"
 msgid "If there is a Mercado Pago campaign, allow your store to give discounts to customers."
 msgstr "Caso haja uma campanha do Mercado Pago, permite que sua loja disponibilize descontos aos clientes."
 
-msgid "gave a discount of"
-msgstr "deu um desconto de"
+msgid "You will save"
+msgstr "Você economizará"
 
 msgid "Apply"
 msgstr "Aplicar"
@@ -747,3 +747,21 @@ msgstr " é: "
 
 msgid "Currency Conversion"
 msgstr "Conversão de Moeda"
+
+msgid "with discount from"
+msgstr "com o desconto de"
+
+msgid "Total of your purchase:"
+msgstr "Total da sua compra:"
+
+msgid "Total of your purchase with discount:"
+msgstr "Total da sua compra com desconto:"
+
+msgid "*Uppon payment approval"
+msgstr "*Mediante aprovação de pagamento"
+
+msgid "Terms and Conditions of Use"
+msgstr "Termos e condições"
+
+msgid "Payment converted from"
+msgstr "Pagamento convertido de"

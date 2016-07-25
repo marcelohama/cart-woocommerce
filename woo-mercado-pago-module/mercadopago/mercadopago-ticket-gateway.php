@@ -33,7 +33,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	
 		// These fields are declared because we use them dinamically in our gateway class.
 		$this->domain = get_site_url() . '/index.php';
-		$this->currency_ratio = 1;
+		$this->currency_ratio = -1;
 		$this->site_id = null;
 		$this->isTestUser = false;
 		$this->payment_methods = array();
@@ -313,14 +313,24 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			'images_path' => plugins_url( 'images/', plugin_dir_path( __FILE__ ) ),
 			'amount' => $amount * ( (float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1 ),
 			'coupon_mode' => $this->coupon_mode,
+			'is_currency_conversion' => $this->currency_ratio,
+			'woocommerce_currency' => get_woocommerce_currency(),
+			'account_currency' => $this->getCurrencyId( $this->site_id ),
 			'discount_action_url' => $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoTicket_Gateway',
 			'form_labels' => array(
 				"form" => array(
+					"payment_converted" => __("Payment converted from", "woocommerce-mercadopago-module" ),
+					"to" => __("to", "woocommerce-mercadopago-module" ),
 					"coupon_empty" => __( "Please, inform your coupon code", "woocommerce-mercadopago-module" ),
 					'apply' => __( "Apply", "woocommerce-mercadopago-module" ),
 					'remove' => __( "Remove", "woocommerce-mercadopago-module" ),
-					'discount_info' => __( "gave a discount of", "woocommerce-mercadopago-module" ),
-					'coupon_of_discounts' => __( "Coupon of Discount", "woocommerce-mercadopago-module" ),
+					'discount_info1' => __( "You will save", "woocommerce-mercadopago-module" ),
+					'discount_info2' => __( "with discount from", "woocommerce-mercadopago-module" ),
+					'discount_info3' => __( "Total of your purchase:", "woocommerce-mercadopago-module" ),
+					'discount_info4' => __( "Total of your purchase with discount:", "woocommerce-mercadopago-module" ),
+					'discount_info5' => __( "*Uppon payment approval", "woocommerce-mercadopago-module" ),
+					'discount_info6' => __( "Terms and Conditions of Use", "woocommerce-mercadopago-module" ),
+					'coupon_of_discounts' => __( "Discount Coupon", "woocommerce-mercadopago-module" ),
 					'label_choose' => __( "Choose", "woocommerce-mercadopago-module" ),
 					"issuer_selection" => __( 'Please, select the ticket issuer of your preference.', 'woocommerce-mercadopago-module' ),
 					"payment_instructions" => __( 'Click "Place order" button. The ticket will be generated and you will be redirected to print it.', 'woocommerce-mercadopago-module' ),
@@ -637,7 +647,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 						}
 					}
 					// check for auto converstion of currency
-					$this->currency_ratio = 1;
 					$currency_obj = MPRestClient::get_ml( array( "uri" =>
 						"/currency_conversions/search?from=" .
 						get_woocommerce_currency() .
