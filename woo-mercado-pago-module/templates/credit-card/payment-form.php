@@ -352,11 +352,11 @@ if ( !defined( 'ABSPATH' ) ) {
 									//MPv1.currencyIdToCurrency(response.response.currency_id) + " " +
 									//response.response.coupon_amount + "<br>" +
 									"You will save<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) + " " +
-									parseFloat(response.response.coupon_amount).toFixed(2) + " " + "</strong>with discount from" + " " + response.response.name +
+									response.response.coupon_amount + " " + "</strong>with discount from" + " " + response.response.name +
 									".<br>Total of your purchase:<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) +
-									" " + MPv1.getAmountWithoutDiscount().toFixed(2) +
+									" " + MPv1.getAmountWithoutDiscount() +
 									"</strong><br>Total of your purchase with discount:<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) +
-									" " = MPv1.getAmount().toFixed(2) +
+									" " = MPv1.getAmount() +
 									"*</strong><br><i>*Uppon payment approval</i><br>" +
 									"<a href='https://www.mercadopago.com.ar/ayuda/terms-conditions_633' target='_blank'>" +
 									"Terms and Conditions of Use</a>";
@@ -1098,10 +1098,6 @@ if ( !defined( 'ABSPATH' ) ) {
 
     MPv1.getAmount = function() {
         return document.querySelector(MPv1.selectors.amount).value - document.querySelector(MPv1.selectors.discount).value;
-    }
-
-    MPv1.getAmountWithoutDiscount = function() {
-        return document.querySelector(MPv1.selectors.amount).value;
     }
 
     MPv1.showErrors = function(response) {
