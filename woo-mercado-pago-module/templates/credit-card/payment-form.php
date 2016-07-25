@@ -352,7 +352,7 @@ if ( !defined( 'ABSPATH' ) ) {
 									//MPv1.currencyIdToCurrency(response.response.currency_id) + " " +
 									//response.response.coupon_amount + "<br>" +
 									"You will save<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) + " " +
-									response.response.coupon_amount.toFixed(2) + " " + "</strong>with discount from" + " " + response.response.name +
+									parseFloat(response.response.coupon_amount).toFixed(2) + " " + "</strong>with discount from" + " " + response.response.name +
 									".<br>Total of your purchase:<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) +
 									" " + MPv1.getAmountWithoutDiscount().toFixed(2) +
 									"</strong><br>Total of your purchase with discount:<strong>" + " " + MPv1.currencyIdToCurrency(response.response.currency_id) +
