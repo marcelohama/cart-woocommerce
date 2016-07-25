@@ -37,7 +37,6 @@ Great for merchants who want to get going quickly and easily.
 * Limited control of buying experience— display Checkout window as redirect, modal or iframe.
 * Store buyer’s card for fast checkout.
 * Accept tickets, bank transfer and account money in addition to cards.
-* Accept Mercado Pago's discount coupons.
 
 *Available for Argentina, Brazil, Chile, Colombia, Mexico, Peru and Venezuela*
 
