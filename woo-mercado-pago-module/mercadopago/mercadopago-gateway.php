@@ -396,6 +396,23 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
+	// This snippet will add cancel order button to all (not cancelled) orders.
+	add_filter( 'woocommerce_admin_order_actions', 'add_cancel_order_actions_button', PHP_INT_MAX, 2 );
+	function add_cancel_order_actions_button( $actions, $the_order ) {
+		if ( ! $the_order->has_status( array( 'cancelled' ) ) ) { // if order is not cancelled yet...
+    	$actions['cancel'] = array(
+      	'url'       => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_mark_order_status&status=cancelled&order_id=' . $the_order->id ), 'woocommerce-mark-order-status' ),
+      	'name'      => __( 'Cancel', 'woocommerce' ),
+        'action'    => "view cancel", // setting "view" for proper button CSS
+			);
+  	}
+  	return $actions;
+	}
+	/*add_action( 'admin_head', 'add_cancel_order_actions_button_css' );
+	function add_cancel_order_actions_button_css() {
+	  echo '<style>.view.cancel::after { content: "\e013" !important; }</style>';
+	}*/
+
 	/*
 	 * ========================================================================
 	 * CHECKOUT BUSINESS RULES
