@@ -19,7 +19,7 @@ msgstr ""
 "X-Poedit-Basepath: ../Documents/woocommerce (MAMP)/wp-content/plugins/woo-mercado-pago-module\n"
 "X-Generator: Poedit 1.8.7\n"
 "Last-Translator: \n"
-"Language: es_VE\n"
+"Language: es_PE\n"
 "X-Poedit-SearchPath-0: .\n"
 
 #. Description of the plugin/theme
