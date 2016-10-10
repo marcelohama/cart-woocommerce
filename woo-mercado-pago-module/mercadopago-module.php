@@ -35,7 +35,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 
 		// Singleton design pattern
 		protected static $instance = null;
-		public static function initMercadoPagoGatewayClass() {
+		public static function init_mercado_pago_gateway_class() {
 			if (null == self::$instance) {
 				self::$instance = new self;
 			}
@@ -53,27 +53,27 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 				include_once 'mercadopago/mercadopago-gateway.php';
 				include_once 'mercadopago/mercadopago-custom-gateway.php';
 				include_once 'mercadopago/mercadopago-ticket-gateway.php';
-				add_filter('woocommerce_payment_gateways', array($this, 'addGateway'));
+				add_filter('woocommerce_payment_gateways', array($this, 'add_gateway'));
 				add_filter(
 					'woomercadopago_settings_link_' . plugin_basename(__FILE__),
 					array($this, 'woomercadopago_settings_link'));
 
 				// get Mercado Pago store categories
-				$categories = MPRestClient::get(array('uri' => '/item_categories'));
+				$categories = MPRestClient::get(array('uri' => '/item_categories')); // TODO: do not use static
 				foreach ($categories['response'] as $category) {
 					array_push($this->store_categories_id, str_replace('_', ' ', $category['id']));
 					array_push($this->store_categories_description, str_replace('_', ' ', $category['description']));
 				}
 
 			} else {
-				add_action('admin_notices', array($this, 'notifyWooCommerceMiss'));
+				add_action('admin_notices', array($this, 'notify_woocommerce_miss'));
 			}
 
 		}
 
 		// As well as defining your class, you need to also tell WooCommerce (WC) that
 		// it exists. Do this by filtering woocommerce_payment_gateways.
-		public function addGateway($methods) {
+		public function add_gateway($methods) {
 			$methods[] = 'WC_WooMercadoPago_Gateway';
 			$methods[] = 'WC_WooMercadoPagoCustom_Gateway';
 			$methods[] = 'WC_WooMercadoPagoTicket_Gateway';
@@ -84,7 +84,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * Summary: Places a warning error to notify user that WooCommerce is missing.
 		 * Description: Places a warning error to notify user that WooCommerce is missing.
 		 */
-		public function notifyWooCommerceMiss() {
+		public function notify_woocommerce_miss() {
 			echo
 				'<div class="error"><p>' . sprintf(
 					__('Woo Mercado Pago Module depends on the last version of %s to execute!', 'woocommerce-mercadopago-module'),
@@ -98,7 +98,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * Description: Trigger API to get available categories and proper description.
 		 * @return an array with found categories and a description for its selector title.
 		 */
-		public function getCategories() {
+		public function get_categories() {
 			return array(
 				'store_categories_id' => $this->store_categories_id,
 				'store_categories_description' => $this->store_categories_description
@@ -125,8 +125,8 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * Description: The currencies are the one used in WooCommerce and the one used in $site_id.
 		 * @return a float that is the rate of conversion.
 		 */
-		public function getConversionRate($used_currency) {
-			$currency_obj = MPRestClient::get_ml(
+		public function get_conversion_rate($used_currency) {
+			$currency_obj = MPRestClient::get_ml( // TODO: do not use static
 				array('uri' => '/currency_conversions/search?' .
 					'from=' . get_woocommerce_currency() .
 					'&to=' . $used_currency
@@ -142,7 +142,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		}
 
 		// Get WooCommerce instance
-		public static function woocommerceInstance() {
+		public static function woocommerce_instance() {
 			if (function_exists('WC')) {
 				return WC();
 			} else {
@@ -156,7 +156,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * Description: Find template's folder.
 		 * @return a string that identifies the path.
 		 */
-		public static function getTemplatesPath() {
+		public static function get_templates_path() {
 			return plugin_dir_path(__FILE__) . 'templates/';
 		}
 
@@ -165,7 +165,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * Description: Get module's version.
 		 * @return a string with the given version.
 		 */
-		public static function getModuleVersion() {
+		public static function get_module_version() {
 			$plugin_data = get_plugin_data(__FILE__);
 			return $plugin_data['Version'];
 		}
@@ -175,7 +175,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * Description: Get preference data for a specific country.
 		 * @return an array with sponsor id, country name, banner image for checkout, and currency.
 		 */
-		public static function getCountryConfig($site_id) {
+		public static function get_country_config($site_id) {
 			switch ($site_id) {
 				case 'MLA':
 					return array(
@@ -260,7 +260,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 			}
 		}
 
-		public static function buildCurrencyConversionErrMsg($currency) {
+		public static function build_currency_conversion_err_msg($currency) {
 			return '<img width="12" height="12" src="' .
 				plugins_url('woo-mercado-pago-module/images/error.png', plugin_dir_path(__FILE__)) . '">' .
 				' ' . __('ERROR: It was not possible to convert the unsupported currency', 'woocommerce-mercadopago-module') .
@@ -269,7 +269,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 				' ' . __('Currency conversions should be made outside this module.', 'woocommerce-mercadopago-module');
 		}
 
-		public static function buildCurrencyNotConvertedMsg($currency, $country_name) {
+		public static function build_currency_not_converted_msg($currency, $country_name) {
 			return '<img width="12" height="12" src="' .
 				plugins_url('woo-mercado-pago-module/images/warning.png', plugin_dir_path(__FILE__)) . '">' .
 				' ' . __('ATTENTION: The currency', 'woocommerce-mercadopago-module') .
@@ -279,7 +279,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 				' ' . __('Currency conversions should be made outside this module.', 'woocommerce-mercadopago-module');
 		}
 
-		public static function buildCurrencyConvertedMsg($currency, $currency_ratio) {
+		public static function build_currency_converted_msg($currency, $currency_ratio) {
 			return '<img width="12" height="12" src="' .
 				plugins_url('woo-mercado-pago-module/images/check.png', plugin_dir_path(__FILE__)) . '">' .
 				' ' . __('CURRENCY CONVERTED: The currency conversion ratio from', 'woocommerce-mercadopago-module')  .
@@ -288,7 +288,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 				__(' is: ', 'woocommerce-mercadopago-module') . $currency_ratio . ".";
 		}
 
-      public static function buildValidCredentialsMsg($country_name, $site_id) {
+      public static function build_valid_credentials_msg($country_name, $site_id) {
          return '<img width="12" height="12" src="' .
             plugins_url('woo-mercado-pago-module/images/check.png', plugin_dir_path(__FILE__)) . '">' .
             ' ' . __('Your credentials are <strong>valid</strong> for', 'woocommerce-mercadopago-module') .
@@ -298,10 +298,15 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
                plugin_dir_path(__FILE__)) . '"> ';
       }
 
-      public static function buildInvalidCredentialsMsg() {
+      public static function build_invalid_credentials_msg() {
          return '<img width="12" height="12" src="' .
             plugins_url('woo-mercado-pago-module/images/error.png', plugin_dir_path(__FILE__)) . '">' .
             ' ' . __('Your credentials are <strong>not valid</strong>!', 'woocommerce-mercadopago-module');
+      }
+
+      // Fix to URL Problem : #038; replaces & and breaks the navigation
+      public static function workaround_ampersand_bug($link) {
+         return str_replace('&#038;', '&', $link);
       }
 
 	}
@@ -312,7 +317,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 	// Inside the plugin, you need to create a class after plugins are loaded
 	add_action(
 		'plugins_loaded',
-		array('WC_WooMercadoPago_Module', 'initMercadoPagoGatewayClass'), 0
+		array('WC_WooMercadoPago_Module', 'init_mercado_pago_gateway_class'), 0
 	);
 
 	// Add settings link on plugin page

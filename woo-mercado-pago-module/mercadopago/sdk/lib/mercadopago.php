@@ -1,54 +1,64 @@
 <?php
-
 /**
- * MercadoPago Integration Library
- * Access MercadoPago for payments integration
- *
- * @author hcasatti
- *
+ * Part of Woo Mercado Pago Module - MercadoPago Integration Library, Access MercadoPago for payments integration
+ * Author - Mercado Pago
+ * Developer - hcasatti, Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
+ * Copyright - Copyright(c) MercadoPago [https://www.mercadopago.com]
+ * License - https://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
-$GLOBALS["LIB_LOCATION"] = dirname(__FILE__);
+
+$GLOBALS['LIB_LOCATION'] = dirname(__FILE__);
 
 class MP {
 
-    const version = "2.1.3";
-
+    private $version = '0.0.0'; // TODO: this filed is not properly set when using static methods of this class
     private $client_id;
     private $client_secret;
     private $ll_access_token;
-    private $access_data;
     private $sandbox = FALSE;
 
+    /**
+     * Summary: Constructor.
+     * Description: Build an object with module version and credentials.
+     */
     function __construct() {
+
         $i = func_num_args();
 
-        if ($i > 2 || $i < 1) {
-            throw new MercadoPagoException("Invalid arguments. Use CLIENT_ID and CLIENT SECRET, or ACCESS_TOKEN");
-        }
-
-        if ($i == 1) {
-            $this->ll_access_token = func_get_arg(0);
+        if ($i > 3 || $i < 2) {
+            throw new MercadoPagoException(
+                'Invalid arguments. Use CLIENT_ID and CLIENT SECRET, or ACCESS_TOKEN'
+            );
         }
 
         if ($i == 2) {
-            $this->client_id = func_get_arg(0);
-            $this->client_secret = func_get_arg(1);
+            $this->version = func_get_arg(0);
+            $this->ll_access_token = func_get_arg(1);
         }
+
+        if ($i == 3) {
+            $this->version = func_get_arg(0);
+            $this->client_id = func_get_arg(1);
+            $this->client_secret = func_get_arg(2);
+        }
+
     }
 
     public function sandbox_mode($enable = NULL) {
         if (!is_null($enable)) {
             $this->sandbox = $enable === TRUE;
         }
-
         return $this->sandbox;
     }
 
     /**
-     * Get Access Token for API use
+     * Summary: Get Access Token for API use.
+     * Description: Get Access Token for API use.
+     * @return a string that identifies the access token.
      */
     public function get_access_token() {
-        if (isset ($this->ll_access_token) && !is_null($this->ll_access_token)) {
+
+        if (isset($this->ll_access_token) && !is_null($this->ll_access_token)) {
             return $this->ll_access_token;
         }
 
@@ -59,38 +69,52 @@ class MP {
         );
 
         $access_data = MPRestClient::post(array(
-            "uri" => "/oauth/token",
-            "data" => $app_client_values,
-            "headers" => array(
-                "content-type" => "application/x-www-form-urlencoded"
+            'uri' => '/oauth/token',
+            'data' => $app_client_values,
+            'headers' => array(
+                'content-type' => 'application/x-www-form-urlencoded'
             )
         ));
 
-        if ($access_data["status"] != 200) {
-            throw new MercadoPagoException ($access_data['response']['message'], $access_data['status']);
+        if ($access_data['status'] != 200) {
+            throw new MercadoPagoException (
+                $access_data['response']['message'], $access_data['status']
+            );
         }
 
-        $this->access_data = $access_data['response'];
+        $access_data = $access_data['response'];
+        return $access_data['access_token'];
 
-        return $this->access_data['access_token'];
     }
 
-    /* APIs v1 */
     /**
-     * Create a payment v1
-     * @param array $preference
+     * Summary: Search for a payment given its id.
+     * Description: Search for a payment given its id.
+     * @param string $id
      * @return array(json)
      */
     public function search_paymentV1($id) {
+
         $request = array(
-            "uri" => "/v1/payments/" . $id,
-            "params" => array(
-                "access_token" => $this->get_access_token()
+            'uri' => '/v1/payments/' . $id,
+            'params' => array(
+                'access_token' => $this->get_access_token()
             )
         );
+
         $payment = MPRestClient::get($request);
         return $payment;
+
     }
+
+    //=== CUSTOMER CARDS FUNCTIONS ===
+
+    /**
+     * Summary: Trigger API to find a card owner and create him if dont find.
+     * Description: Trigger API to find a card owner and create him if dont find.
+     * @param string $payer_email
+     * @return array(json)
+     */
     public function get_or_create_customer($payer_email) {
         $customer = $this->search_customer($payer_email);
         if ($customer['status'] == 200 && $customer['response']['paging']['total'] > 0) {
@@ -101,55 +125,90 @@ class MP {
         }
         return $customer;
     }
+
+    /**
+     * Summary: Create a card owner.
+     * Description: Create a card owner.
+     * @param string $payer_email
+     * @return array(json)
+     */
     public function create_customer($email) {
         $request = array(
-            "uri" => "/v1/customers",
-            "params" => array(
-                "access_token" => $this->get_access_token()
+            'uri' => '/v1/customers',
+            'params' => array(
+                'access_token' => $this->get_access_token()
             ),
-            "data" => array(
-              "email" => $email
+            'data' => array(
+                'email' => $email
             )
         );
         $customer = MPRestClient::post($request);
         return $customer;
     }
+
+    /**
+     * Summary: Try to find a card owner.
+     * Description: Try to find a card owner.
+     * @param string $payer_email
+     * @return array(json)
+     */
     public function search_customer($email) {
         $request = array(
-            "uri" => "/v1/customers/search",
-            "params" => array(
-                "access_token" => $this->get_access_token(),
-                "email" => $email
+            'uri' => '/v1/customers/search',
+            'params' => array(
+                'access_token' => $this->get_access_token(),
+                'email' => $email
             )
         );
         $customer = MPRestClient::get($request);
         return $customer;
     }
-    public function create_card_in_customer($customer_id, $token, $payment_method_id = null, $issuer_id = null) {
+
+    /**
+     * Summary: Given a customer, create a card for him.
+     * Description: Given a customer, create a card for him.
+     * @param string $customer_id
+     * @param string $token
+     * @param string $payment_method_id
+     * @param string $issuer_id
+     * @return array(json)
+     */
+    public function create_card_in_customer($customer_id, $token, $payment_method_id = null,
+        $issuer_id = null) {
         $request = array(
-            "uri" => "/v1/customers/" . $customer_id . "/cards",
-            "params" => array(
-                "access_token" => $this->get_access_token()
+            'uri' => '/v1/customers/' . $customer_id . '/cards',
+            'params' => array(
+                'access_token' => $this->get_access_token()
             ),
-            "data" => array(
-              "token" => $token,
-              "issuer_id" => $issuer_id,
-              "payment_method_id" => $payment_method_id
+            'data' => array(
+                'token' => $token,
+                'issuer_id' => $issuer_id,
+                'payment_method_id' => $payment_method_id
             )
         );
         $card = MPRestClient::post($request);
         return $card;
     }
+
+    /**
+     * Summary: Given a customer, find all of his cards.
+     * Description: Given a customer, find all of his cards.
+     * @param string $customer_id
+     * @param string $token
+     * @return array(json)
+     */
     public function get_all_customer_cards($customer_id, $token) {
         $request = array(
-            "uri" => "/v1/customers/" . $customer_id . "/cards",
-            "params" => array(
-                "access_token" => $this->get_access_token()
+            'uri' => '/v1/customers/' . $customer_id . '/cards',
+            'params' => array(
+                'access_token' => $this->get_access_token()
             )
         );
         $cards = MPRestClient::get($request);
         return $cards;
     }
+
+    //=== COUPOM AND DISCOUNTS FUNCTIONS ===
 
     public function check_discount_campaigns($transaction_amount, $payer_email, $coupon_code) {
         $request = array(
@@ -164,6 +223,36 @@ class MP {
 
         $discount_info = MPRestClient::get($request);
         return $discount_info;
+    }
+
+    public function check_two_cards() {
+        $request = array(
+            "uri" => "/account/settings?access_token=" . $this->get_access_token()
+        );
+
+        $two_cards_info = MPRestClient::get($request);
+        if ($two_cards_info['status'] == 200)
+            return $two_cards_info['response']['two_cards'];
+        else {
+            return 'inactive';
+        }
+    }
+
+    public function set_two_cards_mode($mode) {
+
+        $request = array(
+            "uri" => "/account/settings?access_token=" . $this->get_access_token(),
+            "data" => array(
+                'two_cards' => $mode
+            ),
+            "headers" => array(
+                "content-type" => "application/json"
+            )
+        );
+
+        $two_cards_info = MPRestClient::put($request);
+        return $two_cards_info;
+
     }
 
     /**
@@ -301,7 +390,7 @@ class MP {
                "access_token" => $this->get_access_token()
            ),
            "headers" => array(
-               "user-agent" => "platform:desktop,type:woocommerce,so:" . MP::version
+               "user-agent" => "platform:desktop,type:woocommerce,so:" . $this->$version
            ),
            "data" => $preference
        );
@@ -358,7 +447,7 @@ class MP {
                 "access_token" => $this->get_access_token()
             ),
             "headers" => array(
-                "X-Tracking-Id" => "platform:v1-whitelabel,type:woocommerce,so:" . MP::version
+                "X-Tracking-Id" => "platform:v1-whitelabel,type:woocommerce,so:" . $this->$version
             ),
             "data" => $preference
         );
@@ -531,6 +620,7 @@ class MP {
 class MPRestClient {
     const API_BASE_URL = "https://api.mercadopago.com";
     const API_BASE_ML_URL = "https://api.mercadolibre.com";
+    public static $version; // TODO: find a better way to use this field
 
     private static function build_request_ml($request) {
         if (!extension_loaded ("curl")) {
@@ -572,7 +662,7 @@ class MPRestClient {
         // Build $connect
         $connect = curl_init();
 
-        curl_setopt($connect, CURLOPT_USERAGENT, "platform:v1-whitelabel,type:woocommerce,so:" . MP::version);
+        curl_setopt($connect, CURLOPT_USERAGENT, "platform:v1-whitelabel,type:woocommerce,so:" . MPRestClient::$version);
         curl_setopt($connect, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($connect, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($connect, CURLOPT_CAINFO, $GLOBALS["LIB_LOCATION"] . "/cacert.pem");
@@ -651,7 +741,7 @@ class MPRestClient {
         // Build $connect
         $connect = curl_init();
 
-        curl_setopt($connect, CURLOPT_USERAGENT, "platform:v1-whitelabel,type:woocommerce,so:" . MP::version);
+        curl_setopt($connect, CURLOPT_USERAGENT, "platform:v1-whitelabel,type:woocommerce,so:" . MPRestClient::$version);
         curl_setopt($connect, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($connect, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($connect, CURLOPT_CAINFO, $GLOBALS["LIB_LOCATION"] . "/cacert.pem");
