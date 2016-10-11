@@ -7,7 +7,7 @@
  * Author URI: https://www.mercadopago.com.br/developers/
  * Developer: Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
  * Copyright: Copyright(c) MercadoPago [https://www.mercadopago.com]
- * Version: 2.1.3
+ * Version: 2.2.0
  * License: https://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  * Text Domain: woocommerce-mercadopago-module
  * Domain Path: /languages/
@@ -29,6 +29,8 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 	 * @since 1.0.0
 	 */
 	class WC_WooMercadoPago_Module {
+
+      const VERSION = '2.1.3';
 
 		private $store_categories_id = array();
   		private $store_categories_description = array();
@@ -59,7 +61,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 					array($this, 'woomercadopago_settings_link'));
 
 				// get Mercado Pago store categories
-				$categories = MPRestClient::get(array('uri' => '/item_categories')); // TODO: do not use static
+				$categories = MPRestClient::get(
+               array('uri' => '/item_categories'),
+               WC_WooMercadoPago_Module::get_module_version()
+            ); // TODO: do not use static
 				foreach ($categories['response'] as $category) {
 					array_push($this->store_categories_id, str_replace('_', ' ', $category['id']));
 					array_push($this->store_categories_description, str_replace('_', ' ', $category['description']));
@@ -126,11 +131,12 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * @return a float that is the rate of conversion.
 		 */
 		public function get_conversion_rate($used_currency) {
-			$currency_obj = MPRestClient::get_ml( // TODO: do not use static
+			$currency_obj = MPRestClient::get(
 				array('uri' => '/currency_conversions/search?' .
 					'from=' . get_woocommerce_currency() .
 					'&to=' . $used_currency
-				)
+				),
+            WC_WooMercadoPago_Module::get_module_version()
 			);
 			if (isset($currency_obj['response'])) {
 				$currency_obj = $currency_obj['response'];
@@ -166,8 +172,9 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		 * @return a string with the given version.
 		 */
 		public static function get_module_version() {
-			$plugin_data = get_plugin_data(__FILE__);
-			return $plugin_data['Version'];
+         //$plugin_data = get_plugin_data(__FILE__);
+         //return $plugin_data['Version'];
+         return WC_WooMercadoPago_Module::VERSION;
 		}
 
 		/**
