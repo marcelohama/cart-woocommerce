@@ -789,7 +789,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				}
 			}
 		} catch (MercadoPagoException $e) {
-			// Something went urong with the payment creation
+			// Something went wrong with the payment creation
 			if ('yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
@@ -932,14 +932,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 
-	// This call checks any incoming notifications from Mercado Pago server
+	/**
+	 * Summary: This call checks any incoming notifications from Mercado Pago server.
+	 * Description: This call checks any incoming notifications from Mercado Pago server.
+	 */
 	public function check_ipn_response() {
 		@ob_clean();
 		if ('yes' == $this->debug) {
 			$this->log->add(
 				$this->id,
 				'[check_ipn_response] - received _get content: ' .
-				json_encode($_GET, JSON_PRETTY_PRINT));
+				json_encode($_GET, JSON_PRETTY_PRINT)
+			);
 		}
 		$data = $this->check_ipn_request_is_valid($_GET);
 		if ($data) {
@@ -961,7 +965,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				$this->log->add(
 					$this->id,
 					'[check_ipn_request_is_valid] - data_id or type not set: ' .
-					json_encode($data, JSON_PRETTY_PRINT));
+					json_encode($data, JSON_PRETTY_PRINT)
+				);
 			}
 			// at least, check if its a v0 ipn
 			if (!isset($data['data_id']) || !isset($data['type'])) {
@@ -969,7 +974,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 					$this->log->add(
 						$this->id,
 						'[check_ipn_response] - mercado pago request failure: ' .
-						json_encode($_GET, JSON_PRETTY_PRINT));
+						json_encode($_GET, JSON_PRETTY_PRINT)
+					);
 				}
 				wp_die(__('Mercado Pago Request Failure', 'woocommerce-mercadopago-module'));
 			} else {
@@ -984,6 +990,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		} else {
 			$this->mp->sandbox_mode(false);
 		}
+
 		try {
 			// Get the merchant_order reported by the IPN
 			$params = array('access_token' => $this->mp->get_access_token());
@@ -1044,7 +1051,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		}
 
 		$order_key = $data['external_reference'];
-		if (!empty( $order_key)) {
+		if (!empty($order_key)) {
 			$order_id = (int) str_replace($this->invoice_prefix, '', $order_key);
 			$order = new WC_Order($order_id);
 			// Checks whether the invoice number matches the order, if true processes the payment

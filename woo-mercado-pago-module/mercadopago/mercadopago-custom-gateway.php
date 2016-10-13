@@ -42,7 +42,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->store_categories_id = array();
   		$this->store_categories_description = array();
 
-		// Fields used in Mercado Pago Module configuration page]
+		// Fields used in Mercado Pago Module configuration page
 		$this->public_key = $this->get_option('public_key');
 		$this->access_token = $this->get_option('access_token');
 		$this->title = $this->get_option('title');
@@ -71,15 +71,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->init_settings();
 
 		// Used by IPN to receive IPN incomings
-		/*add_action(
-			'woocommerce_api_wc_woomercadopagocustom_gateway',
-			array($this, 'process_http_request')
+		add_action(
+			'woocommerce_api_wc_woomercadopagocustom_gateway', array($this, 'process_http_request')
 		);
 		// Used by IPN to process valid incomings
 		add_action(
-			'valid_mercadopagocustom_ipn_request',
-			array($this, 'successful_request')
-		);*/
+			'valid_mercadopagocustom_ipn_request', array($this, 'successful_request')
+		);
 		// Used in settings page to hook "save settings" action
 		add_action(
 			'woocommerce_update_options_payment_gateways_' . $this->id,
@@ -87,8 +85,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		);
 		// Scripts for custom checkout
 		add_action(
-			'wp_enqueue_scripts',
-			array($this, 'custom_checkout_scripts')
+			'wp_enqueue_scripts', array($this, 'custom_checkout_scripts')
 		);
 		// Apply the discounts
 		/*add_action(
@@ -168,9 +165,10 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					);
 				} else {
 					$this->currency_ratio = -1;
-					$this->currency_message .= WC_WooMercadoPago_Module::build_currency_conversion_err_msg(
-						$this->country_configs['currency']
-					);
+					$this->currency_message .=
+						WC_WooMercadoPago_Module::build_currency_conversion_err_msg(
+							$this->country_configs['currency']
+						);
 				}
 			} else {
 				$this->currency_ratio = -1;
@@ -523,7 +521,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			$this->log->add(
 				$this->id,
 				'[process_payment] - Received [$_POST] from customer front-end page: ' .
-				json_encode($_POST, JSON_PRETTY_PRINT));
+				json_encode($_POST, JSON_PRETTY_PRINT)
+			);
 		}
 
 		// Mexico country case
@@ -594,9 +593,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 							'<br>' .
 								__($this->get_order_status($response['status_detail']), 'woocommerce-mercadopago-module') .
 							'</p>' .
-							'<p><a class="button" href="' .
-								esc_url($order->get_checkout_payment_url()) .
-							'">' .
+							'<p><a class="button" href="' . esc_url($order->get_checkout_payment_url()) . '">' .
 								__('Click to try again', 'woocommerce-mercadopago-module') .
 							'</a></p>',
 							'error'
@@ -624,120 +621,80 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	protected function create_url($order, $custom_checkout) {
+	/**
+	 * Summary: Build Mercado Pago preference.
+	 * Description: Create Mercado Pago preference and get init_point URL based in the order options
+	 * from the cart.
+	 * @return the preference object.
+	 */
+	private function build_payment_preference($order, $custom_checkout) {
 
-		// Checks for sandbox mode
-		if ('yes' == $this->sandbox) {
-			$this->mp->sandbox_mode(true);
-			if ('yes' == $this->debug) {
-				$this->log->add(
-					$this->id,
-					'[create_url] - sandbox mode is enabled');
-			}
-		} else {
-			$this->mp->sandbox_mode(false);
-		}
-
-		// Creates the order parameters by checking the cart configuration
-		$preferences = $this->createPreferences($order, $custom_checkout);
-		try {
-			// Create order preferences with Mercado Pago API request
-			$checkout_info = $this->mp->post( "/v1/payments", json_encode( $preferences ) );
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[create_url] - Received [$checkout_info] from Mercado Pago API: ' .
-					json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
-			}
-			if ( is_wp_error( $checkout_info ) ||
-				$checkout_info[ 'status' ] < 200 || $checkout_info[ 'status' ] >= 300 ) {
-				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id .
-						': @[create_url] - payment creation failed with error: ' .
-						$checkout_info[ 'response' ][ 'status' ] );
-				}
-				return false;
-			} else {
-				return $checkout_info[ 'response' ];
-			}
-		} catch ( MercadoPagoException $e ) {
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[create_url] - payment creation failed with exception: ' .
-					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
-			}
-			return false;
-		}
-
-	}
-
-	private function createPreferences($order, $custom_checkout) {
+		// A string to register items (workaround to deal with API problem that shows only first item)
+		$list_of_items = array();
 
 		// Here we build the array that contains ordered itens, from customer cart
 		$items = array();
-		$purchase_description = "";
-		if ( sizeof( $order->get_items() ) > 0 ) {
-			foreach ( $order->get_items() as $item ) {
-				if ( $item['qty'] ) {
-					$product = new WC_product( $item[ 'product_id' ] );
-					$purchase_description =
-						$purchase_description . ' ' .
-						( $product->post->post_title . ' x ' . $item[ 'qty' ] );
-					array_push( $items, array(
-						'id' => $item[ 'product_id' ],
-						'title' => ( $product->post->post_title . ' x ' . $item[ 'qty' ] ),
-						'description' => sanitize_file_name( (
+		if (sizeof($order->get_items()) > 0) {
+			foreach ($order->get_items() as $item) {
+				if ($item['qty']) {
+					$product = new WC_product($item['product_id']);
+					array_push($list_of_items, $product->post->post_title . ' x ' . $item['qty']);
+					array_push($items, array(
+						'id' => $item['product_id'],
+						'title' => ($product->post->post_title . ' x ' . $item['qty']),
+						'description' => sanitize_file_name(
 							// This handles description width limit of Mercado Pago
-							strlen( $product->post->post_content ) > 230 ?
-							substr( $product->post->post_content, 0, 230 ) . "..." :
-							$product->post->post_content
-						) ),
-						'picture_url' => wp_get_attachment_url( $product->get_image_id() ),
-						'category_id' => $this->store_categories_id[ $this->category_id ],
+							(strlen($product->post->post_content) > 230 ?
+								substr($product->post->post_content, 0, 230) . '...' :
+								$product->post->post_content)
+						),
+						'picture_url' => wp_get_attachment_url($product->get_image_id()),
+						'category_id' => $this->store_categories_id[$this->category_id],
 						'quantity' => 1,
-						'unit_price' => floor( ( (float) $item[ 'line_total' ] + (float) $item[ 'line_tax' ] ) *
-							( (float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1 ) * 100 ) / 100
+						'unit_price' => floor(((float) $item['line_total'] + (float) $item['line_tax']) *
+							((float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1) * 100) / 100
 					));
 				}
 			}
 		}
 
-    // Creates the shipment cost structure
-    $shipping_cost = (float) $order->get_total_shipping() + (float) $order->get_shipping_tax();
-    if ( $shipping_cost > 0 ) {
-      $item = array(
-        'title' => $this->workaroundAmperSandBug( $order->get_shipping_to_display() ),
-        'description' => __( 'Shipping service used by store', 'woocommerce-mercadopago-module' ),
-        'quantity' => 1,
-        'category_id' => $this->store_categories_id[ $this->category_id ],
-        'unit_price' => floor( $shipping_cost * ( (float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1 ) * 100 ) / 100
-      );
-      $items[] = $item;
-    }
+    	// Creates the shipment cost structure
+    	$ship_cost = ((float) $order->get_total_shipping() + (float) $order->get_shipping_tax()) *
+    		((float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1);
+    	if ($ship_cost > 0) {
+      	$item = array(
+        		'title' => sanitize_file_name($order->get_shipping_to_display()),
+        		'description' => __('Shipping service used by store', 'woocommerce-mercadopago-module'),
+        		'quantity' => 1,
+        		'category_id' => $this->store_categories_id[$this->category_id],
+        		'unit_price' => floor($ship_cost * 100) / 100
+      	);
+      	$items[] = $item;
+    	}
 
-	  // Discounts features
-	  if ( isset( $custom_checkout[ 'discount' ] ) &&
-	  	$custom_checkout[ 'discount' ] != "" &&
-	  	$custom_checkout[ 'discount' ] > 0 &&
-	  	isset( $custom_checkout[ 'coupon_code' ] ) &&
-	  	$custom_checkout[ 'coupon_code' ] != "" &&
-	  	WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
-      $item = array(
-        'title' => __( 'Discount', 'woocommerce-mercadopago-module' ),
-        'description' => __( 'Discount provided by store', 'woocommerce-mercadopago-module' ),
-        'quantity' => 1,
-        'category_id' => $this->store_categories_id[ $this->category_id ],
-        'unit_price' => - ( (float) $custom_checkout[ 'discount' ] )
-      );
-      $items[] = $item;
-	  }
+		// Discounts features
+		if (isset($custom_checkout['discount']) && $custom_checkout['discount'] != '' &&
+			$custom_checkout['discount'] > 0 && isset($custom_checkout['coupon_code']) &&
+	  		$custom_checkout['coupon_code'] != '' &&
+	  		WC()->session->chosen_payment_method == 'woocommerce-mercadopago-custom-module') {
+
+			$item = array(
+        		'title' => __('Discount', 'woocommerce-mercadopago-module'),
+        		'description' => __('Discount provided by store', 'woocommerce-mercadopago-module'),
+        		'quantity' => 1,
+        		'category_id' => $this->store_categories_id[$this->category_id],
+        		'unit_price' => -((float) $custom_checkout['discount'])
+      	);
+      	$items[] = $item;
+	  	}
 
 		// Build additional information from the customer data
-    $payer_additional_info = array(
-      'first_name' => $order->billing_first_name,
-      'last_name' => $order->billing_last_name,
-      //'registration_date' =>
-      'phone'	=> array(
-    	//'area_code' =>
+    	$payer_additional_info = array(
+      	'first_name' => $order->billing_first_name,
+      	'last_name' => $order->billing_last_name,
+      	//'registration_date' =>
+      	'phone' => array(
+    			//'area_code' =>
 				'number' => $order->billing_phone
 			),
         'address' => array(
@@ -748,151 +705,255 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					$order->billing_state . ' ' .
 					$order->billing_country
 			)
-    );
+		);
 
-    // Create the shipment address information set
-    $shipments = array(
-    	'receiver_address' => array(
-    		'zip_code' => $order->shipping_postcode,
-    		//'street_number' =>
-    		'street_name' => $order->shipping_address_1 . ' ' .
-    			$order->shipping_address_2 . ' ' .
-    			$order->shipping_city . ' ' .
-    			$order->shipping_state . ' ' .
-    			$order->shipping_country,
-    		//'floor' =>
-    		'apartment' => $order->shipping_address_2
-    	)
-    );
+		// Create the shipment address information set
+    	$shipments = array(
+    		'receiver_address' => array(
+    			'zip_code' => $order->shipping_postcode,
+    			//'street_number' =>
+    			'street_name' => $order->shipping_address_1 . ' ' .
+	    			$order->shipping_address_2 . ' ' .
+	    			$order->shipping_city . ' ' .
+	    			$order->shipping_state . ' ' .
+	    			$order->shipping_country,
+ 				//'floor' =>
+    			'apartment' => $order->shipping_address_2
+    		)
+    	);
 
-    // The payment preference
-    $payment_preference = array (
-    	'transaction_amount' => floor( ( (float) $custom_checkout[ 'amount' ] ) * 100 ) / 100,
-    	'token' => $custom_checkout[ 'token' ],
-    	'description' => $purchase_description,
-    	'installments' => (int) $custom_checkout[ 'installments' ],
-      'payment_method_id' => $custom_checkout[ 'paymentMethodId' ],
-      'payer' => array(
-      	'email' => $order->billing_email
-      ),
-      'external_reference' => $this->invoice_prefix . $order->id,
-      'statement_descriptor' => $this->statement_descriptor,
-      'binary_mode' => ($this->binary_mode == "yes"),
-      'additional_info' => array(
-          'items' => $items,
-          'payer' => $payer_additional_info,
-          'shipments' => $shipments
-      )
-    );
+    	// The payment preference
+    	$preferences = array (
+    		'transaction_amount' => floor(((float) $custom_checkout['amount']) * 100) / 100,
+    		'token' => $custom_checkout['token'],
+    		'description' => implode(', ', $list_of_items),
+    		'installments' => (int) $custom_checkout['installments'],
+      	'payment_method_id' => $custom_checkout['paymentMethodId'],
+      	'payer' => array(
+      		'email' => $order->billing_email
+      	),
+      	'external_reference' => $this->invoice_prefix . $order->id,
+      	'statement_descriptor' => $this->statement_descriptor,
+      	'binary_mode' => ($this->binary_mode == 'yes'),
+      	'additional_info' => array(
+				'items' => $items,
+          	'payer' => $payer_additional_info,
+				'shipments' => $shipments
+      	)
+		);
 
-    // Customer's Card Feature, add only if it has issuer id
-    if ( array_key_exists( 'token', $custom_checkout ) ) {
-    	$payment_preference[ 'metadata' ][ 'token' ] = $custom_checkout[ 'token' ];
-        if ( array_key_exists( 'issuer', $custom_checkout ) ) {
-        	if ( !empty( $custom_checkout[ 'issuer' ] ) ) {
-        		$payment_preference[ 'issuer_id' ] = (integer) $custom_checkout[ 'issuer' ];
+    	// Customer's Card Feature, add only if it has issuer id
+    	if (array_key_exists('token', $custom_checkout)) {
+    		$preferences['metadata']['token'] = $custom_checkout['token'];
+        	if (array_key_exists('issuer', $custom_checkout)) {
+        		if (!empty($custom_checkout['issuer'])) {
+        			$preferences['issuer_id'] = (integer) $custom_checkout['issuer'];
+        		}
         	}
-        }
-        if ( !empty( $custom_checkout[ 'CustomerId' ] ) ) {
-    		$payment_preference[ 'payer' ][ 'id' ] = $custom_checkout[ 'CustomerId' ];
-    	}
+        	if (!empty($custom_checkout['CustomerId'])) {
+    			$preferences['payer']['id'] = $custom_checkout['CustomerId'];
+    		}
 		}
 
-    // Do not set IPN url if it is a localhost!
-    $notification_url = $this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway';
-    if ( !strrpos( $notification_url, "localhost" ) ) {
-        $payment_preference['notification_url'] = $this->workaroundAmperSandBug( $notification_url );
-    }
-
-    // Discounts features
-    if ( isset( $custom_checkout[ 'discount' ] ) &&
-    	$custom_checkout[ 'discount' ] != "" &&
-    	$custom_checkout[ 'discount' ] > 0 &&
-    	isset( $custom_checkout[ 'coupon_code' ] ) &&
-    	$custom_checkout[ 'coupon_code' ] != "" &&
-    	WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
-    	$payment_preference[ 'campaign_id' ] =  (int) $custom_checkout[ 'campaign_id' ];
-      $payment_preference[ 'coupon_amount' ] = ( (float) $custom_checkout[ 'discount' ] );
-      $payment_preference[ 'coupon_code' ] = strtoupper( $custom_checkout[ 'coupon_code' ] );
-    }
-
-    if ( !$this->is_test_user ) {
-			$preferences[ 'sponsor_id' ] = (int) ( $this->sponsor_id[ $this->site_id ] );
+    	// Do not set IPN url if it is a localhost
+    	if (!strrpos($this->domain, 'localhost')) {
+			$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
+				$this->domain . '/woocommerce-mercadopago-module/?wc-api=WC_WooMercadoPagoCustom_Gateway'
+			);
 		}
 
-		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id .
-				': @[createPreferences] - Returning just created [$payment_preference] structure: ' .
-				json_encode( $payment_preference, JSON_PRETTY_PRINT ) );
+    	// Discounts features
+    	if (isset($custom_checkout['discount']) && $custom_checkout['discount'] != '' &&
+    		$custom_checkout['discount'] > 0 && isset($custom_checkout['coupon_code']) &&
+    		$custom_checkout['coupon_code'] != '' &&
+    		WC()->session->chosen_payment_method == 'woocommerce-mercadopago-custom-module') {
+
+    		$preferences['campaign_id'] =  (int) $custom_checkout['campaign_id'];
+      	$preferences['coupon_amount'] = ((float) $custom_checkout['discount']);
+      	$preferences['coupon_code'] = strtoupper($custom_checkout['coupon_code']);
 		}
 
-    $payment_preference = apply_filters(
-    	'woocommerce_mercadopago_module_custom_preferences',
-    	$payment_preference, $order
-    );
-		return $payment_preference;
-  }
-
-  public function checkAndSaveCustomerCard( $checkout_info ) {
-  	if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id .
-				': @[checkAndSaveCustomerCard] - Checking info to create card: ' .
-				json_encode( $checkout_info, JSON_PRETTY_PRINT ) );
+		// Set sponsor ID
+    	if (!$this->is_test_user) {
+			$preferences['sponsor_id'] = $this->country_configs['sponsor_id'];
 		}
+
+		if ('yes' == $this->debug) {
+			$this->log->add(
+				$this->id,
+				'[build_payment_preference] - returning just created [$preferences] structure: ' .
+				json_encode($preferences, JSON_PRETTY_PRINT)
+			);
+		}
+
+    	$preferences = apply_filters(
+    		'woocommerce_mercadopago_module_custom_preferences',
+    		$preferences, $order
+    	);
+		return $preferences;
+	}
+
+	// --------------------------------------------------
+
+	protected function create_url($order, $custom_checkout) {
+
+		// Creates the order parameters by checking the cart configuration
+		$preferences = $this->build_payment_preference($order, $custom_checkout);
+
+		// Checks for sandbox mode
+		if ('yes' == $this->sandbox) {
+			$this->mp->sandbox_mode(true);
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[create_url] - sandbox mode is enabled'
+				);
+			}
+		} else {
+			$this->mp->sandbox_mode(false);
+		}
+
+		// Create order preferences with Mercado Pago API request
+		try {
+			$checkout_info = $this->mp->post('/v1/payments', json_encode($preferences));
+			if ($checkout_info['status'] < 200 || $checkout_info['status'] >= 300) {
+				// Mercado Pago trowed an error
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[create_url] - mercado pago gave error, payment creation failed with error: ' .
+						$checkout_info['response']['status']);
+				}
+				return false;
+			} else if (is_wp_error($checkout_info)) {
+				// WordPress throwed an error
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[create_url] - wordpress gave error, payment creation failed with error: ' .
+						$checkout_info['response']['status']);
+				}
+				return false;
+			} else {
+				// Obtain the URL
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[create_url] - payment link generated with success from mercado pago, with structure as follow: ' .
+						json_encode($checkout_info, JSON_PRETTY_PRINT));
+				}
+				return $checkout_info['response'];
+			}
+		} catch (MercadoPagoException $e) {
+			// Something went wrong with the payment creation
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[create_url] - payment creation failed with exception: ' .
+					json_encode(array('status' => $e->getCode(), 'message' => $e->getMessage()))
+				);
+			}
+			return false;
+		}
+	}
+
+	/*
+	 * ========================================================================
+	 * AUXILIARY AND FEEDBACK METHODS (SERVER SIDE)
+	 * ========================================================================
+	 */
+
+	/**
+	 * Summary: Check if we have existing customer card, if not we create and save it.
+	 * Description: Check if we have existing customer card, if not we create and save it.
+	 * @return boolean true/false depending on the validation result.
+	 */
+  	public function check_and_save_customer_card($checkout_info) {
+
+  		if ('yes' == $this->debug) {
+			$this->log->add(
+				$this->id,
+				': @[check_and_save_customer_card] - checking info to create card: ' .
+				json_encode($checkout_info, JSON_PRETTY_PRINT)
+			);
+		}
+
 		$custId = null;
 		$token  = null;
 		$issuer_id = null;
 		$payment_method_id = null;
-  	if ( isset( $checkout_info[ 'payer' ][ 'id' ] ) && !empty( $checkout_info[ 'payer' ][ 'id' ] ) ) {
-  		$custId = $checkout_info[ 'payer' ][ 'id' ];
-  	} else {
-  		return;
-  	}
-  	if ( isset( $checkout_info[ 'metadata' ][ 'token' ] ) && !empty( $checkout_info[ 'metadata' ][ 'token' ] ) ) {
-  		$token = $checkout_info[ 'metadata' ][ 'token' ];
-  	} else {
-  		return;
-  	}
-  	if ( isset( $checkout_info[ 'issuer_id' ] ) && !empty( $checkout_info[ 'issuer_id' ] ) ) {
-  		$issuer_id = (integer)( $checkout_info[ 'issuer_id' ] );
-  	}
-  	if ( isset( $checkout_info[ 'payment_method_id' ] ) && !empty( $checkout_info[ 'payment_method_id' ] ) ) {
-  		$payment_method_id = $checkout_info[ 'payment_method_id' ];
-  	}
-  	try {
-			$this->mp->create_card_in_customer( $custId, $token, $payment_method_id, $issuer_id );
-		} catch ( MercadoPagoException $e ) {
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[checkAndSaveCustomerCard] - card creation failed: ' .
-					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
-			}
-		}
-	}
 
-	public function add_discount_custom() {
-		if ( is_admin() && ! defined( 'DOING_AJAX' ) || is_cart() ) {
-			return;
-		}
-		if ( isset( $_POST[ 'mercadopago_custom' ][ 'discount' ] ) &&
-    	$_POST[ 'mercadopago_custom' ][ 'discount' ] != "" &&
-    	$_POST[ 'mercadopago_custom' ][ 'discount' ] > 0 &&
-			isset( $_POST[ 'mercadopago_custom' ][ 'coupon_code' ] ) &&
-  		$_POST[ 'mercadopago_custom' ][ 'coupon_code' ] != "" &&
-			WC()->session->chosen_payment_method == "woocommerce-mercadopago-custom-module" ) {
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id . ': @[add_discount_custom] - Custom checkout trying to apply discount...' );
-			}
-			$value = ( $_POST[ 'mercadopago_custom' ][ 'discount' ] ) /
-				( (float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1 );
-			global $woocommerce;
-			if ( apply_filters( 'wc_mercadopagocustom_module_apply_discount', 0 < $value, $woocommerce->cart ) ) {
-				$woocommerce->cart->add_fee(
-					sprintf( __( 'Discount for %s coupon', 'woocommerce-mercadopago-module' ), esc_attr( $_POST[ 'mercadopago_custom' ][ 'campaign' ] ) ),
-					( $value * -1 ), true
+  		if (isset($checkout_info['payer']['id']) && !empty($checkout_info['payer']['id'])) {
+  			$custId = $checkout_info['payer']['id'];
+  		} else {
+  			return;
+  		}
+
+  		if (isset($checkout_info['metadata']['token']) && !empty($checkout_info['metadata']['token'])) {
+  			$token = $checkout_info['metadata']['token'];
+  		} else {
+  			return;
+  		}
+
+  		if (isset($checkout_info['issuer_id']) && !empty($checkout_info['issuer_id'])) {
+  			$issuer_id = (integer) ($checkout_info['issuer_id']);
+  		}
+  		if (isset($checkout_info['payment_method_id']) && !empty($checkout_info['payment_method_id'])) {
+  			$payment_method_id = $checkout_info['payment_method_id'];
+  		}
+
+  		try {
+			$this->mp->create_card_in_customer($custId, $token, $payment_method_id, $issuer_id);
+		} catch (MercadoPagoException $e) {
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[check_and_save_customer_card] - card creation failed: ' .
+					json_encode(array('status' => $e->getCode(), 'message' => $e->getMessage()))
 				);
 			}
 		}
+
+	}
+
+	/**
+	 * Summary: Receive post data and applies a discount based in the received values.
+	 * Description: Receive post data and applies a discount based in the received values.
+	 */
+	public function add_discount_custom() {
+
+		if (is_admin() && ! defined('DOING_AJAX') || is_cart()) {
+			return;
+		}
+
+		$mercadopago_custom = $_POST['mercadopago_custom'];
+		if (isset($mercadopago_custom['discount']) && $mercadopago_custom['discount'] != '' &&
+    		$mercadopago_custom['discount'] > 0 && isset($mercadopago_custom['coupon_code']) &&
+  			$mercadopago_custom['coupon_code'] != '' &&
+			WC()->session->chosen_payment_method == 'woocommerce-mercadopago-custom-module') {
+
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[add_discount_custom] - Custom checkout trying to apply discount...'
+				);
+			}
+
+			$value = ($mercadopago_custom['discount']) /
+				((float) $this->currency_ratio > 0 ? (float) $this->currency_ratio : 1);
+			global $woocommerce;
+			if (apply_filters(
+				'wc_mercadopagocustom_module_apply_discount',
+				0 < $value, $woocommerce->cart)
+			) {
+				$woocommerce->cart->add_fee(sprintf(
+					__('Discount for %s coupon', 'woocommerce-mercadopago-module'),
+					esc_attr($mercadopago_custom['campaign']
+					)), ($value * -1), true
+				);
+			}
+		}
+
 	}
 
 	/*
@@ -974,7 +1035,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 	// Called automatically by WooCommerce, verify if Module is available to use
 	public function is_available() {
-		if (empty($_SERVER['HTTPS'] ) || $_SERVER['HTTPS'] == 'off') {
+		if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
 			return false;
 		}
 		$available = ('yes' == $this->settings['enabled']) &&
@@ -1064,209 +1125,226 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 
-	// [Server Side] This call checks any incoming notifications from Mercado Pago server.
-	/*public function process_http_request() {
+	/**
+	 * Summary: This call checks any incoming notifications from Mercado Pago server.
+	 * Description: This call checks any incoming notifications from Mercado Pago server.
+	 */
+	public function process_http_request() {
 		@ob_clean();
-		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id .
-				': @[process_http_request] - Received _get content: ' .
-				json_encode( $_GET, JSON_PRETTY_PRINT ) );
+		if ('yes' == $this->debug) {
+			$this->log->add(
+				$this->id,
+				'[process_http_request] - Received _get content: ' .
+				json_encode($_GET, JSON_PRETTY_PRINT)
+			);
 		}
-		if ( isset( $_GET[ 'coupon_id' ] ) && $_GET[ 'coupon_id' ] != '' ) {
+		if (isset($_GET['coupon_id']) && $_GET['coupon_id'] != '') {
 			// process coupon evaluations
-			if ( isset( $_GET[ 'payer' ] ) && $_GET[ 'payer' ] != '' ) {
-				$logged_user_email = $_GET[ 'payer' ];
-				$coupon_id = $_GET[ 'coupon_id' ];
-		    if ( 'yes' == $this->sandbox )
-					$this->mp->sandbox_mode( true );
-				else
-					$this->mp->sandbox_mode( false );
-			    $response = $this->mp->check_discount_campaigns(
-			    	$_GET[ 'amount' ],
+			if (isset($_GET['payer']) && $_GET['payer'] != '') {
+				$logged_user_email = $_GET['payer'];
+				$coupon_id = $_GET['coupon_id'];
+			if ('yes' == $this->sandbox)
+				$this->mp->sandbox_mode(true);
+			else
+				$this->mp->sandbox_mode(false);
+				$response = $this->mp->check_discount_campaigns(
+			   	$_GET['amount'],
 			    	$logged_user_email,
 			    	$coupon_id
-			    );
-			    header( 'HTTP/1.1 200 OK' );
-			    header( 'Content-Type: application/json' );
-				echo json_encode( $response );
+				);
+				header('HTTP/1.1 200 OK');
+				header('Content-Type: application/json');
+				echo json_encode($response);
 			} else {
 				$obj = new stdClass();
 				$obj->status = 404;
 				$obj->response = array(
-					'message' => __( 'Please, inform your email in billing address to use this feature', 'woocommerce-mercadopago-module' ),
+					'message' => __('Please, inform your email in billing address to use this feature', 'woocommerce-mercadopago-module'),
 					'error' => 'payer_not_found',
 					'status' => 404,
 					'cause' => array()
 				);
-				header( 'HTTP/1.1 200 OK' );
-			    header( 'Content-Type: application/json' );
-				echo json_encode( $obj );
+				header('HTTP/1.1 200 OK');
+			   header('Content-Type: application/json');
+				echo json_encode($obj);
 			}
 			exit(0);
 		} else {
 			// process IPN messages
-			$data = $this->check_ipn_request_is_valid( $_GET );
-			if ( $data ) {
-				header( 'HTTP/1.1 200 OK' );
-				do_action( 'valid_mercadopagocustom_ipn_request', $data );
+			$data = $this->check_ipn_request_is_valid($_GET);
+			if ($data) {
+				header('HTTP/1.1 200 OK');
+				do_action('valid_mercadopagocustom_ipn_request', $data);
 			}
 		}
 	}
 
-	// Get received data from IPN and checks if we have an associated
-	// payment. If we have these information, we return data to be
-	// processed by successful_request function.
-	public function check_ipn_request_is_valid( $data ) {
+	/**
+	 * Summary: Get received data from IPN and checks if its a merchant_order or a payment.
+	 * Description: If we have these information, we return data to be processed by
+	 * successful_request function.
+	 * @return boolean indicating if it was successfuly processed.
+	 */
+	public function check_ipn_request_is_valid($data) {
 
-		if ( !isset( $data[ 'data_id' ] ) || !isset( $data[ 'type' ] ) ) {
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
-					': @[check_ipn_request_is_valid] - data_id or type not set: ' .
-					json_encode( $data, JSON_PRETTY_PRINT ) );
+		if (!isset($data['data_id']) || !isset($data['type'])) {
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[check_ipn_request_is_valid] - data_id or type not set: ' .
+					json_encode($data, JSON_PRETTY_PRINT)
+				);
 			}
 			// at least, check if its a v0 ipn
-			if ( !isset( $data[ 'id' ] ) || !isset( $data[ 'topic' ] ) ) {
-				if ( 'yes' == $this->debug ) {
+			if (!isset($data['id']) || !isset($data['topic'])) {
+				if ('yes' == $this->debug) {
 					$this->log->add(
-						$this->id, $this->id .
-						': @[check_ipn_request_is_valid] - Mercado Pago Request Failure: ' .
-						json_encode( $_GET, JSON_PRETTY_PRINT ) );
+						$this->id,
+						'[check_ipn_request_is_valid] - Mercado Pago Request failure: ' .
+						json_encode($_GET, JSON_PRETTY_PRINT)
+					);
 				}
-				wp_die( __( 'Mercado Pago Request Failure', 'woocommerce-mercadopago-module' ) );
+				wp_die(__('Mercado Pago Request Failure', 'woocommerce-mercadopago-module'));
 			} else {
-				header( 'HTTP/1.1 200 OK' );
+				header('HTTP/1.1 200 OK');
 			}
 			// No ID? No process!
 			return false;
 		}
 
-		if ( 'yes' == $this->sandbox )
-			$this->mp->sandbox_mode( true );
-		else
-			$this->mp->sandbox_mode( false );
+		if ('yes' == $this->sandbox) {
+			$this->mp->sandbox_mode(true);
+		} else {
+			$this->mp->sandbox_mode(false);
+		}
+
 		try {
-			$access_token = array( "access_token" => $this->mp->get_access_token() );
-			if ( $data[ "type" ] == 'payment' ) {
-				$payment_info = $this->mp->get( "/v1/payments/" . $data[ "data_id" ], $access_token, false );
-				if ( !is_wp_error( $payment_info ) &&
-					( $payment_info[ "status" ] == 200 || $payment_info[ "status" ] == 201 ) ) {
-					return $payment_info[ 'response' ];
+			// Get the merchant_order reported by the IPN
+			if ($data['type'] == 'payment') {
+				$payment_info = $this->mp->get(
+					'/v1/payments/' . $data['data_id'], $this->access_token, false
+				);
+				if (!is_wp_error($payment_info) &&
+					($payment_info['status'] == 200 || $payment_info['status'] == 201)) {
+					return $payment_info['response'];
 				} else {
-					if ( 'yes' == $this->debug ) {
-						$this->log->add( $this->id, $this->id .
-							': @[check_ipn_request_is_valid] - error when processing received data: ' .
-							json_encode( $payment_info, JSON_PRETTY_PRINT ) );
+					if ('yes' == $this->debug) {
+						$this->log->add(
+							$this->id,
+							'[check_ipn_request_is_valid] - error when processing received data: ' .
+							json_encode($payment_info, JSON_PRETTY_PRINT)
+						);
 					}
 					return false;
 				}
 			}
-		} catch ( MercadoPagoException $e ) {
-			if ( 'yes' == $this->debug ) {
-				$this->log->add( $this->id, $this->id .
+		} catch (MercadoPagoException $e) {
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
 					': @[check_ipn_request_is_valid] - MercadoPagoException: ' .
-					json_encode( array( "status" => $e->getCode(), "message" => $e->getMessage() ) ) );
+					json_encode(array('status' => $e->getCode(), 'message' => $e->getMessage()))
+				);
 			}
 			return false;
 		}
 		return true;
 	}
 
-	// Properly handles each case of notification, based in payment status.
-	public function successful_request( $data ) {
-		if ( 'yes' == $this->debug ) {
-			$this->log->add( $this->id, $this->id .
-				': @[successful_request] - starting to process ipn update...' );
+	/**
+	 * Summary: Properly handles each case of notification, based in payment status.
+	 * Description: Properly handles each case of notification, based in payment status.
+	 */
+	public function successful_request($data) {
+
+		if ('yes' == $this->debug) {
+			$this->log->add(
+				$this->id,
+				'[successful_request] - starting to process ipn update...'
+			);
 		}
-		$order_key = $data[ 'external_reference' ];
-		if ( !empty( $order_key ) ) {
-			$order_id = (int) str_replace( $this->invoice_prefix, '', $order_key );
-			$order = new WC_Order( $order_id );
+
+		$order_key = $data['external_reference'];
+		if (!empty($order_key)) {
+			$order_id = (int) str_replace($this->invoice_prefix, '', $order_key);
+			$order = new WC_Order($order_id);
 			// Checks whether the invoice number matches the order, if true processes the payment
-			if ( $order->id === $order_id ) {
-				if ( 'yes' == $this->debug ) {
-					$this->log->add( $this->id, $this->id .
-						': @[successful_request] - got order with ID ' . $order->id .
-						' and data: ' . json_encode( $data, JSON_PRETTY_PRINT ) );
-				}
-				// Order details.
-				if ( !empty( $data[ 'payer' ][ 'email' ] ) ) {
-					update_post_meta(
-						$order_id,
-						__( 'Payer email',
-							'woocommerce-mercadopago-module' ),
-						$data[ 'payer' ][ 'email' ]
+			if ($order->id === $order_id) {
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[successful_request] - got order with ID ' . $order->id . ' and data: ' .
+						json_encode($data, JSON_PRETTY_PRINT)
 					);
 				}
-				if ( !empty( $data[ 'payment_type_id' ] ) ) {
+				// Order details
+				if (!empty($data['payer']['email'])) {
 					update_post_meta(
 						$order_id,
-						__( 'Payment type',
-							'woocommerce-mercadopago-module' ),
-						$data[ 'payment_type_id' ]
+						__('Payer email', 'woocommerce-mercadopago-module'),
+						$data['payer']['email']
 					);
 				}
-				if ( !empty( $data ) ) {
+				if (!empty($data['payment_type_id'])) {
 					update_post_meta(
 						$order_id,
-						__( 'Mercado Pago Payment ID',
-							'woocommerce-mercadopago-module' ),
-						$data[ 'id' ]
+						__('Payment type', 'woocommerce-mercadopago-module'),
+						$data['payment_type_id']
+					);
+				}
+				if (!empty($data)) {
+					update_post_meta(
+						$order_id,
+						__('Mercado Pago Payment ID', 'woocommerce-mercadopago-module'),
+						$data['id']
 					);
 				}
 				// Switch the status and update in WooCommerce
-				switch ( $data[ 'status' ] ) {
+				switch ($data['status']) {
 					case 'approved':
 						$order->add_order_note(
-							'Mercado Pago: ' . __( 'Payment approved.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('Payment approved.', 'woocommerce-mercadopago-module')
 						);
-						$this->checkAndSaveCustomerCard( $data );
+						$this->check_and_save_customer_card($data);
 						$order->payment_complete();
 						break;
 					case 'pending':
 						$order->add_order_note(
-							'Mercado Pago: ' . __( 'Customer haven\'t paid yet.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('Customer haven\'t paid yet.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'in_process':
 						$order->update_status(
 							'on-hold',
-							'Mercado Pago: ' . __( 'Payment under review.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('Payment under review.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'rejected':
 						$order->update_status(
 							'failed',
-							'Mercado Pago: ' . __( 'The payment was refused. The customer can try again.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('The payment was refused. The customer can try again.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'refunded':
 						$order->update_status(
 							'refunded',
-							'Mercado Pago: ' . __( 'The payment was refunded to the customer.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('The payment was refunded to the customer.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'cancelled':
 						$order->update_status(
 							'cancelled',
-							'Mercado Pago: ' . __( 'The payment was cancelled.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('The payment was cancelled.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'in_mediation':
 						$order->add_order_note(
-							'Mercado Pago: ' . __( 'The payment is under mediation or it was charged-back.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'charged-back':
 						$order->add_order_note(
-							'Mercado Pago: ' . __( 'The payment is under mediation or it was charged-back.',
-								'woocommerce-mercadopago-module' )
+							'Mercado Pago: ' . __('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					default:
@@ -1274,8 +1352,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				}
 			}
 		}
-	}*/
+	}
 
 }
 
-/*new WC_WooMercadoPagoCustom_Gateway();*/
+new WC_WooMercadoPagoCustom_Gateway();
