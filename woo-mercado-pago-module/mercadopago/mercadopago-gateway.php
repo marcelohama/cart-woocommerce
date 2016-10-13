@@ -8,7 +8,7 @@
  */
 
 // This include Mercado Pago library SDK
-require_once "sdk/lib/mercadopago.php";
+require_once 'sdk/lib/mercadopago.php';
 
 /**
  * Summary: Extending from WooCommerce Payment Gateway class.
@@ -41,7 +41,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		$this->is_test_user = false;
 
 		// Auxiliary fields
-		$this->currency_message = "";
+		$this->currency_message = '';
 		$this->payment_methods = array();
 		$this->country_configs = array();
 		$this->store_categories_id = array();
@@ -103,11 +103,22 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 	/**
 	 * Summary: Initialise Gateway Settings Form Fields.
-	 * Description: Required inherited method from WC_Payment_Gateway class: init_form_fields.
-	 * Initialise Gateway settings form fields with a customized page.
-	 * URL.
+	 * Description: Initialise Gateway settings form fields with a customized page.
 	 */
 	public function init_form_fields() {
+
+		// If module is disabled, we do not need to load and process the settings page
+		if (!empty($this->settings['enabled']) && 'no' == $this->settings['enabled']) {
+			$this->form_fields = array(
+				'enabled' => array(
+					'title' => __('Enable/Disable', 'woocommerce-mercadopago-module'),
+					'type' => 'checkbox',
+					'label' => __('Enable Basic Checkout', 'woocommerce-mercadopago-module'),
+					'default' => 'yes'
+				)
+			);
+			return;
+		}
 
 		$api_secret_locale = sprintf(
 			'<a href="https://www.mercadopago.com/mla/account/credentials?type=basic" target="_blank">%s</a>, ' .
@@ -130,7 +141,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		// Trigger API to get payment methods and site_id, also validates Client_id/Client_secret
 		if ($this->validate_credentials()) {
 			// checking the currency
-			$this->currency_message = "";
+			$this->currency_message = '';
 			if (!$this->is_supported_currency() && 'yes' == $this->settings['enabled']) {
 				if ($this->currency_conversion == 'no') {
 					$this->currency_ratio = -1;
@@ -250,8 +261,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'title' => __('Title', 'woocommerce-mercadopago-module'),
 				'type' => 'text',
 				'description' =>
-					__('Title shown to the client in the checkout.', 'woocommerce-mercadopago-module'
-				),
+					__('Title shown to the client in the checkout.', 'woocommerce-mercadopago-module'),
 				'default' => __('Mercado Pago', 'woocommerce-mercadopago-module')
 			),
 			'description' => array(
@@ -272,8 +282,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'title' => __('Store Identificator', 'woocommerce-mercadopago-module'),
 				'type' => 'text',
 				'description' =>
-					__('Please, inform a prefix to your store.', 'woocommerce-mercadopago-module') .
-					' ' .
+					__('Please, inform a prefix to your store.', 'woocommerce-mercadopago-module')
+					. ' ' .
 					__('If you use your Mercado Pago account on multiple stores you should make sure that this prefix is unique as Mercado Pago will not allow orders with same identificators.', 'woocommerce-mercadopago-module'),
 				'default' => 'WC-'
 			),
@@ -406,37 +416,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
         	$this->get_option_key(),
         	apply_filters('woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings)
      	);
-	}
-
-	public function admin_options() {
-		if (count($this->errors) > 0) {
-			$this->display_errors();
-			return false;
-		} else {
-			echo wpautop($this->method_description);
-			?>
-				<p><a href='https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform'
-					target='_blank' class='button button-primary'>
-					<?php
-						esc_html_e(sprintf(
-							__('Please, rate us %s on WordPress.org and give your feedback to help improve this module!', 'woocommerce-mercadopago-module'),
-							'&#9733;&#9733;&#9733;&#9733;&#9733;'
-						));
-					?>
-				</a></p><p><a href='https://wordpress.org/support/plugin/woo-mercado-pago-module#postform'
-					target='_blank' class='button button-primary'>
-					<?php
-						esc_html_e(
-							__('Do you have suggestions or problems with the module that you want to tell us? You can report us through here!', 'woocommerce-mercadopago-module')
-						);
-					?>
-				</a></p>
-				<table class='form-table'>
-					<?php $this->generate_settings_html(); ?>
-				</table>
-			<?php
-			return true;
-		}
 	}
 
 	/*
@@ -888,6 +867,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$this->mp = null;
 			return false;
 		}
+
+		return false;
 
 	}
 

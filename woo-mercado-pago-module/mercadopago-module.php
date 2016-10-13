@@ -192,6 +192,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MLA/standard_mla.jpg',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MLA/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'ARS'
 					);
 				case 'MLB':
@@ -202,6 +206,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MLB/standard_mlb.jpg',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MLB/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'BRL'
 					);
 				case 'MCO':
@@ -212,6 +220,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MCO/standard_mco.jpg',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MCO/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'COP'
 					);
 				case 'MLC':
@@ -222,6 +234,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MLC/standard_mlc.gif',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MLC/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'CLP'
 					);
 				case 'MLM':
@@ -232,6 +248,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MLM/standard_mlm.jpg',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MLM/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'MXN'
 					);
 				case 'MLV':
@@ -242,6 +262,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MLV/standard_mlv.jpg',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MLV/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'VEF'
 					);
 				case 'MPE':
@@ -252,6 +276,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MPE/standard_mpe.png',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MPE/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'PEN'
 					);
 				default: // set Argentina as default country
@@ -262,6 +290,10 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 							'woo-mercado-pago-module/images/MLA/standard_mla.jpg',
                      plugin_dir_path(__FILE__)
 						),
+                  'checkout_banner_custom' => plugins_url(
+                     'woo-mercado-pago-module/images/MLA/credit_card.png',
+                     plugin_dir_path(__FILE__)
+                  ),
 						'currency' => 'ARS'
 					);
 			}
@@ -339,10 +371,16 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		$plugin_links[] = '<a href="' . esc_url(admin_url(
 			'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway')) .
 		'">' . __('Ticket', 'woocommerce-mercadopago-module') . '</a>';
+      $plugin_links[] = '<a target="_blank" href="' .
+         'https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform' .
+      '">' . __('Rate Us', 'woocommerce-mercadopago-module') . '</a>';
+      $plugin_links[] = '<a target="_blank" href="' .
+         'https://wordpress.org/support/plugin/woo-mercado-pago-module#postform' .
+      '">' . __('Report Problem', 'woocommerce-mercadopago-module') . '</a>';
 		return array_merge($plugin_links, $links);
 	}
 	$plugin = plugin_basename(__FILE__);
-	add_filter("plugin_action_links_$plugin", 'woomercadopago_settings_link');
+	add_filter('plugin_action_links_$plugin', 'woomercadopago_settings_link');
 
 }
 
