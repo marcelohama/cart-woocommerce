@@ -95,16 +95,18 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			array($this, 'add_discount_custom'), 10
 		);
 
-		// Verify if public_key or access_token is empty
-		if (empty($this->public_key) || empty($this->access_token)) {
-			if (!empty($this->settings['enabled']) && $this->settings['enabled'] == 'yes') {
-				if ($is_instance) {
+		if (!empty($this->settings['enabled']) && $this->settings['enabled'] == 'yes') {
+			if ($is_instance) {
+				if (empty($this->public_key) || empty($this->access_token)) {
+					// Verify if public_key or access_token is empty
 					add_action('admin_notices', array($this, 'credentials_missing_message'));
+				} else {
+					if (empty($this->sandbox) && $this->sandbox == 'no') {
+						// Verify if SSL is supported
+						add_action('admin_notices', array($this, 'check_ssl_absence'));
+					}
 				}
 			}
-		} else {
-			// Verify if SSL is supported
-			add_action('admin_notices', array($this, 'check_ssl_absence'));
 		}
 
 	}
@@ -455,7 +457,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'credit-card/payment-form.php',
 			$parameters,
 			'woocommerce/mercadopago/',
-			WC_WooMercadoPago_Module::getTemplatesPath()
+			WC_WooMercadoPago_Module::get_templates_path()
 		);
 	}
 
@@ -466,6 +468,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 * @return an array containing the result of the processment and the URL to redirect.
 	 */
 	public function process_payment($order_id) {
+
+		if (!isset($_POST['mercadopago_custom']))
+			return;
 
 		$order = new WC_Order($order_id);
 		$custom_checkout = $_POST['mercadopago_custom'];
@@ -874,6 +879,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 */
 	public function add_discount_custom() {
 
+		if (!isset($_POST['mercadopago_custom']))
+			return;
+
 		if (is_admin() && ! defined('DOING_AJAX') || is_cart()) {
 			return;
 		}
@@ -928,9 +936,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 			$this->mp = new MP(
 				WC_WooMercadoPago_Module::get_module_version(),
-				$this->access_token
+				$this->get_option('access_token')
 			);
-			$get_request = $this->mp->get('/users/me?access_token=' . $this->access_token);
+			$get_request = $this->mp->get(
+				'/users/me?access_token=' . $this->get_option('access_token')
+			);
 
 			if (isset($get_request['response']['site_id'])) {
 
@@ -938,7 +948,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$this->site_id = $get_request['response']['site_id'];
 				$this->country_configs = WC_WooMercadoPago_Module::get_country_config($this->site_id);
 
-				$payments = $this->mp->get('/v1/payment_methods/?access_token=' . $access_token);
+				$payments = $this->mp->get(
+					'/v1/payment_methods/?access_token=' . $this->get_option('access_token')
+				);
 
 				// check for auto converstion of currency (only if it is enabled)
 				$this->currency_ratio = -1;
@@ -987,7 +999,9 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	// Called automatically by WooCommerce, verify if Module is available to use
 	public function is_available() {
 		if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') {
-			return false;
+			if (empty($this->sandbox) && $this->sandbox == 'no') {
+				return false;
+			}
 		}
 		$available = ('yes' == $this->settings['enabled']) &&
 			!empty($this->public_key) &&

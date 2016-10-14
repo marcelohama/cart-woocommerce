@@ -92,16 +92,16 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			array($this, 'add_discount_ticket'), 10
 		);
 
-		// Verify if access token is empty
-		if (empty($this->access_token)) {
-			if (empty($this->settings['enabled']) || $this->settings['enabled'] == 'yes') {
-				if ($is_instance) {
+		if (!empty($this->settings['enabled']) && $this->settings['enabled'] == 'yes') {
+			if ($is_instance) {
+				if (empty($this->access_token)) {
+					// Verify if access token is empty
 					add_action('admin_notices', array($this, 'credentials_missing_message'));
+				} else {
+					// Verify if SSL is supported
+					add_action('admin_notices', array($this, 'check_ssl_absence'));
 				}
 			}
-		} else {
-			// Verify if SSL is supported
-			add_action('admin_notices', array($this, 'check_ssl_absence'));
 		}
 
 	}
@@ -355,7 +355,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			'ticket/ticket-form.php',
 			$parameters,
 			'woocommerce/mercadopago/',
-			WC_WooMercadoPago_Module::getTemplatesPath()
+			WC_WooMercadoPago_Module::get_templates_path()
 		);
 	}
 
@@ -366,6 +366,9 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	 * @return an array containing the result of the processment and the URL to redirect.
 	 */
 	public function process_payment($order_id) {
+
+		if (!isset($_POST['mercadopago_ticket']))
+			return;
 
 		$order = new WC_Order($order_id);
 		$mercadopago_ticket = $_POST['mercadopago_ticket'];
@@ -397,6 +400,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'redirect' => '',
 			);
     	}
+
 	}
 
 	/**
@@ -645,6 +649,9 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	 */
 	public function add_discount_ticket() {
 
+		if (!isset($_POST['mercadopago_ticket']))
+			return;
+
 		if (is_admin() && ! defined('DOING_AJAX') || is_cart()) {
 			return;
 		}
@@ -724,27 +731,29 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 				// check for auto converstion of currency
 				$this->currency_ratio = -1;
-				if ( $this->currency_conversion == "yes" ) {
-					$currency_obj = MPRestClient::get_ml( array( "uri" =>
-						"/currency_conversions/search?from=" .
-						get_woocommerce_currency() .
-						"&to=" .
-						$this->getCurrencyId( $this->site_id )
-					) );
-					if ( isset( $currency_obj[ 'response' ] ) ) {
-						$currency_obj = $currency_obj[ 'response' ];
-						if ( isset( $currency_obj['ratio'] ) ) {
-							$this->currency_ratio = (float) $currency_obj['ratio'];
-						} else {
-							$this->currency_ratio = -1;
-						}
-					} else {
-						$this->currency_ratio = -1;
-					}
+				if ($this->currency_conversion == 'yes') {
+					$instance = WC_WooMercadoPago_Module::init_mercado_pago_gateway_class();
+					$this->currency_ratio = $instance->get_conversion_rate(
+						$this->country_configs['currency']
+					);
 				}
+
 				return true;
-			} else return false;
-		} catch ( MercadoPagoException $e ) {
+
+			} else {
+				$this->mp = null;
+				return false;
+			}
+
+		} catch (MercadoPagoException $e) {
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[validate_credentials] - while validating credentials, got exception: ' .
+					json_encode(array('status' => $e->getCode(), 'message' => $e->getMessage()))
+				);
+			}
+			$this->mp = null;
 			return false;
 		}
 
