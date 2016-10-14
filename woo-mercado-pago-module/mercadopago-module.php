@@ -353,7 +353,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 	// ==========================================================================================
 
 	// Payment gateways should be created as additional plugins that hook into WooCommerce.
-	// Inside the plugin, you need to create a class after plugins are loaded
+	// Inside the plugin, you need to create a class after plugins are loaded.
 	add_action(
 		'plugins_loaded',
 		array('WC_WooMercadoPago_Module', 'init_mercado_pago_gateway_class'), 0
@@ -362,25 +362,28 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 	// Add settings link on plugin page
 	function woomercadopago_settings_link($links) {
 		$plugin_links = array();
-		$plugin_links[] = '<a href="' . esc_url(admin_url(
-			'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPago_Gateway')) .
-		'">' . __('Basic Checkout', 'woocommerce-mercadopago-module') . '</a>';
-		$plugin_links[] = '<a href="' . esc_url(admin_url(
+		$plugin_links[] = '<a class="button button-primary" href="' . esc_url(admin_url(
+         'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPago_Gateway')) .
+         '">' . __('Basic Checkout', 'woocommerce-mercadopago-module') . '</a>';
+		$plugin_links[] = '<a class="button button-primary" href="' . esc_url(admin_url(
 			'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCustom_Gateway')) .
-		'">' . __('Custom Checkout', 'woocommerce-mercadopago-module') . '</a>';
-		$plugin_links[] = '<a href="' . esc_url(admin_url(
+         '">' . __('Custom Checkout', 'woocommerce-mercadopago-module') . '</a>';
+		$plugin_links[] = '<a class="button button-primary" href="' . esc_url(admin_url(
 			'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway')) .
-		'">' . __('Ticket', 'woocommerce-mercadopago-module') . '</a>';
-      $plugin_links[] = '<a target="_blank" href="' .
+         '">' . __('Ticket', 'woocommerce-mercadopago-module') . '</a>';
+      $plugin_links[] = '<br><br><a class="button" target="_blank" href="' .
          'https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform' .
-      '">' . __('Rate Us', 'woocommerce-mercadopago-module') . '</a>';
-      $plugin_links[] = '<a target="_blank" href="' .
+         '">' . sprintf(
+            __('Rate Us %s', 'woocommerce-mercadopago-module'),
+            '&#9733;&#9733;&#9733;&#9733;&#9733;'
+         ) . '</a>';
+      $plugin_links[] = '<a class="button" target="_blank" href="' .
          'https://wordpress.org/support/plugin/woo-mercado-pago-module#postform' .
-      '">' . __('Report Problem', 'woocommerce-mercadopago-module') . '</a>';
+         '">' . __('Report Issue', 'woocommerce-mercadopago-module') . '</a>';
 		return array_merge($plugin_links, $links);
 	}
 	$plugin = plugin_basename(__FILE__);
-	add_filter('plugin_action_links_$plugin', 'woomercadopago_settings_link');
+	add_filter("plugin_action_links_$plugin", 'woomercadopago_settings_link');
 
 }
 

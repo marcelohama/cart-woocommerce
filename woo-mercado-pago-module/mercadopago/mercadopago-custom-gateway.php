@@ -17,7 +17,7 @@ require_once 'sdk/lib/mercadopago.php';
  */
 class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
-	public function __construct() {
+	public function __construct($is_instance = false) {
 
 		// WooCommerce fields
 		$this->id = 'woocommerce-mercadopago-custom-module';
@@ -53,7 +53,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->category_id = $this->get_option('category_id');
 		$this->invoice_prefix = $this->get_option('invoice_prefix', 'WC-');
 		$this->currency_conversion = $this->get_option('currency_conversion', false);
-		$this->payment_split_mode = false;
 		$this->sandbox = $this->get_option('sandbox', false);
 		$this->debug = $this->get_option('debug', false);
 
@@ -72,11 +71,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 		// Used by IPN to receive IPN incomings
 		add_action(
-			'woocommerce_api_wc_woomercadopagocustom_gateway', array($this, 'process_http_request')
+			'woocommerce_api_wc_woomercadopagocustom_gateway',
+			array($this, 'process_http_request')
 		);
 		// Used by IPN to process valid incomings
 		add_action(
-			'valid_mercadopagocustom_ipn_request', array($this, 'successful_request')
+			'valid_mercadopagocustom_ipn_request',
+			array($this, 'successful_request')
 		);
 		// Used in settings page to hook "save settings" action
 		add_action(
@@ -85,23 +86,21 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		);
 		// Scripts for custom checkout
 		add_action(
-			'wp_enqueue_scripts', array($this, 'custom_checkout_scripts')
+			'wp_enqueue_scripts',
+			array($this, 'custom_checkout_scripts')
 		);
 		// Apply the discounts
-		/*add_action(
+		add_action(
 			'woocommerce_cart_calculate_fees',
 			array($this, 'add_discount_custom'), 10
-		);*/
-		// Used in settings page to hook "save settings" action
-		add_action(
-			'woocommerce_update_options_payment_gateways_' . $this->id,
-			array($this, 'custom_process_admin_options')
 		);
 
-		// Verify if public_key or client_secret is empty
+		// Verify if public_key or access_token is empty
 		if (empty($this->public_key) || empty($this->access_token)) {
 			if (!empty($this->settings['enabled']) && $this->settings['enabled'] == 'yes') {
-				add_action('admin_notices', array($this, 'credentials_missing_message'));
+				if ($is_instance) {
+					add_action('admin_notices', array($this, 'credentials_missing_message'));
+				}
 			}
 		} else {
 			// Verify if SSL is supported
@@ -117,13 +116,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 
 		// If module is disabled, we do not need to load and process the settings page
-		if (!empty($this->settings['enabled']) && 'no' == $this->settings['enabled']) {
+		if (empty($this->settings['enabled']) || 'no' == $this->settings['enabled']) {
 			$this->form_fields = array(
 				'enabled' => array(
 					'title' => __('Enable/Disable', 'woocommerce-mercadopago-module'),
 					'type' => 'checkbox',
 					'label' => __('Enable Custom Checkout', 'woocommerce-mercadopago-module'),
-					'default' => 'yes'
+					'default' => 'no'
 				)
 			);
 			return;
@@ -192,7 +191,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'title' => __('Enable/Disable', 'woocommerce-mercadopago-module'),
 				'type' => 'checkbox',
 				'label' => __('Enable Custom Checkout', 'woocommerce-mercadopago-module'),
-				'default' => 'yes'
+				'default' => 'no'
 			),
 			'credentials_title' => array(
 				'title' => __('Mercado Pago Credentials', 'woocommerce-mercadopago-module'),
@@ -293,14 +292,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'default' => 'no',
 				'description' => sprintf('%s', $this->currency_message)
 			),
-			'payment_split_mode' => array(
-				'title' => __('Two Cards Mode', 'woocommerce-mercadopago-module'),
-				'type' => 'checkbox',
-				'label' => __('Payments with Two Cards', 'woocommerce-mercadopago-module'),
-				'default' => ($this->payment_split_mode == 'active' ? 'yes' : 'no'),
-				'description' =>
-					__('Your customer will be able to use two different cards to pay the order.', 'woocommerce-mercadopago-module'),
-			),
 			'testing' => array(
 				'title' => __('Test and Debug Options', 'woocommerce-mercadopago-module'),
 				'type' => 'title',
@@ -328,43 +319,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			)
 		);
 
-	}
-
-	/**
-     * Processes and saves options.
-     * If there is an error thrown, will continue to save and validate fields, but will leave the
-     * erroring field out.
-     * @return bool was anything saved?
-     */
-	public function custom_process_admin_options() {
-		$this->init_settings();
-
-      $post_data = $this->get_post_data();
-
-		foreach ($this->get_form_fields() as $key => $field) {
-      	if ('title' !== $this->get_field_type($field)) {
-         	try {
-         		if ($key != 'payment_split_mode') {
-            		$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
-         		} else {
-         			// We dont save split mode as it should come from api
-         			$value = $this->get_field_value($key, $field, $post_data);
-         			$this->payment_split_mode = ($value == 'yes' ? 'active' : 'inactive');
-         		}
-            } catch (Exception $e) {
-            	$this->add_error($e->getMessage());
-				}
-         }
-		}
-
-		if ($this->mp != null) {
-			$response = $this->mp->set_two_cards_mode($this->payment_split_mode);
-		}
-
-		return update_option(
-        	$this->get_option_key(),
-        	apply_filters('woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings)
-     	);
 	}
 
 	/*
@@ -536,8 +490,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			isset($custom_checkout['installments']) && !empty($custom_checkout['installments']) &&
 			$custom_checkout['installments'] != -1) {
 
-			$post = $_POST;
-			$response = $this->create_url($order, $$custom_checkout);
+			$response = $this->create_url($order, $custom_checkout);
 
    		if (array_key_exists('status', $response)) {
         		switch ($response['status']) {
@@ -615,8 +568,13 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			// process when fields are imcomplete
 			wc_add_notice(
 				'<p>' .
-				__('A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module') . '</p>',
+					__('A problem was occurred when processing your payment. Are you sure you have correctly filled all information in the checkout form?', 'woocommerce-mercadopago-module') .
+				'</p>',
 				'error'
+			);
+			return array(
+				'result'   => 'fail',
+				'redirect' => '',
 			);
 		}
 	}
@@ -697,7 +655,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
     			//'area_code' =>
 				'number' => $order->billing_phone
 			),
-        'address' => array(
+			'address' => array(
 				'zip_code' => $order->billing_postcode,
 				//'street_number' =>
 				'street_name' => $order->billing_address_1 . ' / ' .
@@ -723,7 +681,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
     	);
 
     	// The payment preference
-    	$preferences = array (
+    	$preferences = array(
     		'transaction_amount' => floor(((float) $custom_checkout['amount']) * 100) / 100,
     		'token' => $custom_checkout['token'],
     		'description' => implode(', ', $list_of_items),
@@ -857,12 +815,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	/*
-	 * ========================================================================
-	 * AUXILIARY AND FEEDBACK METHODS (SERVER SIDE)
-	 * ========================================================================
-	 */
-
 	/**
 	 * Summary: Check if we have existing customer card, if not we create and save it.
 	 * Description: Check if we have existing customer card, if not we create and save it.
@@ -935,7 +887,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ('yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
-					'[add_discount_custom] - Custom checkout trying to apply discount...'
+					'[add_discount_custom] - custom checkout trying to apply discount...'
 				);
 			}
 
@@ -985,7 +937,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$this->is_test_user = in_array('test_user', $get_request['response']['tags']);
 				$this->site_id = $get_request['response']['site_id'];
 				$this->country_configs = WC_WooMercadoPago_Module::get_country_config($this->site_id);
-				$this->payment_split_mode = $this->mp->check_two_cards();
 
 				$payments = $this->mp->get('/v1/payment_methods/?access_token=' . $access_token);
 
@@ -1159,7 +1110,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$obj = new stdClass();
 				$obj->status = 404;
 				$obj->response = array(
-					'message' => __('Please, inform your email in billing address to use this feature', 'woocommerce-mercadopago-module'),
+					'message' =>
+						__('Please, inform your email in billing address to use this feature', 'woocommerce-mercadopago-module'),
 					'error' => 'payer_not_found',
 					'status' => 404,
 					'cause' => array()
@@ -1219,7 +1171,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 
 		try {
-			// Get the merchant_order reported by the IPN
+			// Get the payment reported by the IPN
 			if ($data['type'] == 'payment') {
 				$payment_info = $this->mp->get(
 					'/v1/payments/' . $data['data_id'], $this->access_token, false
@@ -1242,7 +1194,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ('yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
-					': @[check_ipn_request_is_valid] - MercadoPagoException: ' .
+					'[check_ipn_request_is_valid] - MercadoPagoException: ' .
 					json_encode(array('status' => $e->getCode(), 'message' => $e->getMessage()))
 				);
 			}
@@ -1322,29 +1274,34 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					case 'rejected':
 						$order->update_status(
 							'failed',
-							'Mercado Pago: ' . __('The payment was refused. The customer can try again.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' .
+								__('The payment was refused. The customer can try again.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'refunded':
 						$order->update_status(
 							'refunded',
-							'Mercado Pago: ' . __('The payment was refunded to the customer.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' .
+								__('The payment was refunded to the customer.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'cancelled':
 						$order->update_status(
 							'cancelled',
-							'Mercado Pago: ' . __('The payment was cancelled.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' .
+								__('The payment was cancelled.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'in_mediation':
 						$order->add_order_note(
-							'Mercado Pago: ' . __('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' .
+								__('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					case 'charged-back':
 						$order->add_order_note(
-							'Mercado Pago: ' . __('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
+							'Mercado Pago: ' .
+								__('The payment is under mediation or it was charged-back.', 'woocommerce-mercadopago-module')
 						);
 						break;
 					default:
@@ -1356,4 +1313,4 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 }
 
-new WC_WooMercadoPagoCustom_Gateway();
+new WC_WooMercadoPagoCustom_Gateway(true);

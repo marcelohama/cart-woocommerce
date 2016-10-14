@@ -108,13 +108,13 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 
 		// If module is disabled, we do not need to load and process the settings page
-		if (!empty($this->settings['enabled']) && 'no' == $this->settings['enabled']) {
+		if (empty($this->settings['enabled']) || 'no' == $this->settings['enabled']) {
 			$this->form_fields = array(
 				'enabled' => array(
 					'title' => __('Enable/Disable', 'woocommerce-mercadopago-module'),
 					'type' => 'checkbox',
 					'label' => __('Enable Basic Checkout', 'woocommerce-mercadopago-module'),
-					'default' => 'yes'
+					'default' => 'no'
 				)
 			);
 			return;
@@ -216,7 +216,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'title' => __('Enable/Disable', 'woocommerce-mercadopago-module'),
 				'type' => 'checkbox',
 				'label' => __('Enable Basic Checkout', 'woocommerce-mercadopago-module'),
-				'default' => 'yes'
+				'default' => 'no'
 			),
 			'credentials_title' => array(
 				'title' => __('Mercado Pago Credentials', 'woocommerce-mercadopago-module'),
