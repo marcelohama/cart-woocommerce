@@ -841,9 +841,9 @@ class MPRestClient {
 
     }
 
-    private static function exec($request, $version, $domain) {
+    private static function exec($request, $version) {
 
-        $connect = self::build_request($request, $version, $domain);
+        $connect = self::build_request($request, $version);
 
         $api_result = curl_exec($connect);
         $api_http_code = curl_getinfo($connect, CURLINFO_HTTP_CODE);

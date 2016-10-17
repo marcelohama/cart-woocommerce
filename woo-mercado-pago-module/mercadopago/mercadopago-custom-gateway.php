@@ -19,17 +19,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 	public function __construct($is_instance = false) {
 
-		// WooCommerce fields
-		$this->id = 'woocommerce-mercadopago-custom-module';
-		$this->domain = get_site_url() . '/index.php';
-		$this->method_title = __('Mercado Pago - Credit Card', 'woocommerce-mercadopago-module');
-		$this->method_description = '<img width="200" height="52" src="' .
-			plugins_url('images/mplogo.png', plugin_dir_path(__FILE__)) . '"><br><br>' . '<strong>' .
-			wordwrap(
-				__('This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module'),
-				80, '\n'
-			) . '</strong>';
-
 		// Mercado Pago fields
 		$this->mp = null;
 		$this->site_id = null;
@@ -41,6 +30,17 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		$this->country_configs = array();
 		$this->store_categories_id = array();
   		$this->store_categories_description = array();
+
+		// WooCommerce fields
+		$this->id = 'woocommerce-mercadopago-custom-module';
+		$this->domain = get_site_url() . '/index.php';
+		$this->method_title = __('Mercado Pago - Credit Card', 'woocommerce-mercadopago-module');
+		$this->method_description = '<img width="200" height="52" src="' .
+			plugins_url('images/mplogo.png', plugin_dir_path(__FILE__)) . '"><br><br>' . '<strong>' .
+			wordwrap(
+				__('This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module'),
+				80, '\n'
+			) . '</strong>';
 
 		// Fields used in Mercado Pago Module configuration page
 		$this->public_key = $this->get_option('public_key');
@@ -495,7 +495,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			isset($custom_checkout['installments']) && !empty($custom_checkout['installments']) &&
 			$custom_checkout['installments'] != -1) {
 
-			$response = $this->create_url($order, $custom_checkout);
+			$response = self::create_url($order, $custom_checkout);
 
    		if (array_key_exists('status', $response)) {
         		switch ($response['status']) {

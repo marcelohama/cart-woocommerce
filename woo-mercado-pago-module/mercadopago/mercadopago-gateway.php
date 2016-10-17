@@ -19,6 +19,19 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 
+		// Mercado Pago fields
+		$this->mp = null;
+		$this->site_id = null;
+		$this->currency_ratio = -1;
+		$this->is_test_user = false;
+
+		// Auxiliary fields
+		$this->currency_message = '';
+		$this->payment_methods = array();
+		$this->country_configs = array();
+		$this->store_categories_id = array();
+  		$this->store_categories_description = array();
+
 		// WooCommerce fields
 		$this->id = 'woocommerce-mercadopago-module';
 		$this->domain = get_site_url() . '/index.php';
@@ -33,19 +46,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				__('This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module'),
 				80, '\n'
 			) . '</strong>';
-
-		// Mercado Pago fields
-		$this->mp = null;
-		$this->site_id = null;
-		$this->currency_ratio = -1;
-		$this->is_test_user = false;
-
-		// Auxiliary fields
-		$this->currency_message = '';
-		$this->payment_methods = array();
-		$this->country_configs = array();
-		$this->store_categories_id = array();
-  		$this->store_categories_description = array();
 
 		// Fields used in Mercado Pago Module configuration page
 		$this->client_id = $this->get_option('client_id');

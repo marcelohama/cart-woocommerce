@@ -19,17 +19,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 	public function __construct($is_instance = false) {
 
-		// WooCommerce fields
-		$this->id = 'woocommerce-mercadopago-ticket-module';
-		$this->domain = get_site_url() . '/index.php';
-		$this->method_title = __('Mercado Pago - Ticket', 'woocommerce-mercadopago-module');
-		$this->method_description = '<img width="200" height="52" src="' .
-			plugins_url('images/mplogo.png', plugin_dir_path(__FILE__)) . '"><br><br>' . '<strong>' .
-			wordwrap(
-				__('This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module'),
-				80, '\n'
-			) . '</strong>';
-
 		// Mercado Pago fields
 		$this->mp = null;
 		$this->site_id = null;
@@ -42,6 +31,17 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		$this->country_configs = array();
 		$this->store_categories_id = array();
   		$this->store_categories_description = array();
+
+		// WooCommerce fields
+		$this->id = 'woocommerce-mercadopago-ticket-module';
+		$this->domain = get_site_url() . '/index.php';
+		$this->method_title = __('Mercado Pago - Ticket', 'woocommerce-mercadopago-module');
+		$this->method_description = '<img width="200" height="52" src="' .
+			plugins_url('images/mplogo.png', plugin_dir_path(__FILE__)) . '"><br><br>' . '<strong>' .
+			wordwrap(
+				__('This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woocommerce-mercadopago-module'),
+				80, '\n'
+			) . '</strong>';
 
   		// Fields used in Mercado Pago Module configuration page
   		$this->access_token = $this->get_option('access_token');
@@ -385,7 +385,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		if (isset($mercadopago_ticket['amount']) && !empty($mercadopago_ticket['amount']) &&
 			isset($mercadopago_ticket['paymentMethodId']) && !empty($mercadopago_ticket['paymentMethodId'])) {
 
-			return $this->create_url($order, $mercadopago_ticket);
+			return self::create_url($order, $mercadopago_ticket);
 
 		} else {
 	    	// process when fields are imcomplete
