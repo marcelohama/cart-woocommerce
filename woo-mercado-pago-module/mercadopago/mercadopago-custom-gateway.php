@@ -948,10 +948,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				$this->site_id = $get_request['response']['site_id'];
 				$this->country_configs = WC_WooMercadoPago_Module::get_country_config($this->site_id);
 
-				$payments = $this->mp->get(
-					'/v1/payment_methods/?access_token=' . $this->get_option('access_token')
-				);
-
 				// check for auto converstion of currency (only if it is enabled)
 				$this->currency_ratio = -1;
 				if ($this->currency_conversion == 'yes') {

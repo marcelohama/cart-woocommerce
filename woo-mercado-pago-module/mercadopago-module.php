@@ -7,7 +7,7 @@
  * Author URI: https://www.mercadopago.com.br/developers/
  * Developer: Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
  * Copyright: Copyright(c) MercadoPago [https://www.mercadopago.com]
- * Version: 2.2.0
+ * Version: 2.1.4
  * License: https://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  * Text Domain: woocommerce-mercadopago-module
  * Domain Path: /languages/
@@ -30,7 +30,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 	 */
 	class WC_WooMercadoPago_Module {
 
-      const VERSION = '2.1.3';
+      const VERSION = '2.1.4';
 
 		private $store_categories_id = array();
   		private $store_categories_description = array();
@@ -362,7 +362,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 	// Add settings link on plugin page
 	function woomercadopago_settings_link($links) {
 		$plugin_links = array();
-		$plugin_links[] = '<a class="button button-primary" href="' . esc_url(admin_url(
+		$plugin_links[] = '<br><a class="button button-primary" href="' . esc_url(admin_url(
          'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPago_Gateway')) .
          '">' . __('Basic Checkout', 'woocommerce-mercadopago-module') . '</a>';
 		$plugin_links[] = '<a class="button button-primary" href="' . esc_url(admin_url(
@@ -371,13 +371,13 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 		$plugin_links[] = '<a class="button button-primary" href="' . esc_url(admin_url(
 			'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway')) .
          '">' . __('Ticket', 'woocommerce-mercadopago-module') . '</a>';
-      $plugin_links[] = '<br><br><a class="button" target="_blank" href="' .
+      $plugin_links[] = '<br><br><a target="_blank" href="' .
          'https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform' .
          '">' . sprintf(
-            __('Rate Us %s', 'woocommerce-mercadopago-module'),
+            __('Rate Us', 'woocommerce-mercadopago-module') . ' %s',
             '&#9733;&#9733;&#9733;&#9733;&#9733;'
          ) . '</a>';
-      $plugin_links[] = '<a class="button" target="_blank" href="' .
+      $plugin_links[] = '<a target="_blank" href="' .
          'https://wordpress.org/support/plugin/woo-mercado-pago-module#postform' .
          '">' . __('Report Issue', 'woocommerce-mercadopago-module') . '</a>';
 		return array_merge($plugin_links, $links);

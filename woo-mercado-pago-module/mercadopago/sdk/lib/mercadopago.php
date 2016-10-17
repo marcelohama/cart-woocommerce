@@ -384,7 +384,7 @@ class MP {
                'access_token' => $this->get_access_token()
            ),
            'headers' => array(
-               'user-agent' => 'platform:desktop,type:woocommerce,so:' . $this->$version
+               'user-agent' => 'platform:desktop,type:woocommerce,so:' . $this->version
            ),
            'data' => $preference
        );
@@ -450,7 +450,7 @@ class MP {
                 'access_token' => $this->get_access_token()
             ),
             'headers' => array(
-                'X-Tracking-Id' => 'platform:v1-whitelabel,type:woocommerce,so:' . $this->$version
+                'X-Tracking-Id' => 'platform:v1-whitelabel,type:woocommerce,so:' . $this->version
             ),
             'data' => $preference
         );
@@ -741,9 +741,8 @@ class MP {
 class MPRestClient {
 
     const API_BASE_URL = 'https://api.mercadopago.com';
-    const API_BASE_ML_URL = 'https://api.mercadolibre.com';
 
-    private static function build_request($request, $version, $domain) {
+    private static function build_request($request, $version) {
 
         if (!extension_loaded ('curl')) {
             throw new MercadoPagoException('cURL extension not found. You need to enable cURL in your php.ini or another configuration you have.');
@@ -814,7 +813,7 @@ class MPRestClient {
                 $request['uri'] .= self::build_query($request['params']);
             }
         }
-        curl_setopt($connect, CURLOPT_URL, $domain . $request['uri']);
+        curl_setopt($connect, CURLOPT_URL, MPRestClient::API_BASE_URL . $request['uri']);
 
         // Set data
         if (isset($request['data'])) {
@@ -877,28 +876,28 @@ class MPRestClient {
 
     }
 
-    public static function get($request, $version, $domain = self::API_BASE_URL) {
+    public static function get($request, $version) {
         $request['method'] = 'GET';
 
-        return self::exec($request, $version, $domain);
+        return self::exec($request, $version);
     }
 
-    public static function post($request, $version, $domain = self::API_BASE_URL) {
+    public static function post($request, $version) {
         $request['method'] = 'POST';
 
-        return self::exec($request, $version, $domain);
+        return self::exec($request, $version);
     }
 
-    public static function put($request, $version, $domain = self::API_BASE_URL) {
+    public static function put($request, $version) {
         $request['method'] = 'PUT';
 
-        return self::exec($request, $version, $domain);
+        return self::exec($request, $version);
     }
 
-    public static function delete($request, $version, $domain = self::API_BASE_URL) {
+    public static function delete($request, $version) {
         $request['method'] = 'DELETE';
 
-        return self::exec($request, $version, $domain);
+        return self::exec($request, $version);
     }
 
 }
