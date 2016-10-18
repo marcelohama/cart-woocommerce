@@ -183,7 +183,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		}
 
 		// fill categories (can be handled without credentials)
-		$categories = WC_WooMercadoPago_Module::init_mercado_pago_gateway_class()->get_categories();
+		$categories = WC_WooMercadoPago_Module::get_categories();
 		$this->store_categories_id = $categories['store_categories_id'];
 		$this->store_categories_description = $categories['store_categories_description'];
 
@@ -951,8 +951,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				// check for auto converstion of currency (only if it is enabled)
 				$this->currency_ratio = -1;
 				if ($this->currency_conversion == 'yes') {
-					$instance = WC_WooMercadoPago_Module::init_mercado_pago_gateway_class();
-					$this->currency_ratio = $instance->get_conversion_rate(
+					$this->currency_ratio = WC_WooMercadoPago_Module::get_conversion_rate(
 						$this->country_configs['currency']
 					);
 				}

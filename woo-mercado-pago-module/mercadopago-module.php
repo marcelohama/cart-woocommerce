@@ -32,9 +32,6 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 
       const VERSION = '2.1.4';
 
-		private $store_categories_id = array();
-  		private $store_categories_description = array();
-
 		// Singleton design pattern
 		protected static $instance = null;
 		public static function init_mercado_pago_gateway_class() {
@@ -59,16 +56,6 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 				add_filter(
 					'woomercadopago_settings_link_' . plugin_basename(__FILE__),
 					array($this, 'woomercadopago_settings_link'));
-
-				// get Mercado Pago store categories
-				$categories = MPRestClient::get(
-               array('uri' => '/item_categories'),
-               WC_WooMercadoPago_Module::get_module_version()
-            ); // TODO: do not use static
-				foreach ($categories['response'] as $category) {
-					array_push($this->store_categories_id, str_replace('_', ' ', $category['id']));
-					array_push($this->store_categories_description, str_replace('_', ' ', $category['description']));
-				}
 
 			} else {
 				add_action('admin_notices', array($this, 'notify_woocommerce_miss'));
@@ -98,18 +85,6 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 				'</p></div>';
 		}
 
-		/**
-		 * Summary: Get store categories from Mercado Pago.
-		 * Description: Trigger API to get available categories and proper description.
-		 * @return an array with found categories and a description for its selector title.
-		 */
-		public function get_categories() {
-			return array(
-				'store_categories_id' => $this->store_categories_id,
-				'store_categories_description' => $this->store_categories_description
-			);
-		}
-
 		// Multi-language plugin
 		public function load_plugin_textdomain() {
 			$locale = apply_filters('plugin_locale', get_locale(), 'woocommerce-mercadopago-module');
@@ -125,12 +100,43 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 			);
 		}
 
+      /**
+       * Summary: Get store categories from Mercado Pago.
+       * Description: Trigger API to get available categories and proper description.
+       * @return an array with found categories and a description for its selector title.
+       */
+      public static function get_categories() {
+
+         $store_categories_id = array();
+         $$store_categories_description = array();
+
+         // get Mercado Pago store categories
+         $categories = MPRestClient::get(
+            array('uri' => '/item_categories'),
+            WC_WooMercadoPago_Module::get_module_version()
+         );
+         foreach ($categories['response'] as $category) {
+            array_push(
+               $store_categories_id, str_replace('_', ' ', $category['id'])
+            );
+            array_push(
+               $store_categories_description, str_replace('_', ' ', $category['description'])
+            );
+         }
+
+         return array(
+            'store_categories_id' => $store_categories_id,
+            'store_categories_description' => $store_categories_description
+         );
+
+      }
+
 		/**
 		 * Summary: Get the rate of conversion between two currencies.
 		 * Description: The currencies are the one used in WooCommerce and the one used in $site_id.
 		 * @return a float that is the rate of conversion.
 		 */
-		public function get_conversion_rate($used_currency) {
+		public static function get_conversion_rate($used_currency) {
 			$currency_obj = MPRestClient::get(
 				array('uri' => '/currency_conversions/search?' .
 					'from=' . get_woocommerce_currency() .
