@@ -117,6 +117,21 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 					'default' => 'no'
 				)
 			);
+			// Basic checkout is disabled
+			WC_WooMercadoPago_Module::$status_standard = 0;
+			// Saving analytics for settings
+			if ($this->mp != null) {
+				$response = $this->mp->analytics_save_settings(null); // TODO:
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[custom_process_admin_options] - analytics info: ' .
+						json_encode(WC_WooMercadoPago_Module::get_module_settings(
+							$this->site_id, 123
+						), JSON_PRETTY_PRINT)
+					);
+				}
+			}
 			return;
 		}
 
@@ -169,12 +184,42 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			);
 			$this->payment_desc =
 				__('Select the payment methods that you <strong>don\'t</strong> want to receive with Mercado Pago.', 'woocommerce-mercadopago-module');
+			// Basic checkout is enabled
+			WC_WooMercadoPago_Module::$status_standard = 1;
+			// Saving analytics for settings
+			if ($this->mp != null) {
+				$response = $this->mp->analytics_save_settings(null); // TODO:
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[custom_process_admin_options] - analytics info: ' .
+						json_encode(WC_WooMercadoPago_Module::get_module_settings(
+							$this->site_id, 123
+						), JSON_PRETTY_PRINT)
+					);
+				}
+			}
 		} else {
 			array_push($this->payment_methods, 'n/d');
 			$this->credentials_message = WC_WooMercadoPago_Module::build_invalid_credentials_msg();
 			$this->payment_desc = '<img width="12" height="12" src="' .
 				plugins_url('images/warning.png', plugin_dir_path(__FILE__)) . '">' . ' ' .
 				__('Configure your Client_id and Client_secret to have access to more options.', 'woocommerce-mercadopago-module');
+			// Basic checkout is disabled
+			WC_WooMercadoPago_Module::$status_standard = 0;
+			// Saving analytics for settings
+			if ($this->mp != null) {
+				$response = $this->mp->analytics_save_settings(null); // TODO:
+				if ('yes' == $this->debug) {
+					$this->log->add(
+						$this->id,
+						'[custom_process_admin_options] - analytics info: ' .
+						json_encode(WC_WooMercadoPago_Module::get_module_settings(
+							$this->site_id, 123
+						), JSON_PRETTY_PRINT)
+					);
+				}
+			}
 		}
 
 		// fill categories (can be handled without credentials)
@@ -401,11 +446,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
          			$this->payment_split_mode = ($value == 'yes' ? 'active' : 'inactive');
          		} else {
          			$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
-         			if ($key == 'enabled') {
-         				// Handle analytics info
-							WC_WooMercadoPago_Module::$status_standard =
-								($this->settings[$key] == 'yes' ? 1 : 0);
-						}
          		}
             } catch (Exception $e) {
             	$this->add_error($e->getMessage());
@@ -415,21 +455,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 		if ($this->mp != null) {
 			$response = $this->mp->set_two_cards_mode($this->payment_split_mode);
-		}
-
-		// Saving analytics for settings
-		if ($this->mp != null) {
-			$response = $this->mp->analytics_save_settings(null); // TODO:
-			if ('yes' == $this->debug) {
-				$this->log->add(
-					$this->id,
-					'[custom_process_admin_options] - analytics info: ' .
-					json_encode(WC_WooMercadoPago_Module::get_module_settings(
-						$this->settings['client_id'],
-						$this->settings['client_secret']
-					), JSON_PRETTY_PRINT)
-				);
-			}
 		}
 
 		return update_option(

@@ -343,11 +343,6 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
       	if ('title' !== $this->get_field_type($field)) {
          	try {
       			$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
-      			if ($key == 'enabled') {
-      				// Handle analytics info
-						WC_WooMercadoPago_Module::$status_custom =
-							($this->settings[$key] == 'yes' ? 1 : 0);
-					}
             } catch (Exception $e) {
             	$this->add_error($e->getMessage());
 				}
