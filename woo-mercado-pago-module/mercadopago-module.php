@@ -32,6 +32,15 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
 
       const VERSION = '2.1.4';
 
+      // Analytics fields
+      static $analytics_enabled = true;
+      static $status_custom = 0;
+      static $status_standard = 0;
+      static $status_coupon = 0;
+      static $status_ticket = 0;
+      static $status_me = 0;
+      static $status_two_cards = 0;
+
 		// Singleton design pattern
 		protected static $instance = null;
 		public static function init_mercado_pago_gateway_class() {
@@ -182,6 +191,39 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
          //return $plugin_data['Version'];
          return WC_WooMercadoPago_Module::VERSION;
 		}
+
+      /**
+       * Summary: Builds up the array for the mp_install table, with info related with checkout.
+       * Description: Builds up the array for the mp_install table, with info related with checkout.
+       * @return an array with the module informations.
+       */
+      public static function get_module_settings($site_id, $collector_id) {
+
+         $country_configs = WC_WooMercadoPago_Module::get_country_config($site_id);
+         $WooCommerce = WC_WooMercadoPago_Module::woocommerce_instance();
+
+         $infra_data = array(
+            'ModuleVersion' => WC_WooMercadoPago_Module::VERSION,
+            'SiteId' =>  $site_id,
+            'DataCreated' => date('Y-m-d H:i:s'),
+            'CollectorId' => $collector_id,
+            'Status' => ((WC_WooMercadoPago_Module::$status_standard +
+               WC_WooMercadoPago_Module::$status_custom +
+               WC_WooMercadoPago_Module::$status_ticket) > 0 ? 1 : 0),
+            'StatusTwoCards' => ($status_two_cards == 'yes' ? 1 : 0),
+            'StatusMe' => WC_WooMercadoPago_Module::$status_me,
+            'StatusTicket' => WC_WooMercadoPago_Module::$status_ticket,
+            'StatusCoupon' => WC_WooMercadoPago_Module::$status_coupon,
+            'StatusStandard' => WC_WooMercadoPago_Module::$status_standard,
+            'StatusCustom' => WC_WooMercadoPago_Module::$status_custom,
+            'PhpVersion' => phpversion(),
+            'SoServer' => PHP_OS,
+            'ModulesId' => 'WOOCOMMERCE ' . $WooCommerce->version
+         );
+
+         return $infra_data;
+
+      }
 
 		/**
 		 * Summary: Get preference data for a specific country.

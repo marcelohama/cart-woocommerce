@@ -117,6 +117,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 					'default' => 'no'
 				)
 			);
+
+			// set info analytics to disabled
+			WC_WooMercadoPago_Module::$status_standard = 0;
+
 			return;
 		}
 
@@ -379,6 +383,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			)
 		);
 
+		// set info analytics to disabled
+		WC_WooMercadoPago_Module::$status_standard = 1;
+
 	}
 
 	/**
@@ -410,6 +417,17 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 		if ($this->mp != null) {
 			$response = $this->mp->set_two_cards_mode($this->payment_split_mode);
+		}
+
+		// TODO: Saving analytics
+		if ('yes' == $this->debug) {
+			$this->log->add(
+				$this->id,
+				'[process_payment] - analytics info: ' .
+				json_encode(WC_WooMercadoPago_Module::get_module_settings(
+					$this->site_id, 123
+				), JSON_PRETTY_PRINT)
+			);
 		}
 
 		return update_option(

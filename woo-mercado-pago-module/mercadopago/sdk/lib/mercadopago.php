@@ -723,13 +723,13 @@ class MP {
      */
     public function analytics_save_settings($module_info) {
 
-        $request = array(
+        /*$request = array(
             'uri' => '/modules/tracking/saveSettings?access_token=' . $this->get_access_token(),
             'data' => $module_info
         );
 
         $result = MPRestClient::get($request, $this->version);
-        return $result;
+        return $result;*/
 
     }
 
