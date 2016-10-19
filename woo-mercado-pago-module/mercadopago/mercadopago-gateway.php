@@ -117,10 +117,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 					'default' => 'no'
 				)
 			);
-
-			// set info analytics to disabled
-			WC_WooMercadoPago_Module::$status_standard = 0;
-
 			return;
 		}
 
@@ -383,9 +379,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			)
 		);
 
-		// set info analytics to disabled
-		WC_WooMercadoPago_Module::$status_standard = 1;
-
 	}
 
 	/**
@@ -402,12 +395,15 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		foreach ($this->get_form_fields() as $key => $field) {
       	if ('title' !== $this->get_field_type($field)) {
          	try {
-         		if ($key != 'payment_split_mode') {
-            		$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
-         		} else {
-         			// We dont save split mode as it should come from api
+         		if ($key == 'enabled') {
+         			// Handle analytics info
+						WC_WooMercadoPago_Module::$status_standard = ($value == 'yes' ? 1 : 0);
+         		} else if ($key == 'payment_split_mode') {
+            		// We dont save split mode as it should come from api
          			$value = $this->get_field_value($key, $field, $post_data);
          			$this->payment_split_mode = ($value == 'yes' ? 'active' : 'inactive');
+         		} else {
+         			$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
          		}
             } catch (Exception $e) {
             	$this->add_error($e->getMessage());
