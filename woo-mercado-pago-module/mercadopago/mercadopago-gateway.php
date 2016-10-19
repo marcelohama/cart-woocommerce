@@ -400,11 +400,12 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
          			$value = $this->get_field_value($key, $field, $post_data);
          			$this->payment_split_mode = ($value == 'yes' ? 'active' : 'inactive');
          		} else {
+         			$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
          			if ($key == 'enabled') {
          				// Handle analytics info
-							WC_WooMercadoPago_Module::$status_standard = ($value == 'yes' ? 1 : 0);
+							WC_WooMercadoPago_Module::$status_standard =
+								($this->settings[$key] == 'yes' ? 1 : 0);
 						}
-         			$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
          		}
             } catch (Exception $e) {
             	$this->add_error($e->getMessage());
