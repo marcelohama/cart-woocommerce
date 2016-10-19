@@ -382,11 +382,11 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-     * Processes and saves options.
-     * If there is an error thrown, will continue to save and validate fields, but will leave the
-     * erroring field out.
-     * @return bool was anything saved?
-     */
+	 * Processes and saves options.
+	 * If there is an error thrown, will continue to save and validate fields, but will leave the
+	 * erroring field out.
+	 * @return bool was anything saved?
+	 */
 	public function custom_process_admin_options() {
 		$this->init_settings();
 
@@ -417,15 +417,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$response = $this->mp->set_two_cards_mode($this->payment_split_mode);
 		}
 
-		// TODO: Saving analytics
-		if ('yes' == $this->debug) {
-			$this->log->add(
-				$this->id,
-				'[process_payment] - analytics info: ' .
-				json_encode(WC_WooMercadoPago_Module::get_module_settings(
-					$this->site_id, 123
-				), JSON_PRETTY_PRINT)
-			);
+		// Saving analytics for settings
+		if ($this->mp != null) {
+			$response = $this->mp->analytics_save_settings(null, null); // TODO:
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[custom_process_admin_options] - analytics info: ' .
+					json_encode(WC_WooMercadoPago_Module::get_module_settings(
+						$this->site_id, 123
+					), JSON_PRETTY_PRINT)
+				);
+			}
 		}
 
 		return update_option(

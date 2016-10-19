@@ -94,6 +94,11 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'woocommerce_cart_calculate_fees',
 			array($this, 'add_discount_custom'), 10
 		);
+		// Used in settings page to hook "save settings" action
+		add_action(
+			'woocommerce_update_options_payment_gateways_' . $this->id,
+			array($this, 'custom_process_admin_options')
+		);
 
 		if (!empty($this->settings['enabled']) && $this->settings['enabled'] == 'yes') {
 			if ($is_instance) {
@@ -321,6 +326,52 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			)
 		);
 
+	}
+
+	/**
+	 * Processes and saves options.
+	 * If there is an error thrown, will continue to save and validate fields, but will leave the
+	 * erroring field out.
+	 * @return bool was anything saved?
+	 */
+	public function custom_process_admin_options() {
+		$this->init_settings();
+
+      $post_data = $this->get_post_data();
+
+		foreach ($this->get_form_fields() as $key => $field) {
+      	if ('title' !== $this->get_field_type($field)) {
+         	try {
+      			$this->settings[$key] = $this->get_field_value($key, $field, $post_data);
+      			if ($key == 'enabled') {
+      				// Handle analytics info
+						WC_WooMercadoPago_Module::$status_custom =
+							($this->settings[$key] == 'yes' ? 1 : 0);
+					}
+            } catch (Exception $e) {
+            	$this->add_error($e->getMessage());
+				}
+         }
+		}
+
+		// Saving analytics for settings
+		if ($this->mp != null) {
+			$response = $this->mp->analytics_save_settings(null, null); // TODO:
+			if ('yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[custom_process_admin_options] - analytics info: ' .
+					json_encode(WC_WooMercadoPago_Module::get_module_settings(
+						$this->site_id, 123
+					), JSON_PRETTY_PRINT)
+				);
+			}
+		}
+
+		return update_option(
+        	$this->get_option_key(),
+        	apply_filters('woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings)
+     	);
 	}
 
 	/*
