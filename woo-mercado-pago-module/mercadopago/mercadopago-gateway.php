@@ -419,13 +419,14 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 		// Saving analytics for settings
 		if ($this->mp != null) {
-			$response = $this->mp->analytics_save_settings(null, null); // TODO:
+			$response = $this->mp->analytics_save_settings(null); // TODO:
 			if ('yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
 					'[custom_process_admin_options] - analytics info: ' .
 					json_encode(WC_WooMercadoPago_Module::get_module_settings(
-						$this->site_id, 123
+						$this->settings['client_id'],
+						$this->settings['client_secret']
 					), JSON_PRETTY_PRINT)
 				);
 			}

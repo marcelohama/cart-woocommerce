@@ -356,7 +356,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 		// Saving analytics for settings
 		if ($this->mp != null) {
-			$response = $this->mp->analytics_save_settings(null, null); // TODO:
+			$response = $this->mp->analytics_save_settings(null); // TODO:
 			if ('yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
