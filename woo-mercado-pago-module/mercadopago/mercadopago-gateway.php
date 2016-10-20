@@ -432,7 +432,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						$this->id,
 						'[custom_process_admin_options] - analytics info: ' .
 						json_encode(WC_WooMercadoPago_Module::get_module_settings(
-							isset($get_request['response']['site_id']), 123
+							$get_request['response']['site_id'], 123
 						), JSON_PRETTY_PRINT)
 					);
 				}
