@@ -117,7 +117,7 @@ if (!class_exists('WC_WooMercadoPago_Module')) {
       public static function get_categories() {
 
          $store_categories_id = array();
-         $$store_categories_description = array();
+         $store_categories_description = array();
 
          // get Mercado Pago store categories
          $categories = MPRestClient::get(

@@ -56,7 +56,7 @@ class MP {
      * Description: Get Access Token for API use.
      * @return a string that identifies the access token.
      */
-    public function get_access_token() {
+    public function get_access_token($get_full_response = false) {
 
         if (isset($this->ll_access_token) && !is_null($this->ll_access_token)) {
             return $this->ll_access_token;
@@ -86,7 +86,8 @@ class MP {
         }
 
         $access_data = $access_data['response'];
-        return $access_data['access_token'];
+        if ($get_full_response) return $access_data;
+        else return $access_data['access_token'];
 
     }
 

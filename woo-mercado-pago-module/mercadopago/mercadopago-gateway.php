@@ -22,6 +22,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		// Mercado Pago fields
 		$this->mp = null;
 		$this->site_id = null;
+		$this->collector_id = null;
 		$this->currency_ratio = -1;
 		$this->is_test_user = false;
 
@@ -432,7 +433,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						$this->id,
 						'[custom_process_admin_options] - analytics info: ' .
 						json_encode(WC_WooMercadoPago_Module::get_module_settings(
-							$get_request['response']['site_id'], 123
+							$this->site_id, $this->collector_id
 						), JSON_PRETTY_PRINT)
 					);
 				}
@@ -856,17 +857,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				$this->client_id,
 				$this->client_secret
 			);
-			$access_token = $this->mp->get_access_token();
-			$get_request = $this->mp->get('/users/me?access_token=' . $access_token);
+			$access_data = $this->mp->get_access_token(true);
+			$get_request = $this->mp->get('/users/me?access_token=' . $access_data['access_token']);
 
 			if (isset($get_request['response']['site_id'])) {
 
 				$this->is_test_user = in_array('test_user', $get_request['response']['tags']);
 				$this->site_id = $get_request['response']['site_id'];
+				$this->collector_id = $access_data['user_id'];
 				$this->country_configs = WC_WooMercadoPago_Module::get_country_config($this->site_id);
 				$this->payment_split_mode = $this->mp->check_two_cards();
 
-				$payments = $this->mp->get('/v1/payment_methods/?access_token=' . $access_token);
+				$payments = $this->mp->get('/v1/payment_methods/?access_token=' . $access_data['access_token']);
 				array_push($this->payment_methods, 'n/d');
 				foreach ($payments['response'] as $payment) {
 					array_push($this->payment_methods, str_replace('_', ' ', $payment['id']));
