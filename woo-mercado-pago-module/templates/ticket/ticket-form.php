@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 		width="90" height="40" style="float:right;"/>
 	<?php } else { ?>
 		<?php foreach ($payment_methods as $payment) { ?>
-			<img class="logo" src="<?php echo $payment['thumbnail']; ?>" width="90" height="40"
+			<img class="logo" src="<?php echo $payment['secure_thumbnail']; ?>" width="90" height="40"
 			style="float:right;"/>
 		<?php } ?>
 	<?php } ?>
@@ -75,7 +75,7 @@ if (!defined('ABSPATH')) {
 						</div>
 						<div class="mp-box-inputs mp-col-45">
 							<label>
-								<img src="<?php echo $payment['thumbnail']; ?>"
+								<img src="<?php echo $payment['secure_thumbnail']; ?>"
 								alt="<?php echo $payment['name']; ?>" />
 			  					&nbsp;&nbsp;<?php echo $payment['name']; ?>
 			  				</label>
