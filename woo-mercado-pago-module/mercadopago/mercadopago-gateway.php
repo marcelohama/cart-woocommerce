@@ -409,7 +409,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
          }
 		}
 
-		//========== IMPLEMENTING
+		//========== ANALYTICS
 		/*$this->mp = new MP(
 			WC_WooMercadoPago_Module::get_module_version(),
 			$this->settings['client_id'],
@@ -439,7 +439,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				}
 			}
 		}*/
-		//========== IMPLEMENTING
+		//========== ANALYTICS
 
 		if ($this->mp != null) {
 			$response = $this->mp->set_two_cards_mode($this->payment_split_mode);

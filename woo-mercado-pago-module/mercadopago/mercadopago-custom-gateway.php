@@ -969,10 +969,10 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 			$this->mp = new MP(
 				WC_WooMercadoPago_Module::get_module_version(),
-				$this->get_option('access_token')
+				$this->access_token
 			);
 			$get_request = $this->mp->get(
-				'/users/me?access_token=' . $this->get_option('access_token')
+				'/users/me?access_token=' . $this->access_token
 			);
 
 			if (isset($get_request['response']['site_id'])) {
