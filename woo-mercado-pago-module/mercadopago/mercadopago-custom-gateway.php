@@ -22,6 +22,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		// Mercado Pago fields
 		$this->mp = null;
 		$this->site_id = null;
+		$this->collector_id = null;
 		$this->currency_ratio = -1;
 		$this->is_test_user = false;
 
@@ -978,6 +979,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 				$this->is_test_user = in_array('test_user', $get_request['response']['tags']);
 				$this->site_id = $get_request['response']['site_id'];
+				$this->collector_id = $get_request['response']['id'];
 				$this->country_configs = WC_WooMercadoPago_Module::get_country_config($this->site_id);
 
 				// check for auto converstion of currency (only if it is enabled)

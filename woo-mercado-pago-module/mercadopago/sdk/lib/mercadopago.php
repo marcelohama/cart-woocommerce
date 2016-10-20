@@ -56,7 +56,7 @@ class MP {
      * Description: Get Access Token for API use.
      * @return a string that identifies the access token.
      */
-    public function get_access_token($get_full_response = false) {
+    public function get_access_token() {
 
         if (isset($this->ll_access_token) && !is_null($this->ll_access_token)) {
             return $this->ll_access_token;
@@ -86,8 +86,7 @@ class MP {
         }
 
         $access_data = $access_data['response'];
-        if ($get_full_response) return $access_data;
-        else return $access_data['access_token'];
+        return $access_data['access_token'];
 
     }
 
@@ -724,13 +723,13 @@ class MP {
      */
     public function analytics_save_settings($module_info) {
 
-        /*$request = array(
+        $request = array(
             'uri' => '/modules/tracking/saveSettings?access_token=' . $this->get_access_token(),
             'data' => $module_info
         );
 
         $result = MPRestClient::get($request, $this->version);
-        return $result;*/
+        return $result;
 
     }
 

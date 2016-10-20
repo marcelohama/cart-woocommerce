@@ -410,7 +410,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		}
 
 		//========== IMPLEMENTING
-		$this->mp = new MP(
+		/*$this->mp = new MP(
 			WC_WooMercadoPago_Module::get_module_version(),
 			$this->settings['client_id'],
 			$this->settings['client_secret']
@@ -433,12 +433,12 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						$this->id,
 						'[custom_process_admin_options] - analytics info: ' .
 						json_encode(WC_WooMercadoPago_Module::get_module_settings(
-							$this->site_id, $this->collector_id
+							$get_request['response']['site_id'], 123
 						), JSON_PRETTY_PRINT)
 					);
 				}
 			}
-		}
+		}*/
 		//========== IMPLEMENTING
 
 		if ($this->mp != null) {
@@ -857,18 +857,18 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				$this->client_id,
 				$this->client_secret
 			);
-			$access_data = $this->mp->get_access_token(true);
-			$get_request = $this->mp->get('/users/me?access_token=' . $access_data['access_token']);
+			$access_token = $this->mp->get_access_token();
+			$get_request = $this->mp->get('/users/me?access_token=' . $access_token);
 
 			if (isset($get_request['response']['site_id'])) {
 
 				$this->is_test_user = in_array('test_user', $get_request['response']['tags']);
 				$this->site_id = $get_request['response']['site_id'];
-				$this->collector_id = $access_data['user_id'];
+				$this->collector_id = $get_request['response']['id'];
 				$this->country_configs = WC_WooMercadoPago_Module::get_country_config($this->site_id);
 				$this->payment_split_mode = $this->mp->check_two_cards();
 
-				$payments = $this->mp->get('/v1/payment_methods/?access_token=' . $access_data['access_token']);
+				$payments = $this->mp->get('/v1/payment_methods/?access_token=' . $access_token);
 				array_push($this->payment_methods, 'n/d');
 				foreach ($payments['response'] as $payment) {
 					array_push($this->payment_methods, str_replace('_', ' ', $payment['id']));
