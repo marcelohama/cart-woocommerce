@@ -702,7 +702,7 @@ class MP {
 		}
 
 		$request['params'] = isset( $request['params'] ) && is_array( $request['params'] ) ?
-			$request["params"] :
+			$request['params'] :
 			array();
 
 		if ( ! isset( $request['authenticate'] ) || $request['authenticate'] !== false ) {

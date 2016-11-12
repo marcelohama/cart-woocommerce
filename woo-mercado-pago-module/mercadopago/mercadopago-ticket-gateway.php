@@ -318,6 +318,26 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
+		$this->mp = new MP(
+			WC_WooMercadoPago_Module::get_module_version(),
+			$this->settings['access_token']
+		);
+
+		// analytics
+		$infra_data = WC_WooMercadoPago_Module::get_common_settings();
+		$infra_data['checkout_custom_ticket'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+		$infra_data['checkout_custom_ticket_coupon'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+		if ( $this->mp != null ) {
+			$response = $this->mp->analytics_save_settings( $infra_data );
+			if ( 'yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[custom_process_admin_options] - analytics info: ' .
+					json_encode( $response, JSON_PRETTY_PRINT )
+				);
+			}
+		}
+
 		return update_option(
 			$this->get_option_key(),
 			apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings )
@@ -325,10 +345,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	}
 
 	/*
-	* ========================================================================
-	* CHECKOUT BUSINESS RULES (CLIENT SIDE)
-	* ========================================================================
-	*/
+	 * ========================================================================
+	 * CHECKOUT BUSINESS RULES (CLIENT SIDE)
+	 * ========================================================================
+	 */
 
 	public function ticket_checkout_scripts() {
 		if ( is_checkout() && $this->is_available() ) {

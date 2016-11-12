@@ -197,28 +197,16 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 		 * Description: Builds up the array for the mp_install table, with info related with checkout.
 		 * @return an array with the module informations.
 		 */
-		public static function get_module_settings( $site_id, $collector_id ) {
+		public static function get_common_settings() {
 
-			$country_configs = WC_WooMercadoPago_Module::get_country_config( $site_id );
-			$WooCommerce = WC_WooMercadoPago_Module::woocommerce_instance();
+			$w = WC_WooMercadoPago_Module::woocommerce_instance();
 
 			$infra_data = array(
-				'ModuleVersion' => WC_WooMercadoPago_Module::VERSION,
-				'SiteId' =>  $site_id,
-				'DataCreated' => date( 'Y-m-d H:i:s' ),
-				'CollectorId' => $collector_id,
-				'Status' => ( ( WC_WooMercadoPago_Module::$status_standard +
-					WC_WooMercadoPago_Module::$status_custom +
-					WC_WooMercadoPago_Module::$status_ticket ) > 0 ? 1 : 0 ),
-				'StatusTwoCards' => ( $status_two_cards == 'yes' ? 1 : 0 ),
-				'StatusMe' => WC_WooMercadoPago_Module::$status_me,
-				'StatusTicket' => WC_WooMercadoPago_Module::$status_ticket,
-				'StatusCoupon' => WC_WooMercadoPago_Module::$status_coupon,
-				'StatusStandard' => WC_WooMercadoPago_Module::$status_standard,
-				'StatusCustom' => WC_WooMercadoPago_Module::$status_custom,
-				'PhpVersion' => phpversion(),
-				'SoServer' => PHP_OS,
-				'ModulesId' => 'WOOCOMMERCE ' . $WooCommerce->version
+				'module_version' => WC_WooMercadoPago_Module::VERSION,
+				'platform' => 'WooCommerce',
+				'platform_version' => $w->version,
+				'code_version' => phpversion(),
+				'so_server' => PHP_OS
 			);
 
 			return $infra_data;

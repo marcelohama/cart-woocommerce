@@ -338,16 +338,36 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	public function custom_process_admin_options() {
 		$this->init_settings();
 
-      $post_data = $this->get_post_data();
+		$post_data = $this->get_post_data();
 
 		foreach ( $this->get_form_fields() as $key => $field ) {
-      	if ( 'title' !== $this->get_field_type( $field) ) {
-         	try {
-      			$this->settings[$key] = $this->get_field_value( $key, $field, $post_data );
-            } catch ( Exception $e ) {
-            	$this->add_error( $e->getMessage() );
+      		if ( 'title' !== $this->get_field_type( $field ) ) {
+	         	try {
+	      			$this->settings[$key] = $this->get_field_value( $key, $field, $post_data );
+	            } catch ( Exception $e ) {
+	            	$this->add_error( $e->getMessage() );
 				}
-         }
+         	}
+		}
+
+		$this->mp = new MP(
+			WC_WooMercadoPago_Module::get_module_version(),
+			$this->settings['access_token']
+		);
+
+		// analytics
+		$infra_data = WC_WooMercadoPago_Module::get_common_settings();
+		$infra_data['checkout_custom_credit_card'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+		$infra_data['checkout_custom_credit_card_coupon'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+		if ( $this->mp != null ) {
+			$response = $this->mp->analytics_save_settings( $infra_data );
+			if ( 'yes' == $this->debug) {
+				$this->log->add(
+					$this->id,
+					'[custom_process_admin_options] - analytics info: ' .
+					json_encode( $response, JSON_PRETTY_PRINT )
+				);
+			}
 		}
 
 		return update_option(
@@ -363,7 +383,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 */
 
 	public function custom_checkout_scripts() {
-		if (is_checkout() && $this->is_available() ) {
+		if ( is_checkout() && $this->is_available() ) {
 			if ( ! get_query_var( 'order-received' ) ) {
 				wp_enqueue_style(
 					'woocommerce-mercadopago-style', plugins_url(
