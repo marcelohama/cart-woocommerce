@@ -431,7 +431,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
-					'[custom_process_admin_options] - analytics info: ' .
+					'[custom_process_admin_options] - analytics response: ' .
 					json_encode( $response, JSON_PRETTY_PRINT )
 				);
 			}

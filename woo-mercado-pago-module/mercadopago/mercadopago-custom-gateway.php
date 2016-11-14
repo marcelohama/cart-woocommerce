@@ -364,7 +364,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			if ( 'yes' == $this->debug) {
 				$this->log->add(
 					$this->id,
-					'[custom_process_admin_options] - analytics info: ' .
+					'[custom_process_admin_options] - analytics info response: ' .
 					json_encode( $response, JSON_PRETTY_PRINT )
 				);
 			}
@@ -744,18 +744,18 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
     		'token' => $custom_checkout['token'],
     		'description' => implode( ', ', $list_of_items ),
     		'installments' => (int) $custom_checkout['installments'],
-      	'payment_method_id' => $custom_checkout['paymentMethodId'],
-      	'payer' => array(
-      		'email' => $order->billing_email
-      	),
-      	'external_reference' => $this->invoice_prefix . $order->id,
-      	'statement_descriptor' => $this->statement_descriptor,
-      	'binary_mode' => ( $this->binary_mode == 'yes' ),
-      	'additional_info' => array(
+	      	'payment_method_id' => $custom_checkout['paymentMethodId'],
+	      	'payer' => array(
+	      		'email' => $order->billing_email
+	      	),
+	      	'external_reference' => $this->invoice_prefix . $order->id,
+	      	'statement_descriptor' => $this->statement_descriptor,
+	      	'binary_mode' => ( $this->binary_mode == 'yes' ),
+	      	'additional_info' => array(
 				'items' => $items,
-          	'payer' => $payer_additional_info,
+          		'payer' => $payer_additional_info,
 				'shipments' => $shipments
-      	)
+      		)
 		);
 
     	// Customer's Card Feature, add only if it has issuer id.
