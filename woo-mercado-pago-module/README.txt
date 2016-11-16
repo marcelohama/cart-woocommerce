@@ -111,6 +111,8 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 = v2.1.5 (16/11/2016) =
 * Improvements
 	- Analytical analysis checking.
+* Bug fixes
+	- Fixed issue in ticket solution that was printing [null] in ticket description.
 
 = v2.1.4 (20/10/2016) =
 * Features

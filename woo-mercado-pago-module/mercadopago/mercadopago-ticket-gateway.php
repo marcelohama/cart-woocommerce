@@ -567,7 +567,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		// The payment preference.
 		$preferences = array(
 			'transaction_amount' => floor( ( ( float ) $ticket_checkout['amount'] ) * 100 ) / 100,
-			'description' => $purchase_description,
+			'description' => implode( ', ', $list_of_items ),
 			'payment_method_id' => $ticket_checkout['paymentMethodId'],
 			'payer' => array(
 		 		'email' => $order->billing_email
