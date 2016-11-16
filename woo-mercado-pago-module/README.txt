@@ -110,9 +110,7 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 
 = v2.1.5 (16/11/2016) =
 * Improvements
-	- Analytical analysis checking;
-* Bug fixes
-	- Fixed null statement descriptor for Ticket solution.
+	- Analytical analysis checking.
 
 = v2.1.4 (20/10/2016) =
 * Features

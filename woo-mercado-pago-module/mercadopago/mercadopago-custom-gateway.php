@@ -350,15 +350,19 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
          	}
 		}
 
-		$this->mp = new MP(
-			WC_WooMercadoPago_Module::get_module_version(),
-			$this->settings['access_token']
-		);
+		if ( ! empty( $this->settings['public_key'] ) && ! empty( $this->settings['access_token'] ) ) {
+			$this->mp = new MP(
+				WC_WooMercadoPago_Module::get_module_version(),
+				$this->settings['access_token']
+			);
+		} else {
+			$this->mp = null;
+		}
 
 		// analytics
 		$infra_data = WC_WooMercadoPago_Module::get_common_settings();
 		$infra_data['checkout_custom_credit_card'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
-		$infra_data['checkout_custom_credit_card_coupon'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+		$infra_data['checkout_custom_credit_card_coupon'] = ( $this->settings['coupon_mode'] == 'yes' ? 'true' : 'false' );
 		if ( $this->mp != null ) {
 			$response = $this->mp->analytics_save_settings( $infra_data );
 			if ( 'yes' == $this->debug) {

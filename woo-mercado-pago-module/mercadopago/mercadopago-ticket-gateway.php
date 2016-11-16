@@ -52,7 +52,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
   		$this->access_token = $this->get_option( 'access_token' );
 		$this->title = $this->get_option( 'title' );
 		$this->description = $this->get_option( 'description' );
-		$this->statement_descriptor = $this->get_option( 'statement_descriptor' );
 		$this->coupon_mode = $this->get_option( 'coupon_mode' );
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
@@ -245,12 +244,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					__( 'Description shown to the client in the checkout.', 'woocommerce-mercadopago-module' ),
 				'default' => __( 'Pay with Mercado Pago', 'woocommerce-mercadopago-module' )
 			),
-			'statement_descriptor' => array(
-				'title' => __( 'Statement Descriptor', 'woocommerce-mercadopago-module' ),
-				'type' => 'text',
-				'description' => __( 'The description that will be shown in your customer\'s invoice.', 'woocommerce-mercadopago-module' ),
-				'default' => __( 'Mercado Pago', 'woocommerce-mercadopago-module' )
-			),
 			'coupon_mode' => array(
 				'title' => __( 'Coupons', 'woocommerce-mercadopago-module' ),
 				'type' => 'checkbox',
@@ -325,15 +318,19 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		$this->mp = new MP(
-			WC_WooMercadoPago_Module::get_module_version(),
-			$this->settings['access_token']
-		);
+		if ( ! empty( $this->settings['access_token'] ) ) {
+			$this->mp = new MP(
+				WC_WooMercadoPago_Module::get_module_version(),
+				$this->settings['access_token']
+			);
+		} else {
+			$this->mp = null;
+		}
 
 		// analytics
 		$infra_data = WC_WooMercadoPago_Module::get_common_settings();
 		$infra_data['checkout_custom_ticket'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
-		$infra_data['checkout_custom_ticket_coupon'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+		$infra_data['checkout_custom_ticket_coupon'] = ( $this->settings['coupon_mode'] == 'yes' ? 'true' : 'false' );
 		if ( $this->mp != null ) {
 			$response = $this->mp->analytics_save_settings( $infra_data );
 			if ( 'yes' == $this->debug) {
@@ -576,7 +573,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		 		'email' => $order->billing_email
 			),
 			'external_reference' => $this->invoice_prefix . $order->id,
-			'statement_descriptor' => $this->statement_descriptor,
 			'additional_info' => array(
 				'items' => $items,
 				'payer' => $payer_additional_info,

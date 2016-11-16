@@ -415,18 +415,22 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		$this->mp = new MP(
-			WC_WooMercadoPago_Module::get_module_version(),
-			$this->settings['client_id'],
-			$this->settings['client_secret']
-		);
+		if ( ! empty( $this->settings['client_id'] ) && ! empty( $this->settings['client_secret'] ) ) {
+			$this->mp = new MP(
+				WC_WooMercadoPago_Module::get_module_version(),
+				$this->settings['client_id'],
+				$this->settings['client_secret']
+			);
+		} else {
+			$this->mp = null;
+		}
 
 		// analytics
-		$infra_data = WC_WooMercadoPago_Module::get_common_settings();
-		$infra_data['checkout_basic'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
-		$infra_data['mercado_envios'] = 'false';
-		$infra_data['two_cards'] = ( $this->payment_split_mode == 'active' ? 'true' : 'false' );
 		if ( $this->mp != null ) {
+			$infra_data = WC_WooMercadoPago_Module::get_common_settings();
+			$infra_data['checkout_basic'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+			$infra_data['mercado_envios'] = 'false';
+			$infra_data['two_cards'] = ( $this->payment_split_mode == 'active' ? 'true' : 'false' );
 			$response = $this->mp->analytics_save_settings( $infra_data );
 			if ( 'yes' == $this->debug) {
 				$this->log->add(
