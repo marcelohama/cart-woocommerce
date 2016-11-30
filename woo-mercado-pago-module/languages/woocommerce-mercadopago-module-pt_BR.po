@@ -856,3 +856,6 @@ msgstr "Seus clientes poderão utilizar dois diferentes cartões para pagar pedi
 
 msgid "Your Mercado Pago credentials Access Token appears to be misconfigured."
 msgstr "Sua credencial Access Token do Mercado Pago parece estar desconfigurada."
+
+msgid "Cancel Order"
+msgstr "Cancelar Pedido"

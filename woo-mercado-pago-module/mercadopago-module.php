@@ -8,11 +8,13 @@
  * Author URI: https://www.mercadopago.com.br/developers/
  * Developer: Marcelo Tomio Hama / marcelo.hama@mercadolivre.com
  * Copyright: Copyright(c) MercadoPago [https://www.mercadopago.com]
- * Version: 2.1.5
+ * Version: 2.1.6
  * License: https://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  * Text Domain: woocommerce-mercadopago-module
  * Domain Path: /languages/
  */
+
+// TODO: translate "Cancel Order"
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +33,7 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 	 */
 	class WC_WooMercadoPago_Module {
 
-		const VERSION = '2.1.5';
+		const VERSION = '2.1.6';
 
 		// Singleton design pattern
 		protected static $instance = null;
@@ -383,6 +385,15 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 	}
 
 	// ==========================================================================================
+
+	// add our own item to the order actions meta box
+	add_action( 'woocommerce_order_actions', 'add_cancel_order_meta_box_actions' );
+
+	// define the item in the meta box by adding an item to the $actions array
+	function add_cancel_order_meta_box_actions( $actions ) {
+		$actions['cancel_order'] = __( 'Cancel Order', 'woocommerce-mercadopago-module' );
+		return $actions;
+	}
 
 	// Payment gateways should be created as additional plugins that hook into WooCommerce.
 	// Inside the plugin, you need to create a class after plugins are loaded.

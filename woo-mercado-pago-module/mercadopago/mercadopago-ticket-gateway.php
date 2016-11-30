@@ -582,8 +582,10 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 		// Do not set IPN url if it is a localhost.
 		if ( ! strrpos( $this->domain, 'localhost' ) ) {
-		 	$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
-				WC()->api_request_url( 'WC_WooMercadoPagoTicket_Gateway' )
+		 	$preferences['notification_url'] = str_replace( 'http://', 'https://',
+		 		WC_WooMercadoPago_Module::workaround_ampersand_bug(
+					WC()->api_request_url( 'WC_WooMercadoPagoTicket_Gateway' )
+				)
 			);
 		}
 

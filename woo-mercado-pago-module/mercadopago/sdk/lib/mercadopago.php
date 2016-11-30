@@ -12,7 +12,7 @@ $GLOBALS['LIB_LOCATION'] = dirname( __FILE__ );
 
 class MP {
 
-	private $version = '2.1.5';
+	private $version = '2.1.6';
 	private $client_id;
 	private $client_secret;
 	private $ll_access_token;
@@ -556,13 +556,11 @@ class MP {
 	public function cancel_payment( $id ) {
 
 		$request = array(
-			'uri' => '/collections/{$id}',
+			'uri' => '/collections/' . $id,
 			'params' => array(
 				'access_token' => $this->get_access_token()
 			 ),
-			'data' => array(
-				'status' => 'cancelled'
-			 )
+			'data' => '{"status":"cancelled"}'
 		 );
 
 		$response = MPRestClient::put( $request, $this->version );

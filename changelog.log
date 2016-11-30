@@ -1,8 +1,14 @@
 CHANGELOG:
 
+= v2.1.6 (05/12/2016) =
+* Features
+	- Cancel/Refund API integration. Now, merchants can cancel and refund orders through store back-office.
+* Bug fixes
+	- A bug related with SSL in the notification url sent in preferences.
+
 = v2.1.5 (16/11/2016) =
 * Improvements
-	- Analytical analysis checking.
+	- Analytics of module settings.
 * Bug fixes
 	- Fixed issue in ticket solution that was printing [null] in ticket description.
 

@@ -90,6 +90,11 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		);
 		// Used by IPN to process valid incomings.
 		add_action( 'valid_mercadopago_ipn_request', array( $this, 'successful_request' ) );
+		// process the cancel order meta box order action
+		add_action(
+			'woocommerce_order_action_cancel_order',
+			array( $this, 'process_cancel_order_meta_box_actions' )
+		);
 		// Used by WordPress to render the custom checkout page.
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'receipt_page' ) );
 		// Used to fix CSS in some older WordPress/WooCommerce versions.
@@ -452,6 +457,48 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	 	);
 	}
 
+	/**
+	 * Handles the manual order cancellation in server-side.
+	 */
+	public function process_cancel_order_meta_box_actions( $order ) {
+
+		$payments = get_post_meta(
+			$order->id,
+			__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
+			true
+		);
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[process_cancel_order_meta_box_actions] - cancelling payments for ' . $payments
+			);
+		}
+
+		if ( $this->mp != null && ! empty( $payments ) ) {
+			$payment_ids = explode( ', ', $payments );
+			foreach ( $payment_ids as $p_id ) {
+				$response = $this->mp->cancel_payment( $p_id );
+				$response = $response['status'];
+				if ( 'yes' == $this->debug ) {
+					$this->log->add(
+						$this->id,
+						'[process_cancel_order_meta_box_actions] - cancel payment of id ' .
+						$p_id . ' => ' . ( $response == 200 ? 'SUCCESS' : 'FAIL' )
+					);
+				}
+			}
+		} else {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add(
+					$this->id,
+					'[process_cancel_order_meta_box_actions] - no payments or credentials invalid'
+				);
+			}
+		}
+
+	}
+
 	/*
 	 * ========================================================================
 	 * CHECKOUT BUSINESS RULES (CLIENT SIDE)
@@ -742,8 +789,10 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 		// Do not set IPN url if it is a localhost.
 		if ( ! strrpos( $this->domain, 'localhost' ) ) {
-			$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
-				WC()->api_request_url( 'WC_WooMercadoPago_Gateway' )
+			$preferences['notification_url'] = str_replace( 'http://', 'https://',
+				WC_WooMercadoPago_Module::workaround_ampersand_bug(
+					WC()->api_request_url( 'WC_WooMercadoPago_Gateway' )
+				)
 			);
 		}
 
