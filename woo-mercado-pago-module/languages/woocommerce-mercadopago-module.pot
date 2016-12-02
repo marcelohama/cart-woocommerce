@@ -784,3 +784,27 @@ msgstr ""
 
 msgid "Cancel Order"
 msgstr ""
+
+msgid "Refund Order"
+msgstr ""
+
+msgid "Back URL Options"
+msgstr ""
+
+msgid "Sucess URL"
+msgstr ""
+
+msgid "Where customers should be redirected after a successful purchase. Let blank to redirect to the default store order resume page."
+msgstr ""
+
+msgid "Failure URL"
+msgstr ""
+
+msgid "Where customers should be redirected after a failed purchase. Let blank to redirect to the default store order resume page."
+msgstr ""
+
+msgid "Pending URL"
+msgstr ""
+
+msgid "Where customers should be redirected after a pending purchase. Let blank to redirect to the default store order resume page."
+msgstr ""

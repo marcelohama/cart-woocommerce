@@ -794,3 +794,27 @@ msgstr "Las credenciales de Mercado Pago Access Token parece estar mal configura
 
 msgid "Cancel Order"
 msgstr "Cancelar la Compra"
+
+msgid "Refund Order"
+msgstr "Reembolso de Compra"
+
+msgid "Back URL Options"
+msgstr "Opciones de URL de Callback"
+
+msgid "Sucess URL"
+msgstr "URL de Éxito"
+
+msgid "Where customers should be redirected after a successful purchase. Let blank to redirect to the default store order resume page."
+msgstr "Donde los clientes deberán reorientarse después de una compra exitosa. Dejar en blanco para redirigir a la página estándar de resumen de compra en la tienda."
+
+msgid "Failure URL"
+msgstr "URL de Fracaso"
+
+msgid "Where customers should be redirected after a failed purchase. Let blank to redirect to the default store order resume page."
+msgstr "Donde los clientes deberán reorientarse después de una compra fracasada. Dejar en blanco para redirigir a la página estándar de resumen de compra en la tienda."
+
+msgid "Pending URL"
+msgstr "URL de Pendencia"
+
+msgid "Where customers should be redirected after a pending purchase. Let blank to redirect to the default store order resume page."
+msgstr "Donde los clientes deberán reorientarse después de una compra pendiente. Dejar en blanco para redirigir a la página estándar de resumen de compra en la tienda."

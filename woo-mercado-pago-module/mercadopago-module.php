@@ -387,11 +387,11 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 	// ==========================================================================================
 
 	// add our own item to the order actions meta box
-	add_action( 'woocommerce_order_actions', 'add_cancel_order_meta_box_actions' );
-
+	add_action( 'woocommerce_order_actions', 'add_mp_order_meta_box_actions' );
 	// define the item in the meta box by adding an item to the $actions array
-	function add_cancel_order_meta_box_actions( $actions ) {
+	function add_mp_order_meta_box_actions( $actions ) {
 		$actions['cancel_order'] = __( 'Cancel Order', 'woocommerce-mercadopago-module' );
+		$actions['refund_order'] = __( 'Refund Order', 'woocommerce-mercadopago-module' );
 		return $actions;
 	}
 

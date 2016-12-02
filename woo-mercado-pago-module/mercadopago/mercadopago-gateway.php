@@ -63,6 +63,9 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		$this->iframe_width = $this->get_option( 'iframe_width', 640 );
 		$this->iframe_height = $this->get_option( 'iframe_height', 800 );
 		$this->auto_return = $this->get_option( 'auto_return', true );
+		$this->success_url = $this->get_option( 'success_url', '' );
+		$this->failure_url = $this->get_option( 'failure_url', '' );
+		$this->pending_url = $this->get_option( 'pending_url', '' );
 		$this->currency_conversion = $this->get_option( 'currency_conversion', false );
 		$this->installments = $this->get_option( 'installments', '24' );
 		$this->ex_payments = $this->get_option( 'ex_payments', 'n/d' );
@@ -95,6 +98,11 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			'woocommerce_order_action_cancel_order',
 			array( $this, 'process_cancel_order_meta_box_actions' )
 		);
+		// process the refund order meta box order action
+		add_action(
+			'woocommerce_order_action_refund_order',
+			array( $this, 'process_refund_order_meta_box_actions' )
+		);
 		// Used by WordPress to render the custom checkout page.
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'receipt_page' ) );
 		// Used to fix CSS in some older WordPress/WooCommerce versions.
@@ -103,6 +111,11 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		add_action(
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array( $this, 'custom_process_admin_options' )
+		);
+		// Scripts for custom checkout.
+		add_action(
+			'wp_enqueue_scripts',
+			array( $this, 'checkout_scripts' )
 		);
 
 		// Verify if client_id or client_secret is empty.
@@ -330,6 +343,29 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'description' =>
 					__( 'After the payment, client is automatically redirected.', 'woocommerce-mercadopago-module' ),
 			),
+			'back_url_title' => array(
+				'title' => __( 'Back URL Options', 'woocommerce-mercadopago-module' ),
+				'type' => 'title',
+				'description' => ''
+			),
+			'success_url' => array(
+				'title' => __( 'Sucess URL', 'woocommerce-mercadopago-module' ),
+				'type' => 'text',
+				'description' => __( 'Where customers should be redirected after a successful purchase. Let blank to redirect to the default store order resume page.', 'woocommerce-mercadopago-module' ),
+				'default' => ''
+			),
+			'failure_url' => array(
+				'title' => __( 'Failure URL', 'woocommerce-mercadopago-module' ),
+				'type' => 'text',
+				'description' => __( 'Where customers should be redirected after a failed purchase. Let blank to redirect to the default store order resume page.', 'woocommerce-mercadopago-module' ),
+				'default' => ''
+			),
+			'pending_url' => array(
+				'title' => __( 'Pending URL', 'woocommerce-mercadopago-module' ),
+				'type' => 'text',
+				'description' => __( 'Where customers should be redirected after a pending purchase. Let blank to redirect to the default store order resume page.', 'woocommerce-mercadopago-module' ),
+				'default' => ''
+			),
 			'payment_title' => array(
 				'title' => __( 'Payment Options', 'woocommerce-mercadopago-module' ),
 				'type' => 'title',
@@ -458,9 +494,58 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Handles the manual order refunding in server-side.
+	 */
+	public function process_refund_order_meta_box_actions( $order ) {
+
+		if ( get_post_meta( $order->id, '_used_gateway', true ) != 'WC_WooMercadoPago_Gateway' )
+			return;
+
+		$payments = get_post_meta(
+			$order->id,
+			__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
+			true
+		);
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[process_refund_order_meta_box_actions] - refunding payments for ' . $payments
+			);
+		}
+
+		if ( $this->mp != null && ! empty( $payments ) ) {
+			$payment_ids = explode( ', ', $payments );
+			foreach ( $payment_ids as $p_id ) {
+				$response = $this->mp->refund_payment( $p_id );
+				$message = $response['response']['message'];
+				$status = $response['status'];
+				if ( 'yes' == $this->debug ) {
+					$this->log->add(
+						$this->id,
+						'[process_refund_order_meta_box_actions] - refund payment of id ' . $p_id .
+						' => ' . ( $status >= 200 && $status < 300 ? 'SUCCESS' : 'FAIL - ' . $message )
+					);
+				}
+			}
+		} else {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add(
+					$this->id,
+					'[process_refund_order_meta_box_actions] - no payments or credentials invalid'
+				);
+			}
+		}
+
+	}
+
+	/**
 	 * Handles the manual order cancellation in server-side.
 	 */
 	public function process_cancel_order_meta_box_actions( $order ) {
+
+		if ( get_post_meta( $order->id, '_used_gateway', true ) != 'WC_WooMercadoPago_Gateway' )
+			return;
 
 		$payments = get_post_meta(
 			$order->id,
@@ -479,12 +564,13 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			$payment_ids = explode( ', ', $payments );
 			foreach ( $payment_ids as $p_id ) {
 				$response = $this->mp->cancel_payment( $p_id );
-				$response = $response['status'];
+				$message = $response['response']['message'];
+				$status = $response['status'];
 				if ( 'yes' == $this->debug ) {
 					$this->log->add(
 						$this->id,
-						'[process_cancel_order_meta_box_actions] - cancel payment of id ' .
-						$p_id . ' => ' . ( $response == 200 ? 'SUCCESS' : 'FAIL' )
+						'[process_cancel_order_meta_box_actions] - cancel payment of id ' . $p_id .
+						' => ' . ( $status >= 200 && $status < 300 ? 'SUCCESS' : 'FAIL - ' . $message )
 					);
 				}
 			}
@@ -504,6 +590,14 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	 * CHECKOUT BUSINESS RULES (CLIENT SIDE)
 	 * ========================================================================
 	 */
+
+	public function checkout_scripts() {
+		if ( is_checkout() && $this->is_available() ) {
+			if ( ! get_query_var( 'order-received' ) ) {
+				wp_enqueue_script( 'https://secure.mlstatic.com/modules/javascript/analytics.js' );
+			}
+		}
+	}
 
 	public function payment_fields() {
 		// basic checkout
@@ -752,14 +846,20 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				)
 			),
 			'back_urls' => array(
-				'success' => WC_WooMercadoPago_Module::workaround_ampersand_bug(
-					esc_url( $this->get_return_url( $order) )
+				'success' => ( empty( $this->success_url ) ?
+					WC_WooMercadoPago_Module::workaround_ampersand_bug(
+						esc_url( $this->get_return_url( $order) )
+					) : $this->success_url
 				),
-				'failure' => WC_WooMercadoPago_Module::workaround_ampersand_bug(
-					str_replace( '&amp;', '&', $order->get_cancel_order_url() )
+				'failure' => ( empty( $this->failure_url ) ?
+					WC_WooMercadoPago_Module::workaround_ampersand_bug(
+						str_replace( '&amp;', '&', $order->get_cancel_order_url() )
+					) : $this->failure_url
 				),
-				'pending' => WC_WooMercadoPago_Module::workaround_ampersand_bug(
-					esc_url( $this->get_return_url( $order) )
+				'pending' =>  ( empty( $this->pending_url ) ?
+					WC_WooMercadoPago_Module::workaround_ampersand_bug(
+						esc_url( $this->get_return_url( $order) )
+					) : $this->pending_url
 				)
 			),
 			//'marketplace' =>
@@ -1149,6 +1249,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 						$data['payments'][0]['status']
 					);
 				}
+				update_post_meta( $order->id, '_used_gateway', 'WC_WooMercadoPago_Gateway' );
 				// Order details.
 				if ( ! empty( $data['payer']['email'] ) ) {
 					update_post_meta(

@@ -533,13 +533,11 @@ class MP {
 	public function refund_payment( $id ) {
 
 		$request = array(
-			'uri' => '/collections/{$id}',
+			'uri' => '/collections/' . $id,
 			'params' => array(
 				'access_token' => $this->get_access_token()
 			 ),
-			'data' => array(
-				'status' => 'refunded'
-			 )
+			'data' => '{"status":"refunded"}'
 		 );
 
 		$response = MPRestClient::put( $request, $this->version );

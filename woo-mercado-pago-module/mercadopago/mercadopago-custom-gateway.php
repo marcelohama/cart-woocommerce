@@ -81,6 +81,16 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 			'valid_mercadopagocustom_ipn_request',
 			array( $this, 'successful_request' )
 		);
+		// process the cancel order meta box order action
+		add_action(
+			'woocommerce_order_action_cancel_order',
+			array( $this, 'process_cancel_order_meta_box_actions' )
+		);
+		// process the refund order meta box order action
+		add_action(
+			'woocommerce_order_action_refund_order',
+			array( $this, 'process_refund_order_meta_box_actions' )
+		);
 		// Used in settings page to hook "save settings" action.
 		add_action(
 			'woocommerce_update_options_payment_gateways_' . $this->id,
@@ -378,6 +388,98 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
         	$this->get_option_key(),
         	apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings )
      	);
+	}
+
+	/**
+	 * Handles the manual order refunding in server-side.
+	 */
+	public function process_refund_order_meta_box_actions( $order ) {
+
+		if ( get_post_meta( $order->id, '_used_gateway', true ) != 'WC_WooMercadoPagoCustom_Gateway' )
+			return;
+
+		$payments = get_post_meta(
+			$order->id,
+			__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
+			true
+		);
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[process_refund_order_meta_box_actions] - refunding payments for ' . $payments
+			);
+		}
+
+		if ( $this->mp != null && ! empty( $payments ) ) {
+			$payment_ids = explode( ', ', $payments );
+			foreach ( $payment_ids as $p_id ) {
+				$response = $this->mp->refund_payment( $p_id );
+				$message = $response['response']['message'];
+				$status = $response['status'];
+				if ( 'yes' == $this->debug ) {
+					$this->log->add(
+						$this->id,
+						'[process_refund_order_meta_box_actions] - refund payment of id ' . $p_id .
+						' => ' . ( $status >= 200 && $status < 300 ? 'SUCCESS' : 'FAIL - ' . $message )
+					);
+				}
+			}
+		} else {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add(
+					$this->id,
+					'[process_refund_order_meta_box_actions] - no payments or credentials invalid'
+				);
+			}
+		}
+
+	}
+
+	/**
+	 * Handles the manual order cancellation in server-side.
+	 */
+	public function process_cancel_order_meta_box_actions( $order ) {
+
+		if ( get_post_meta( $order->id, '_used_gateway', true ) != 'WC_WooMercadoPagoCustom_Gateway' )
+			return;
+
+		$payments = get_post_meta(
+			$order->id,
+			__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
+			true
+		);
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[process_cancel_order_meta_box_actions] - cancelling payments for ' . $payments
+			);
+		}
+
+		if ( $this->mp != null && ! empty( $payments ) ) {
+			$payment_ids = explode( ', ', $payments );
+			foreach ( $payment_ids as $p_id ) {
+				$response = $this->mp->cancel_payment( $p_id );
+				$message = $response['response']['message'];
+				$status = $response['status'];
+				if ( 'yes' == $this->debug ) {
+					$this->log->add(
+						$this->id,
+						'[process_cancel_order_meta_box_actions] - cancel payment of id ' . $p_id .
+						' => ' . ( $status >= 200 && $status < 300 ? 'SUCCESS' : 'FAIL - ' . $message )
+					);
+				}
+			}
+		} else {
+			if ( 'yes' == $this->debug ) {
+				$this->log->add(
+					$this->id,
+					'[process_cancel_order_meta_box_actions] - no payments or credentials invalid'
+				);
+			}
+		}
+
 	}
 
 	/*
@@ -791,8 +893,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
     		WC()->session->chosen_payment_method == 'woocommerce-mercadopago-custom-module' ) {
 
     		$preferences['campaign_id'] =  (int) $custom_checkout['campaign_id'];
-      	$preferences['coupon_amount'] = ( (float) $custom_checkout['discount'] );
-      	$preferences['coupon_code'] = strtoupper( $custom_checkout['coupon_code'] );
+      		$preferences['coupon_amount'] = ( (float) $custom_checkout['discount'] );
+      		$preferences['coupon_code'] = strtoupper( $custom_checkout['coupon_code'] );
 		}
 
 		// Set sponsor ID.
@@ -1299,6 +1401,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 						json_encode( $data, JSON_PRETTY_PRINT )
 					);
 				}
+				update_post_meta( $order->id, '_used_gateway', 'WC_WooMercadoPagoCustom_Gateway' );
 				// Order details.
 				if ( ! empty( $data['payer']['email'] ) ) {
 					update_post_meta(
