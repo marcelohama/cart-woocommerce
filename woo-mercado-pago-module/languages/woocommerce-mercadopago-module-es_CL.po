@@ -739,7 +739,7 @@ msgid "Discount Coupon"
 msgstr "Cupón de Descuento"
 
 msgid "CURRENCY CONVERTED: The currency conversion ratio from"
-msgstr "MONEDA CONVERTIDA: "La tasa de conversión de moneda de"
+msgstr "MONEDA CONVERTIDA: La tasa de conversión de moneda de"
 
 msgid "ERROR: It was not possible to convert the unsupported currency"
 msgstr "ERROR: No fue posible convertir la moneda no soportada"
@@ -773,3 +773,48 @@ msgstr "Términos y Condiciones de Uso"
 
 msgid "Payment converted from"
 msgstr "Pago convertido de"
+
+msgid "Rate Us"
+msgstr "Calificar"
+
+msgid "Report Issue"
+msgstr "Informar Problema"
+
+msgid "Two Cards Mode"
+msgstr "Modo de Dos Tarjetas"
+
+msgid "Payments with Two Cards"
+msgstr "Pagos con Dos Tarjetas"
+
+msgid "Your customer will be able to use two different cards to pay the order."
+msgstr "Su cliente será capaz de utilizar dos tarjetas diferentes para pagar el pedido."
+
+msgid "Your Mercado Pago credentials Access Token appears to be misconfigured."
+msgstr "Las credenciales de Mercado Pago Access Token parece estar mal configurado."
+
+msgid "Cancel Order"
+msgstr "Cancelar la Compra"
+
+msgid "Refund Order"
+msgstr "Reembolso de Compra"
+
+msgid "Back URL Options"
+msgstr "Opciones de URL de Callback"
+
+msgid "Sucess URL"
+msgstr "URL de Éxito"
+
+msgid "Where customers should be redirected after a successful purchase. Let blank to redirect to the default store order resume page."
+msgstr "Donde los clientes deberán reorientarse después de una compra exitosa. Dejar en blanco para redirigir a la página estándar de resumen de compra en la tienda."
+
+msgid "Failure URL"
+msgstr "URL de Fracaso"
+
+msgid "Where customers should be redirected after a failed purchase. Let blank to redirect to the default store order resume page."
+msgstr "Donde los clientes deberán reorientarse después de una compra fracasada. Dejar en blanco para redirigir a la página estándar de resumen de compra en la tienda."
+
+msgid "Pending URL"
+msgstr "URL de Pendencia"
+
+msgid "Where customers should be redirected after a pending purchase. Let blank to redirect to the default store order resume page."
+msgstr "Donde los clientes deberán reorientarse después de una compra pendiente. Dejar en blanco para redirigir a la página estándar de resumen de compra en la tienda."
