@@ -56,6 +56,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 		$this->category_id = $this->get_option( 'category_id' );
 		$this->invoice_prefix = $this->get_option( 'invoice_prefix', 'WC-' );
 		$this->currency_conversion = $this->get_option( 'currency_conversion', false );
+		$this->reduce_stock_on_order_gen = $this->get_option( 'reduce_stock_on_order_gen', false );
 		$this->debug = $this->get_option( 'debug' );
 
 		// Logging and debug.
@@ -282,9 +283,17 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Currency Conversion', 'woocommerce-mercadopago-module' ),
 				'type' => 'checkbox',
 				'label' =>
-					__( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio', 'woocommerce-mercadopago-module' ),
+					__( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio.', 'woocommerce-mercadopago-module' ),
 				'default' => 'no',
 				'description' => sprintf( '%s', $this->currency_message )
+			),
+			'reduce_stock_on_order_gen' => array(
+				'title' => __( 'Stock Reduce', 'woocommerce-mercadopago-module' ),
+				'type' => 'checkbox',
+				'label' =>
+					__( 'Reduce Stock in Order Generation', 'woocommerce-mercadopago-module' ),
+				'default' => 'no',
+				'description' => __( 'Enable this to reduce the stock on order creation. Disable this to reduce <strong>after</strong> the payment approval.', 'woocommerce-mercadopago-module' )
 			),
 			'testing' => array(
 				'title' => __( 'Test and Debug Options', 'woocommerce-mercadopago-module' ),
@@ -759,6 +768,9 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					if ( $response['status'] == 'pending' ) {
 						if ( $response['status_detail'] == 'pending_waiting_payment' ) {
 							WC()->cart->empty_cart();
+							if ( $this->reduce_stock_on_order_gen ) {
+								$order->reduce_order_stock();
+							}
 							$html = '<p></p><p>' . wordwrap(
 								__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module' ),
 								60, '<br>'
@@ -1163,7 +1175,9 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 						$order->add_order_note(
 							'Mercado Pago: ' . __( 'Payment approved.', 'woocommerce-mercadopago-module' )
 						);
-						$order->payment_complete();
+						if ( ! $this->reduce_stock_on_order_gen ) {
+							$order->payment_complete();
+						}
 						break;
 					case 'pending':
 						// decrease stock if not yet decreased and order not exists.
@@ -1174,20 +1188,6 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 							break;
 						}
 						if ( ! $has_note ) {
-							// dont have order note
-							/*if (  sizeof(  $order->get_items()  ) > 0  ) {
-								foreach (  $order->get_items() as $item  ) {
-									if (  $item['qty']  ) {
-										$product = new WC_product(  $item[ 'product_id' ]  );
-										if (  ! $product->is_downloadable( 'yes' )  ) {
-											wc_update_product_stock(
-												$item[ 'product_id' ],
-												$product->get_stock_quantity()-$item[ 'qty' ]
-											);
-										}
-									}
-								}
-							}*/
 							$order->add_order_note(
 								'Mercado Pago: ' .
 								__( 'Waiting for the ticket payment.', 'woocommerce-mercadopago-module' )

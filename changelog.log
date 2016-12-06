@@ -3,7 +3,8 @@ CHANGELOG:
 = v2.1.1 (02/08/2016) =
 * Improvements
 	- Improved log messages when applying discounts;
-	- Added a link to reprint ticket in customer account order page.
+	- Added a link to reprint ticket in customer account order page;
+	- Added option to select when (payment approval or order generation) to reduce stock in tickets solution.
 * Bug fixes
 	- Fixed tax fee for shipments.
 

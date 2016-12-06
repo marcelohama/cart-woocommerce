@@ -375,7 +375,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Currency Conversion', 'woocommerce-mercadopago-module' ),
 				'type' => 'checkbox',
 				'label' =>
-					__( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio', 'woocommerce-mercadopago-module' ),
+					__( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio.', 'woocommerce-mercadopago-module' ),
 				'default' => 'no',
 				'description' => sprintf( '%s', $this->currency_message )
 			),
@@ -610,7 +610,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		foreach ( $gateways as $g ) {
 			$payments[] = $g->id;
 		}
-		$payments = implode( ', ', $payments );
+		$payments = str_replace( '-', '_', implode( ', ', $payments ) );
 
 		if ( wp_get_current_user()->ID != 0 ) {
 			$logged_user_email = wp_get_current_user()->user_email;
@@ -619,17 +619,15 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		?>
 		<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
 		<script type="text/javascript">
-			(function($){
-				var MA = ModuleAnalytics;
-				MA.setToken( '<?php echo $this->get_option( 'client_id' ); ?>' );
-				MA.setPlatform( 'WooCommerce' );
-				MA.setPlatformVersion( '<?php echo $w->version; ?>' );
-				MA.setModuleVersion( '<?php echo WC_WooMercadoPago_Module::VERSION; ?>' );
-				MA.setPayerEmail( '<?php echo ( $logged_user_email != null ? $logged_user_email : "" ); ?>' );
-				MA.setUserLogged( '<?php echo ( $logged_user_email != null ? 1 : 0 ); ?>' );
-				MA.setInstalledModules( '<?php echo $payments; ?>' );
-				MA.post();
-			})(jQuery);
+			var MA = ModuleAnalytics;
+			MA.setToken( '<?php echo $this->get_option( 'client_id' ); ?>' );
+			MA.setPlatform( 'WooCommerce' );
+			MA.setPlatformVersion( '<?php echo $w->version; ?>' );
+			MA.setModuleVersion( '<?php echo WC_WooMercadoPago_Module::VERSION; ?>' );
+			MA.setPayerEmail( '<?php echo ( $logged_user_email != null ? $logged_user_email : "" ); ?>' );
+			MA.setUserLogged( <?php echo ( empty( $logged_user_email ) ? 0 : 1 ); ?> );
+			MA.setInstalledModules( '<?php echo $payments; ?>' );
+			MA.post();
 		</script>
 		<?php
 

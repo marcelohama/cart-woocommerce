@@ -306,7 +306,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 				'title' => __( 'Currency Conversion', 'woocommerce-mercadopago-module' ),
 				'type' => 'checkbox',
 				'label' =>
-					__( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio', 'woocommerce-mercadopago-module' ),
+					__( 'If the used currency in WooCommerce is different or not supported by Mercado Pago, convert values of your transactions using Mercado Pago currency ratio.', 'woocommerce-mercadopago-module' ),
 				'default' => 'no',
 				'description' => sprintf( '%s', $this->currency_message )
 			),
