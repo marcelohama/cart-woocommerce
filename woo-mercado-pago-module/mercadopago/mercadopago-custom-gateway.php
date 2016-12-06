@@ -1288,7 +1288,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					'cause' => array()
 				);
 				header( 'HTTP/1.1 200 OK' );
-			   header( 'Content-Type: application/json' );
+				header( 'Content-Type: application/json' );
 				echo json_encode( $obj );
 			}
 			exit( 0 );

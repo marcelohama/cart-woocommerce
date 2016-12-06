@@ -112,10 +112,15 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array( $this, 'custom_process_admin_options' )
 		);
-		// Scripts for custom checkout.
+		// Scripts for order configuration.
 		add_action(
 			'woocommerce_after_checkout_form',
 			array( $this, 'add_checkout_script' )
+		);
+		// Checkout updates.
+		add_action(
+			'woocommerce_thankyou',
+			array( $this, 'update_checkout_status' )
 		);
 
 		// Verify if client_id or client_secret is empty.
@@ -1184,7 +1189,7 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				if ( 'yes' == $this->debug ) {
 					$this->log->add(
 						$this->id,
-						'[check_ipn_response] - mercado pago request failure: ' .
+						'[check_ipn_request_is_valid] - mercado pago request failure: ' .
 						json_encode( $_GET, JSON_PRETTY_PRINT )
 					);
 				}
@@ -1301,7 +1306,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 							__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
 							implode( ', ', $payment_ids )
 						);
-						$this->update_checkout_status( implode( ', ', $payment_ids ), 'basic', 'basic' );
 					}
 				}
 				// Here, we process the status...
@@ -1386,21 +1390,34 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-	public function update_checkout_status( $payment_id, $payment_type, $checkout_type ) {
-		?>
-		<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
+	public function update_checkout_status( $order_id ) {
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[update_checkout_status] - updating checkout statuses ' . $order_id
+			);
+		}
+
+		//if ( get_post_meta( $order_id, '_used_gateway', true ) != 'WC_WooMercadoPago_Gateway' )
+		//	return;
+
+		//$payments = get_post_meta(
+		//	$order_id,
+		//	__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
+		//	true
+		//);
+
+		echo '<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
 		<script type="text/javascript">
-			(function($){
-				var MA = ModuleAnalytics;
-				MA.setToken( '<?php echo $this->get_option( 'client_id' ); ?>' );
-				ModuleAnalytics.setPaymentId( '<?php echo $payment_id; ?>' );
-				ModuleAnalytics.setPaymentType( '<?php echo $payment_type; ?>' );
-				ModuleAnalytics.setCheckoutType( '<?php echo $checkout_type; ?>' );
-				ModuleAnalytics.put();
-				MA.post();
-			})(jQuery);
-		</script>
-		<?php
+			var MA = ModuleAnalytics;
+			MA.setToken( ' . $this->get_option( 'client_id' ) . ' );
+			MA.setPaymentId( ' . ( empty( $payments ) ? null : $payments ) . ' );
+			MA.setPaymentType("basic");
+			MA.setCheckoutType("basic");
+			MA.put();
+		</script>';
+
 	}
 
 }
