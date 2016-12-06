@@ -108,10 +108,12 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 
 == Changelog ==
 
-= v2.1.6 (05/12/2016) =
+= v2.1.6 (09/12/2016) =
 * Features
 	- Cancel/Refund API integration. Now, merchants can cancel and refund orders through store back-office. Options available in order details, order actions;
 	- Back url (checkout callback) configurable in back-office.
+* Improvements
+	- Added option to select when (payment approval or order generation) to reduce stocks for tickets solution.
 * Bug fixes
 	- A bug related with SSL in the notification url sent in preferences.
 
