@@ -122,6 +122,17 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					// Verify if SSL is supported.
 					add_action( 'admin_notices', array( $this, 'check_ssl_absence' ) );
 				}
+			} else {
+				// Scripts for order configuration.
+				add_action(
+					'woocommerce_after_checkout_form',
+					array( $this, 'add_checkout_script' )
+				);
+				// Checkout updates.
+				add_action(
+					'woocommerce_thankyou',
+					array( $this, 'update_checkout_status' )
+				);
 			}
 		}
 
@@ -465,6 +476,75 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 
+	public function add_checkout_script() {
+
+		$client_id = WC_WooMercadoPago_Module::get_client_id( $this->get_option( 'access_token' ) );
+		$w = WC_WooMercadoPago_Module::woocommerce_instance();
+		$logged_user_email = null;
+		$payments = array();
+		$gateways = WC()->payment_gateways->get_available_payment_gateways();
+		foreach ( $gateways as $g ) {
+			$payments[] = $g->id;
+		}
+		$payments = str_replace( '-', '_', implode( ', ', $payments ) );
+
+		if ( wp_get_current_user()->ID != 0 ) {
+			$logged_user_email = wp_get_current_user()->user_email;
+		}
+
+		?>
+		<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
+		<script type="text/javascript">
+			var MA = ModuleAnalytics;
+			MA.setPublicKey( '<?php echo $client_id; ?>' );
+			MA.setPlatform( 'WooCommerce' );
+			MA.setPlatformVersion( '<?php echo $w->version; ?>' );
+			MA.setModuleVersion( '<?php echo WC_WooMercadoPago_Module::VERSION; ?>' );
+			MA.setPayerEmail( '<?php echo ( $logged_user_email != null ? $logged_user_email : "" ); ?>' );
+			MA.setUserLogged( <?php echo ( empty( $logged_user_email ) ? 0 : 1 ); ?> );
+			MA.setInstalledModules( '<?php echo $payments; ?>' );
+			MA.post();
+		</script>
+		<?php
+
+	}
+
+	public function update_checkout_status( $order_id ) {
+
+		if ( get_post_meta( $order_id, '_used_gateway', true ) != 'WC_WooMercadoPagoTicket_Gateway' )
+			return;
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[update_checkout_status] - updating checkout statuses ' . $order_id
+			);
+		}
+
+		$client_id = WC_WooMercadoPago_Module::get_client_id( $this->get_option( 'access_token' ) );
+
+		$html = '<p></p><p>' . wordwrap(
+			__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module' ),
+			60, '<br>'
+		) . '</p>';
+		$html .= '<a id="submit-payment" target="_blank" href="' .
+			get_post_meta( $order_id, '_transaction_details_ticket', true ) .
+			'" class="button alt">' .
+			__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
+			'</a> ';
+		echo( '<p>' . $html . '</p>' );
+
+		echo '<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
+		<script type="text/javascript">
+			var MA = ModuleAnalytics;
+			MA.setToken( ' . $client_id . ' );
+			MA.setPaymentType("ticket");
+			MA.setCheckoutType("custom");
+			MA.put();
+		</script>';
+
+	}
+
 	public function ticket_checkout_scripts() {
 		if ( is_checkout() && $this->is_available() ) {
 			if ( ! get_query_var( 'order-received' ) ) {
@@ -540,6 +620,8 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 		if ( ! isset( $_POST['mercadopago_ticket'] ) )
 			return;
+
+		update_post_meta( $order_id, '_used_gateway', 'WC_WooMercadoPagoTicket_Gateway' );
 
 		$order = new WC_Order( $order_id );
 		$mercadopago_ticket = $_POST['mercadopago_ticket'];
@@ -693,10 +775,8 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 		// Do not set IPN url if it is a localhost.
 		if ( ! strrpos( $this->domain, 'localhost' ) ) {
-		 	$preferences['notification_url'] = str_replace( 'http://', 'https://',
-		 		WC_WooMercadoPago_Module::workaround_ampersand_bug(
-					WC()->api_request_url( 'WC_WooMercadoPagoTicket_Gateway' )
-				)
+		 	$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
+				WC()->api_request_url( 'WC_WooMercadoPagoTicket_Gateway' )
 			);
 		}
 
@@ -771,7 +851,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 							if ( $this->reduce_stock_on_order_gen ) {
 								$order->reduce_order_stock();
 							}
-							$html = '<p></p><p>' . wordwrap(
+							/*$html = '<p></p><p>' . wordwrap(
 								__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module' ),
 								60, '<br>'
 							) . '</p>';
@@ -780,7 +860,12 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 								'" class="button alt">' .
 								__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
 								'</a> ';
-							wc_add_notice( '<p>' . $html . '</p>', 'notice' );
+							wc_add_notice( '<p>' . $html . '</p>', 'notice' );*/
+							update_post_meta(
+								$order->id,
+								'_transaction_details_ticket',
+								$response['transaction_details']['external_resource_url']
+							);
 
 							$order->add_order_note(
 								'Mercado Pago: ' .
@@ -795,9 +880,13 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 								'</a>', 1, false
 							);
 
-							return array(
+							/*return array(
 								'result' => 'success',
 								'redirect' => $order->get_checkout_payment_url( true )
+							);*/
+							return array(
+								'result' => 'success',
+								'redirect' => $order->get_checkout_order_received_url()
 							);
 						}
 					}

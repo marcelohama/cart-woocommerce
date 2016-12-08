@@ -638,6 +638,29 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 	}
 
+	public function update_checkout_status( $order_id ) {
+
+		if ( get_post_meta( $order_id, '_used_gateway', true ) != 'WC_WooMercadoPago_Gateway' )
+			return;
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[update_checkout_status] - updating checkout statuses ' . $order_id
+			);
+		}
+
+		echo '<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
+		<script type="text/javascript">
+			var MA = ModuleAnalytics;
+			MA.setToken( ' . $this->get_option( 'client_id' ) . ' );
+			MA.setPaymentType("basic");
+			MA.setCheckoutType("basic");
+			MA.put();
+		</script>';
+
+	}
+
 	/**
 	 * Summary: Handle the payment and processing the order.
 	 * Description: First step occurs when the customer selects Mercado Pago and proceed to checkout.
@@ -646,6 +669,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 	 * @return an array containing the result of the processment and the URL to redirect.
 	 */
 	public function process_payment( $order_id ) {
+
+		update_post_meta( $order_id, '_used_gateway', 'WC_WooMercadoPago_Gateway' );
 
 		$order = new WC_Order( $order_id );
 
@@ -918,10 +943,8 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 
 		// Do not set IPN url if it is a localhost.
 		if ( ! strrpos( $this->domain, 'localhost' ) ) {
-			$preferences['notification_url'] = str_replace( 'http://', 'https://',
-				WC_WooMercadoPago_Module::workaround_ampersand_bug(
-					WC()->api_request_url( 'WC_WooMercadoPago_Gateway' )
-				)
+			$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
+				WC()->api_request_url( 'WC_WooMercadoPago_Gateway' )
 			);
 		}
 
@@ -1388,36 +1411,6 @@ class WC_WooMercadoPago_Gateway extends WC_Payment_Gateway {
 				}
 			}
 		}
-	}
-
-	public function update_checkout_status( $order_id ) {
-
-		if ( 'yes' == $this->debug ) {
-			$this->log->add(
-				$this->id,
-				'[update_checkout_status] - updating checkout statuses ' . $order_id
-			);
-		}
-
-		//if ( get_post_meta( $order_id, '_used_gateway', true ) != 'WC_WooMercadoPago_Gateway' )
-		//	return;
-
-		//$payments = get_post_meta(
-		//	$order_id,
-		//	__( 'Mercado Pago Payment ID', 'woocommerce-mercadopago-module' ),
-		//	true
-		//);
-
-		echo '<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
-		<script type="text/javascript">
-			var MA = ModuleAnalytics;
-			MA.setToken( ' . $this->get_option( 'client_id' ) . ' );
-			MA.setPaymentId( ' . ( empty( $payments ) ? null : $payments ) . ' );
-			MA.setPaymentType("basic");
-			MA.setCheckoutType("basic");
-			MA.put();
-		</script>';
-
 	}
 
 }

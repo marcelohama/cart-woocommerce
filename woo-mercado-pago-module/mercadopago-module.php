@@ -186,6 +186,19 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 		}
 
 		/**
+		 * Summary: Get client id from access token.
+		 * Description: Get client id from access token.
+		 * @return the client id.
+		 */
+		public static function get_client_id( $at ){
+			$t = explode ( '-', $at );
+			if ( count( $t ) > 0 ) {
+				return $t[1];
+			}
+			return '';
+		}
+
+		/**
 		 * Summary: Builds up the array for the mp_install table, with info related with checkout.
 		 * Description: Builds up the array for the mp_install table, with info related with checkout.
 		 * @return an array with the module informations.

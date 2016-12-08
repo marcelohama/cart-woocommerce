@@ -123,6 +123,17 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 						add_action( 'admin_notices', array( $this, 'check_ssl_absence' ) );
 					}
 				}
+			} else {
+				// Scripts for order configuration.
+				add_action(
+					'woocommerce_after_checkout_form',
+					array( $this, 'add_checkout_script' )
+				);
+				// Checkout updates.
+				add_action(
+					'woocommerce_thankyou',
+					array( $this, 'update_checkout_status' )
+				);
 			}
 		}
 
@@ -488,6 +499,61 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 	 * ========================================================================
 	 */
 
+	public function add_checkout_script() {
+
+		$w = WC_WooMercadoPago_Module::woocommerce_instance();
+		$logged_user_email = null;
+		$payments = array();
+		$gateways = WC()->payment_gateways->get_available_payment_gateways();
+		foreach ( $gateways as $g ) {
+			$payments[] = $g->id;
+		}
+		$payments = str_replace( '-', '_', implode( ', ', $payments ) );
+
+		if ( wp_get_current_user()->ID != 0 ) {
+			$logged_user_email = wp_get_current_user()->user_email;
+		}
+
+		?>
+		<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
+		<script type="text/javascript">
+			var MA = ModuleAnalytics;
+			MA.setPublicKey( '<?php echo $this->get_option( 'public_key' ); ?>' );
+			MA.setPlatform( 'WooCommerce' );
+			MA.setPlatformVersion( '<?php echo $w->version; ?>' );
+			MA.setModuleVersion( '<?php echo WC_WooMercadoPago_Module::VERSION; ?>' );
+			MA.setPayerEmail( '<?php echo ( $logged_user_email != null ? $logged_user_email : "" ); ?>' );
+			MA.setUserLogged( <?php echo ( empty( $logged_user_email ) ? 0 : 1 ); ?> );
+			MA.setInstalledModules( '<?php echo $payments; ?>' );
+			MA.post();
+		</script>
+		<?php
+
+	}
+
+	public function update_checkout_status( $order_id ) {
+
+		if ( get_post_meta( $order_id, '_used_gateway', true ) != 'WC_WooMercadoPagoCustom_Gateway' )
+			return;
+
+		if ( 'yes' == $this->debug ) {
+			$this->log->add(
+				$this->id,
+				'[update_checkout_status] - updating checkout statuses ' . $order_id
+			);
+		}
+
+		echo '<script src="https://secure.mlstatic.com/modules/javascript/analytics.js"></script>
+		<script type="text/javascript">
+			var MA = ModuleAnalytics;
+			MA.setPublicKey( "' . $this->get_option( 'public_key' ) . '" );
+			MA.setPaymentType("credit_card");
+			MA.setCheckoutType("custom");
+			MA.put();
+		</script>';
+
+	}
+
 	public function custom_checkout_scripts() {
 		if ( is_checkout() && $this->is_available() ) {
 			if ( ! get_query_var( 'order-received' ) ) {
@@ -631,6 +697,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 		if ( ! isset( $_POST['mercadopago_custom'] ) )
 			return;
 
+		update_post_meta( $order_id, '_used_gateway', 'WC_WooMercadoPagoCustom_Gateway' );
+
 		$order = new WC_Order( $order_id );
 		$custom_checkout = $_POST['mercadopago_custom'];
 
@@ -656,7 +724,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 			$response = self::create_url( $order, $custom_checkout );
 
- 		if (array_key_exists( 'status', $response ) ) {
+			if (array_key_exists( 'status', $response ) ) {
 				switch ( $response['status'] ) {
 					case 'approved':
 						WC()->cart->empty_cart();
@@ -727,7 +795,7 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 					default:
 						break;
 				}
-		}
+			}
 		} else {
 			// Process when fields are imcomplete.
 			wc_add_notice(
@@ -879,10 +947,8 @@ class WC_WooMercadoPagoCustom_Gateway extends WC_Payment_Gateway {
 
 		// Do not set IPN url if it is a localhost.
 		if ( ! strrpos( $this->domain, 'localhost' ) ) {
-			$preferences['notification_url'] = str_replace( 'http://', 'https://',
-				WC_WooMercadoPago_Module::workaround_ampersand_bug(
-					WC()->api_request_url( 'WC_WooMercadoPagoCustom_Gateway' )
-				)
+			$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
+				WC()->api_request_url( 'WC_WooMercadoPagoCustom_Gateway' )
 			);
 		}
 
