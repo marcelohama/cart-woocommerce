@@ -14,8 +14,6 @@
  * Domain Path: /languages/
  */
 
-// TODO: translate "Cancel Order"
-
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -183,6 +181,19 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 		 */
 		public static function get_module_version() {
 			return WC_WooMercadoPago_Module::VERSION;
+		}
+
+		/**
+		 * Summary: Get client id from access token.
+		 * Description: Get client id from access token.
+		 * @return the client id.
+		 */
+		public static function get_client_id( $at ){
+			$t = explode ( '-', $at );
+			if ( count( $t ) > 0 ) {
+				return $t[1];
+			}
+			return '';
 		}
 
 		/**
