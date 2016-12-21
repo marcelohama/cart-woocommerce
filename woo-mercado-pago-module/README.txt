@@ -4,7 +4,7 @@ Donate link: https://www.mercadopago.com.br/developers/
 Tags: ecommerce, mercadopago, woocommerce
 Requires at least: WooCommerce 2.6.x
 Tested up to: WooCommerce 2.6.6
-Stable tag: 2.1.6
+Stable tag: 2.1.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,7 +39,7 @@ You have two ways to install this module: from your WordPress Store, or by downl
 3. You should find the module read to be installed. Click install.
 
 = Manual Download =
-1. Get the module sources from a repository (<a href="https://github.com/mercadopago/cart-woocommerce/archive/master.zip">Github</a> or <a href="https://downloads.wordpress.org/plugin/woo-mercado-pago-module.2.1.6.zip">WordPress Plugin Directory</a>);
+1. Get the module sources from a repository (<a href="https://github.com/mercadopago/cart-woocommerce/archive/master.zip">Github</a> or <a href="https://downloads.wordpress.org/plugin/woo-mercado-pago-module.2.1.8.zip">WordPress Plugin Directory</a>);
 2. Unzip the folder and find "woo-mercado-pago-module" directory;
 3. Copy "woo-mercado-pago-module" directory to **[WordPressRootDirectory]/wp-content/plugins/** directory.
 
@@ -107,6 +107,14 @@ Please, check our FAQ at: https://www.mercadopago.com.br/ajuda/
 5. `Configuration of Basic Checkout`
 
 == Changelog ==
+
+= v2.1.8 (22/12/2016) =
+* Improvements
+	- Support to some themes in order resume page when paying with ticket.
+
+= v2.1.7 (12/12/2016) =
+* Bug fixes
+	- When ticket payment method was enabled, the button for print ticket was appearing for other methods.
 
 = v2.1.6 (09/12/2016) =
 * Features

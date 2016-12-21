@@ -18,6 +18,9 @@ require_once 'sdk/lib/mercadopago.php';
  */
 class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
+	const USE_ACTION_FOR_FINISH_PAGE = true;
+	const TEST_TICKET_URL = false;
+
 	public function __construct( $is_instance = false ) {
 
 		// Mercado Pago fields.
@@ -112,11 +115,18 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array( $this, 'custom_process_admin_options' )
 		);
-		// Customizes thank you page.
-		add_filter(
-			'woocommerce_thankyou_order_received_text',
-			array( $this, 'show_ticket_button' ), 10, 2
-		);
+		// Customizes thank you page --- this is a workaround to deal with some themes.
+		if ( WC_WooMercadoPagoTicket_Gateway::USE_ACTION_FOR_FINISH_PAGE ) {
+			add_action(
+				'woocommerce_thankyou_' . $this->id,
+				array( $this, 'show_ticket_button_action' ), 10, 1 
+			);
+		} else {
+			add_filter(
+				'woocommerce_thankyou_order_received_text',
+				array( $this, 'show_ticket_button_filter' ), 10, 2
+			);
+		}
 
 		if ( ! empty( $this->settings['enabled'] ) && $this->settings['enabled'] == 'yes' ) {
 			if ( $is_instance ) {
@@ -539,17 +549,50 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 
 	}
 
-	public function show_ticket_button( $thankyoutext, $order ) {
+	public function show_ticket_button_filter( $thankyoutext, $order ) {
+		$order = $order->id;
+		if ( get_post_meta( $order, '_used_gateway', true ) != 'WC_WooMercadoPagoTicket_Gateway' )
+			return;
+		$ticket_url = get_post_meta( $order, '_transaction_details_ticket', true );
+		if ( empty( $ticket_url ) && WC_WooMercadoPagoTicket_Gateway::TEST_TICKET_URL )
+			return;
 		$html = '<p>' .
 			__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module' ) .
 		'</p>';
-		$html .= '<a id="submit-payment" target="_blank" href="' .
-			get_post_meta( $order->id, '_transaction_details_ticket', true ) . '" class="button alt"' .
+		$html .= '<a id="submit-payment" target="_blank" href="' . $ticket_url . '" class="button alt"' .
 			' style="font-size:1.25rem; width:75%; height:48px; line-height:24px; text-align:center;">' .
 			__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
 			'</a> ';
 		$added_text = '<p>' . $html . '</p>';
 		return $added_text;
+	}
+
+	public function show_ticket_button_action( $order ) {
+		if ( get_post_meta( $order, '_used_gateway', true ) != 'WC_WooMercadoPagoTicket_Gateway' )
+			return;
+		$ticket_url = get_post_meta( $order, '_transaction_details_ticket', true );
+		if ( empty( $ticket_url ) && WC_WooMercadoPagoTicket_Gateway::TEST_TICKET_URL )
+			return;
+		// Do not allow multiple call
+		$shown = get_post_meta( $order, '_transaction_details_ticket_flag', true );
+		if ( ! empty( $shown ) ) {
+			return;
+		} else {
+			update_post_meta(
+				$order,
+				'_transaction_details_ticket_flag',
+				'shown'
+			);
+		}
+		$html = '<p>' .
+			__( 'Thank you for your order. Please, pay the ticket to get your order approved.', 'woocommerce-mercadopago-module' ) .
+		'</p>';
+		$html .= '<a id="submit-payment" target="_blank" href="' . $ticket_url . '" class="button alt"' .
+			' style="font-size:1.25rem; width:75%; height:48px; line-height:24px; text-align:center;">' .
+			__( 'Print the Ticket', 'woocommerce-mercadopago-module' ) .
+			'</a> ';
+		$added_text = '<p>' . $html . '</p>';
+		echo $added_text;
 	}
 
 	public function ticket_checkout_scripts() {
@@ -836,7 +879,7 @@ class WC_WooMercadoPagoTicket_Gateway extends WC_Payment_Gateway {
 					$this->log->add(
 						$this->id,
 						'[create_url] - mercado pago gave error, payment creation failed with error: ' .
-						$ticket_info['response']['status'] );
+						json_encode( $ticket_info['response'], JSON_PRETTY_PRINT ) );
 				}
 				return false;
 			} elseif ( is_wp_error( $ticket_info ) ) {
