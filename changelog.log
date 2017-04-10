@@ -1,8 +1,21 @@
 CHANGELOG:
 
-= v2.1.8 (22/12/2016) =
+= v2.2.0 (03/04/2017) =
+* Features
+	- Recurrent Payments. This feature allow merchants to create subscriptions and charge their customers periodically;
+
+= v2.1.9 (23/03/2017) =
+* Features
+	- Mercado Envios for Basic Checkout. Now, merchants can use Mercado Envios services to ship products to their customers. For now, only available to Argentina, Brazil, and Mexico.
+	
+= v2.1.8 (13/02/2017) =
+* Features
+	- Rollout to Uruguay. This plugin is now supporting Uruguay for Basic Checkout with its local language translations.
 * Improvements
-	- Support to some themes in order resume page when paying with ticket.
+	- Conformity with Argentina's E 51/2017 resolution to show up CFT/TEA amounts;
+	- Removed decimals from Chile and Colombia currencies, as they aren't used.
+* Bug fixes
+	- Fixed and improved the coupon algorithm.
 
 = v2.1.7 (12/12/2016) =
 * Bug fixes
