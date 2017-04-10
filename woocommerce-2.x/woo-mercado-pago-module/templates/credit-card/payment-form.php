@@ -480,8 +480,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 								response.response.id +
 								"/terms_and_conditions?format_type=html' target='_blank'>" +
 								MPv1.text.discount_info6 + "</a>";
-								document.querySelector( MPv1.selectors.mpCouponError ).style.display =
-								"none";
+                        	document.querySelector( MPv1.selectors.mpCouponError ).style.display =
+                        		"none";
 							MPv1.coupon_of_discounts.status = true;
 							document.querySelector( MPv1.selectors.couponCode ).style.background =
 								null;
