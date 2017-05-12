@@ -26,19 +26,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once dirname( __FILE__ ) . '/includes/sdk/lib/mercadopago.php';
 
 // Load module class if it wasn't loaded yet.
-if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
+if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 
 	/**
 	 * Summary: WooCommerce MercadoPago Module main class.
 	 * Description: Used as a kind of manager to enable/disable each Mercado Pago gateway.
 	 * @since 1.0.0
 	 */
-	class WC_WooMercadoPago_Module {
+	class WC_Woo_Mercado_Pago_Module {
 
 		// ============================================================
 
 		// Constants.
 		const VERSION = '3.0.0';
+		const MIN_PHP = 5.6;
 
 		// Plugin variables.
 		public static $mp = null;
@@ -60,7 +61,7 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 
 			add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 
-			WC_WooMercadoPago_Module::$country_configs = array(
+			WC_Woo_Mercado_Pago_Module::$country_configs = array(
 				'MCO' => array(
 					'sponsor_id'             => 208687643,
 					'checkout_banner'        => plugins_url( 'assets/images/MCO/standard_mco.jpg', __FILE__ ),
@@ -121,35 +122,29 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 		// Return boolean indicating if currency is supported.
 		protected function is_supported_currency() {
 			$site_id = get_option( '_site_id', true );
-			return get_woocommerce_currency() == WC_WooMercadoPago_Module::$country_configs[$site_id]['currency'];
+			return get_woocommerce_currency() == WC_Woo_Mercado_Pago_Module::$country_configs[$site_id]['currency'];
 		}
 
 		// ============================================================
 
 		/**
-		 * Summary: Check if we have valid credentials.
+		 * Summary: Check if we have valid credentials for v0.
 		 * Description: Check if we have valid credentials.
 		 * @return boolean true/false depending on the validation result.
 		 */
-		public static function validate_credentials() {
-
+		public static function validate_credentials_v0() {
 			$client_id = get_option( '_mp_client_id', true );
 			$client_secret = get_option( '_mp_client_secret', true );
-
 			if ( empty( $client_id ) || empty( $client_secret ) ) {
 				return false;
 			}
-
-			WC_WooMercadoPago_Module::$mp = new MP( WC_WooMercadoPago_Module::VERSION, $client_id, $client_secret );
-			$access_token = WC_WooMercadoPago_Module::$mp->get_access_token();
-			$get_request = WC_WooMercadoPago_Module::$mp->get( '/users/me?access_token=' . $access_token );
-
+			WC_Woo_Mercado_Pago_Module::$mp = new MP( WC_Woo_Mercado_Pago_Module::VERSION, $client_id, $client_secret );
+			$access_token = WC_Woo_Mercado_Pago_Module::$mp->get_access_token();
+			$get_request = WC_Woo_Mercado_Pago_Module::$mp->get( '/users/me?access_token=' . $access_token );
 			if ( isset( $get_request['response']['site_id'] ) ) {
-				
 				update_option( '_test_user', in_array( 'test_user', $get_request['response']['tags'] ), true );
 				update_option( '_site_id', $get_request['response']['site_id'], true );
 				update_option( '_collector_id', $get_request['response']['id'], true );
-
 				/*$payment_split_mode = $mp->check_two_cards();
 				$payments = $mp->get( '/v1/payment_methods/?access_token=' . $access_token );
 				array_push( $payment_methods, 'n/d' );
@@ -159,8 +154,8 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 				// Check for auto converstion of currency (only if it is enabled).
 				$currency_ratio = -1;
 				if ( $currency_conversion == 'yes' ) {
-					$currency_ratio = WC_WooMercadoPago_Module::get_conversion_rate(
-						WC_WooMercadoPago_Module::$country_configs['currency']
+					$currency_ratio = WC_Woo_Mercado_Pago_Module::get_conversion_rate(
+						WC_Woo_Mercado_Pago_Module::$country_configs['currency']
 					);
 				}*/
 				return true;
@@ -168,12 +163,49 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 				$mp = null;
 				return false;
 			}
-
 			return false;
 		}
 
-		public static function get_country_name() {
-			$site_id = get_option( '_site_id', true );
+		/**
+		 * Summary: Check if we have valid credentials for v1.
+		 * Description: Check if we have valid credentials.
+		 * @return boolean true/false depending on the validation result.
+		 */
+		public static function validate_credentials_v1() {
+			$public_key = get_option( '_mp_public_key', true );
+			$access_token = get_option( '_mp_access_token', true );
+			if ( empty( $public_key ) || empty( $access_token ) ) {
+				return false;
+			}
+			WC_Woo_Mercado_Pago_Module::$mp = new MP( WC_Woo_Mercado_Pago_Module::VERSION, $access_token );
+			$access_token = WC_Woo_Mercado_Pago_Module::$mp->get_access_token();
+			$get_request = WC_Woo_Mercado_Pago_Module::$mp->get( '/users/me?access_token=' . $access_token );
+			if ( isset( $get_request['response']['site_id'] ) ) {
+				update_option( '_test_user', in_array( 'test_user', $get_request['response']['tags'] ), true );
+				update_option( '_site_id', $get_request['response']['site_id'], true );
+				update_option( '_collector_id', $get_request['response']['id'], true );
+				/*$payment_split_mode = $mp->check_two_cards();
+				$payments = $mp->get( '/v1/payment_methods/?access_token=' . $access_token );
+				array_push( $payment_methods, 'n/d' );
+				foreach ( $payments['response'] as $payment ) {
+					array_push( $payment_methods, str_replace( '_', ' ', $payment['id'] ) );
+				}
+				// Check for auto converstion of currency (only if it is enabled).
+				$currency_ratio = -1;
+				if ( $currency_conversion == 'yes' ) {
+					$currency_ratio = WC_Woo_Mercado_Pago_Module::get_conversion_rate(
+						WC_Woo_Mercado_Pago_Module::$country_configs['currency']
+					);
+				}*/
+				return true;
+			} else {
+				$mp = null;
+				return false;
+			}
+			return false;
+		}
+
+		public static function get_country_name( $site_id ) {
 			switch ( $site_id ) {
 				case 'MCO':
 					return __( 'Colombia', 'woo-mercado-pago-module' );
@@ -195,24 +227,9 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 			return '';
 		}
 
-		public static function build_invalid_credentials_msg() {
-			$img_path = plugins_url( 'assets/images/error.png', __FILE__ );
-			return '<img width="12" height="12" src="' . $img_path . '"> ' .
-				__( 'Your credentials are <strong>not valid</strong>!', 'woo-mercado-pago-module' );
-		}
-
-		public static function build_valid_credentials_msg() {
-			$site_id = get_option( '_site_id', true );
-			$img_path = plugins_url( 'assets/images/check.png', __FILE__ );
-			return '<img width="12" height="12" src="' . $img_path . '"> ' .
-				__( 'Your credentials are <strong>valid</strong> for', 'woo-mercado-pago-module' ) . ': ' .
-				WC_WooMercadoPago_Module::get_country_name() .
-				' <img width="18.6" height="12" src="' . plugins_url( 'assets/images/' . $site_id . '/' . $site_id . '.png', __FILE__ ) . '"> ';
-		}
-
 	}
 
-	add_action( 'admin_menu', 'mercadopago_plugin_menu' );
+	//=====
 
 	function mercadopago_plugin_menu() {
 		add_options_page(
@@ -220,123 +237,296 @@ if ( ! class_exists( 'WC_WooMercadoPago_Module' ) ) :
 			'Mercado Pago',
 			'manage_options',
 			'my-unique-identifier',
-			'mercadopago_plugin_options'
-		);
-	}
+			function() {
 
-	function mercadopago_plugin_options() {
-
-		if ( ! current_user_can( 'manage_options' ) )  {
-			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
-		}
-
-		if ( isset( $_POST['submit'] ) ) {
-			if ( isset( $_POST['client_id'] ) ) {
-				update_option( '_mp_client_id', $_POST['client_id'], true );
-			}
-			if ( isset( $_POST['client_secret'] ) ) {
-				update_option( '_mp_client_secret', $_POST['client_secret'], true );
-			}
-		}
-
-		// Trigger API to get payment methods and site_id, also validates Client_id/Client_secret.
-		if ( WC_WooMercadoPago_Module::validate_credentials() ) {
-			// Checking the currency.
-			/*$currency_message = '';
-			if ( ! $is_supported_currency() ) {
-				if ( $currency_conversion === 'no' ) {
-					$currency_ratio = -1;
-					$currency_message .= WC_WooMercadoPago_Module::build_currency_not_converted_msg(
-						WC_WooMercadoPago_Module::$country_configs['currency'],
-						WC_WooMercadoPago_Module::$country_configs['country_name']
-					);
-				} elseif ( $currency_conversion == 'yes' && $currency_ratio != -1) {
-					$currency_message .= WC_WooMercadoPago_Module::build_currency_converted_msg(
-						WC_WooMercadoPago_Module::$country_configs['currency'],
-						$currency_ratio
-					);
-				} else {
-					update_option( '_currency_ratio', -1, true );
-					$this->currency_message .= WC_WooMercadoPago_Module::build_currency_conversion_err_msg(
-						WC_WooMercadoPago_Module::$this->country_configs['currency']
-					);
+				// Verify permissions.
+				if ( ! current_user_can( 'manage_options' ) )  {
+					wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 				}
-			} else {
-				update_option( '_currency_ratio', -1, true );
-			}*/
-			$credentials_message = WC_WooMercadoPago_Module::build_valid_credentials_msg();
-			$payment_desc = __( 'Select the payment methods that you <strong>don\'t</strong> want to receive with Mercado Pago.', 'woo-mercado-pago-module' );
-		} else {
-			//array_push( $payment_methods, 'n/d' );
-			$credentials_message = WC_WooMercadoPago_Module::build_invalid_credentials_msg();
-			$payment_desc = '<img width="12" height="12" src="' .
-				plugins_url( 'assets/images/warning.png', __FILE__ ) . '">' . ' ' .
-				__( 'Configure your Client_id and Client_secret to have access to more options.', 'woo-mercado-pago-module' );
-		}
 
-		$title = __( 'Mercado Pago Settings', 'woo-mercado-pago-module' );
-		$logo = '<img width="200" height="52" src="' . plugins_url( 'assets/images/mplogo.png', __FILE__ ) . '">';
-		$plugin_description = '<strong>' .
-			__( 'This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woo-mercado-pago-module' ) .
-			'</strong>';
+				// Check for submits.
+				if ( isset( $_POST['submit'] ) ) {
+					if ( isset( $_POST['client_id'] ) ) {
+						update_option( '_mp_client_id', $_POST['client_id'], true );
+					}
+					if ( isset( $_POST['client_secret'] ) ) {
+						update_option( '_mp_client_secret', $_POST['client_secret'], true );
+					}
+					if ( isset( $_POST['public_key'] ) ) {
+						update_option( '_mp_public_key', $_POST['public_key'], true );
+					}
+					if ( isset( $_POST['access_token'] ) ) {
+						update_option( '_mp_access_token', $_POST['access_token'], true );
+					}
+				}
 
-		?>
+				$title = __( 'Mercado Pago Settings', 'woo-mercado-pago-module' );
+				$logo = '<img width="185" height="48" src="' . plugins_url( 'assets/images/mplogo.png', __FILE__ ) . '">';
 
-		<div class="wrap">
+				// Trigger v0 API to validate credentials.
+				$v0_credentials_message = WC_Woo_Mercado_Pago_Module::validate_credentials_v0() ?
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
+					__( 'Your <strong>client_id</strong> and <strong>client_secret</strong> are <strong>valid</strong> for', 'woo-mercado-pago-module' ) . ': ' .
+					'<img style="margin-top:2px;" width="18.6" height="12" src="' .
+					plugins_url( 'assets/images/' . get_option( '_site_id', true ) . '/' .
+					get_option( '_site_id', true ) . '.png', __FILE__ ) . '"> ' .
+					WC_Woo_Mercado_Pago_Module::get_country_name( get_option( '_site_id', true ) ) :
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/error.png', __FILE__ ) . '"> ' .
+					__( 'Your <strong>client_id</strong> and <strong>client_secret</strong> are <strong>not valid</strong>!', 'woo-mercado-pago-module' );
+				// Trigger v1 API to validate credentials.
+				$v1_credentials_message = WC_Woo_Mercado_Pago_Module::validate_credentials_v1() ?
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
+					__( 'Your <strong>public_key</strong> and <strong>access_token</strong> are <strong>valid</strong> for', 'woo-mercado-pago-module' ) . ': ' .
+					'<img style="margin-top:2px;" width="18.6" height="12" src="' .
+					plugins_url( 'assets/images/' . get_option( '_site_id', true ) . '/' .
+					get_option( '_site_id', true ) . '.png', __FILE__ ) . '"> ' .
+					WC_Woo_Mercado_Pago_Module::get_country_name( get_option( '_site_id', true ) ) :
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/error.png', __FILE__ ) . '"> ' .
+					__( 'Your <strong>public_key</strong> and <strong>access_token</strong> are <strong>not valid</strong>!', 'woo-mercado-pago-module' );
+				// Check WooCommerce.
+				$has_woocommerce_message = class_exists( 'WC_Payment_Gateway' ) ?
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
+					__( 'WooCommerce is installed and enabled.', 'woo-mercado-pago-module' ) :
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/error.png', __FILE__ ) . '"> ' .
+					__( 'You don\'t have WooCommerce installed and enabled.', 'woo-mercado-pago-module' );			
+				// Creating PHP version message.
+				$min_php_message = phpversion() >= WC_Woo_Mercado_Pago_Module::MIN_PHP ?
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
+					__( 'Your PHP version is OK.', 'woo-mercado-pago-module' ) :
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/error.png', __FILE__ ) . '"> ' .
+					__( 'Your PHP version do not support this module.', 'woo-mercado-pago-module' );
+				// Check cURL.
+				$curl_message = in_array( 'curl', get_loaded_extensions() ) ?
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
+					__( 'cURL is installed.', 'woo-mercado-pago-module' ) :
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/error.png', __FILE__ ) . '"> ' .
+					__( 'cURL is not installed.', 'woo-mercado-pago-module' );
+				// Check SSL.
+				$is_ssl_message = empty( $_SERVER['HTTPS'] ) || $_SERVER['HTTPS'] == 'off' ?
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/warning.png', __FILE__ ) . '"> ' .
+					__( 'SSL is missing in your site.', 'woo-mercado-pago-module' ) :
+					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
+					__( 'Your site has SSL enabled.', 'woo-mercado-pago-module' );
 
-			<h1><?php echo esc_html( $title ); ?></h1>
+				$plugin_description = '<strong>' .
+					__( 'This module enables WooCommerce to use Mercado Pago as payment method for purchases made in your virtual store.', 'woo-mercado-pago-module' ) .
+					'</strong>';
 
-			<form method="post" action="" novalidate="novalidate" method="post">
+				// Create links for internal redirections to each payment solution.
+				$payment_gateways = __( 'Payment Gateways', 'woo-mercado-pago-module' );
+				$plugin_links = '<strong>' .
+					'<a class="button button-primary" href="' . esc_url( admin_url(
+						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPago_Gateway' ) ) .
+						'">' . __( 'Basic Checkout', 'woo-mercado-pago-module' ) . '</a>' . ' ' .
+					'<a class="button button-primary" href="' . esc_url( admin_url(
+						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCustom_Gateway' ) ) .
+						'">' . __( 'Custom Checkout', 'woo-mercado-pago-module' ) . '</a>' . ' ' .
+					'<a class="button button-primary" href="' . esc_url( admin_url(
+						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway' ) ) .
+						'">' . __( 'Ticket', 'woo-mercado-pago-module' ) . '</a>' . ' ' .
+					'<a class="button button-primary" href="' . esc_url( admin_url(
+						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoSubscription_Gateway' ) ) .
+						'">' . __( 'Subscription', 'woo-mercado-pago-module' ) . '</a>' .
+				'</strong>';
+				$v0_credential_locales = sprintf(
+					'%s <a href="https://www.mercadopago.com/mla/account/credentials?type=basic" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlb/account/credentials?type=basic" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlc/account/credentials?type=basic" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mco/account/credentials?type=basic" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlm/account/credentials?type=basic" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mpe/account/credentials?type=basic" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlu/account/credentials?type=basic" target="_blank">%s</a> %s ' .
+					'<a href="https://www.mercadopago.com/mlv/account/credentials?type=basic" target="_blank">%s</a>',
+					__( 'Credentials used in Basic Checkout and Subscriptions. Access it for your country:<br>', 'woo-mercado-pago-module' ),
+					__( 'Argentine', 'woo-mercado-pago-module' ),
+					__( 'Brazil', 'woo-mercado-pago-module' ),
+					__( 'Chile', 'woo-mercado-pago-module' ),
+					__( 'Colombia', 'woo-mercado-pago-module' ),
+					__( 'Mexico', 'woo-mercado-pago-module' ),
+					__( 'Peru', 'woo-mercado-pago-module' ),
+					__( 'Uruguay', 'woo-mercado-pago-module' ),
+					__( 'or', 'woo-mercado-pago-module' ),
+					__( 'Venezuela', 'woo-mercado-pago-module' )
+				);
+				$v1_credential_locales = sprintf(
+					'%s <a href="https://www.mercadopago.com/mla/account/credentials?type=custom" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlb/account/credentials?type=custom" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlc/account/credentials?type=custom" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mco/account/credentials?type=custom" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mlm/account/credentials?type=custom" target="_blank">%s</a>, ' .
+					'<a href="https://www.mercadopago.com/mpe/account/credentials?type=custom" target="_blank">%s</a> %s ' .
+					'<a href="https://www.mercadopago.com/mlv/account/credentials?type=custom" target="_blank">%s</a>',
+					__( 'Credentials used in Custom Checkout and Tickets. Access it for your country:<br>', 'woo-mercado-pago-module' ),
+					__( 'Argentine', 'woo-mercado-pago-module' ),
+					__( 'Brazil', 'woo-mercado-pago-module' ),
+					__( 'Chile', 'woo-mercado-pago-module' ),
+					__( 'Colombia', 'woo-mercado-pago-module' ),
+					__( 'Mexico', 'woo-mercado-pago-module' ),
+					__( 'Peru', 'woo-mercado-pago-module' ),
+					__( 'or', 'woo-mercado-pago-module' ),
+					__( 'Venezuela', 'woo-mercado-pago-module' )
+				);
 
-				<?php settings_fields( 'mercadopago' ); ?>
+				?>
 
-				<table class="wp-list-table widefat plugins">
-					<tr>
-						<th scope="row"><?php echo $logo; ?></th>
-						<td>
-							<?php echo $credentials_message; ?>
-							<!-- place here other setting statuses ... -->
-						</td>
-					</tr>
-				</table>
+				<div class="wrap">
 
-				<?php echo $plugin_description; ?>
+					<h1><?php echo esc_html( $title ); ?></h1>
+					<table class="form-table">
+						<tr>
+							<td>
+								<?php echo $v0_credentials_message; ?>
+								<br>
+								<?php echo $v1_credentials_message; ?>
+								<br>
+								<?php echo $has_woocommerce_message; ?>
+							</td>
+							<td>
+								<?php echo $min_php_message; ?>
+								<br>
+								<?php echo $curl_message; ?>
+								<br>
+								<?php echo $is_ssl_message; ?>
+							</td>
+							<th scope="row">
+								<?php echo $logo; ?>
+							</th>
+						</tr>
+					</table>
+					<?php echo $plugin_description; ?>
+					<table class="form-table">
+						<tr>
+							<th scope="row"><?php echo $payment_gateways; ?></th>
+							<td><?php echo $plugin_links; ?></td>
+						</tr>
+					</table>
 
-				<table class="form-table">
-					<tr>
-						<th scope="row"><label for="client_id">Client ID</label></th>
-						<td>
-							<input name="client_id" type="text" id="client_id" value="<?php form_option('_mp_client_id'); ?>" class="regular-text" />
-							<p class="description" id="tagline-description"><?php echo esc_html( __( 'Insert your Mercado Pago Client_id.', 'woo-mercado-pago-module' ) ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="client_secret">Client Secret</label></th>
-						<td>
-							<input name="client_secret" type="text" id="client_secret" aria-describedby="tagline-description" value="<?php form_option('_mp_client_secret'); ?>" class="regular-text" />
-							<p class="description" id="tagline-description"><?php echo esc_html( __( 'Insert your Mercado Pago Client_secret.', 'woo-mercado-pago-module' ) ); ?></p>
-						</td>
-					</tr>
+					<form method="post" action="" novalidate="novalidate" method="post">
 
-				</table>
+						<?php settings_fields( 'mercadopago' ); ?>
 
-				<?php do_settings_sections( 'mercadopago' ); ?>
+						<table class="form-table" border="0.5" frame="above" rules="void">
+							<tr>
+								<th scope="row"><label for="client_id"><h3>
+									<?php echo esc_html( __( 'v0 Credentials', 'woo-mercado-pago-module' ) ); ?>
+								</h3></label></th>
+								<td><label class="description" id="tagline-description">
+									<?php echo $v0_credential_locales; ?>
+								</label></td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="client_id">Client ID</label></th>
+								<td>
+									<input name="client_id" type="text" id="client_id" value="<?php form_option('_mp_client_id'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Insert your Mercado Pago Client_id.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="client_secret">Client Secret</label></th>
+								<td>
+									<input name="client_secret" type="text" id="client_secret" aria-describedby="tagline-description" value="<?php form_option('_mp_client_secret'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Insert your Mercado Pago Client_secret.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
+						</table>
+						
+						<table class="form-table" border="0.5" frame="above" rules="void">
+							<tr>
+								<th scope="row"><label for="client_id"><h3>
+									<?php echo esc_html( __( 'v1 Credentials', 'woo-mercado-pago-module' ) ); ?>
+								</h3></label></th>
+								<td><label class="description" id="tagline-description">
+									<?php echo $v1_credential_locales; ?>
+								</label></td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="public_key">Public Key</label></th>
+								<td>
+									<input name="public_key" type="text" id="public_key" aria-describedby="tagline-description" value="<?php form_option('_mp_public_key'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Insert your Mercado Pago Public key.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="access_token">Access Token</label></th>
+								<td>
+									<input name="access_token" type="text" id="access_token" aria-describedby="tagline-description" value="<?php form_option('_mp_access_token'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Insert your Mercado Pago Access token.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
+						</table>
 
-				<?php submit_button(); ?>
+						<table class="form-table" border="0.5" frame="hsides" rules="void">
+							<tr>
+								<th scope="row"><label for="mp_success_url">
+									<?php echo __( 'Sucess URL', 'woo-mercado-pago-module' ); ?>
+								</label></th>
+								<td>
+									<input name="mp_success_url" type="text" id="mp_success_url" value="<?php form_option('_mp_success_url'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Where customers should be redirected after a successful purchase. Let blank to redirect to the default store order resume page.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="mp_fail_url">
+									<?php echo __( 'Failure URL', 'woo-mercado-pago-module' ); ?>
+								</label></th>
+								<td>
+									<input name="mp_fail_url" type="text" id="mp_fail_url" value="<?php form_option('_mp_fail_url'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Where customers should be redirected after a failed purchase. Let blank to redirect to the default store order resume page.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><label for="mp_pending_url">
+									<?php echo __( 'Pending URL', 'woo-mercado-pago-module' ); ?>
+								</label></th>
+								<td>
+									<input name="mp_pending_url" type="text" id="mp_pending_url" value="<?php form_option('_mp_pending_url'); ?>" class="regular-text" />
+									<p class="description" id="tagline-description">
+										<?php echo esc_html( __( 'Where customers should be redirected after a pending purchase. Let blank to redirect to the default store order resume page.', 'woo-mercado-pago-module' ) ); ?>
+									</p>
+								</td>
+							</tr>
 
-			</form>
+							<!--
+							WooCommerce pending processing on-hold completed cancelled refunded failed
+							MercadoPago pending approved in_process in_mediation rejected cancelled refunded charged_back
+							-->
 
-		</div>
+						</table>
 
-		<?php
+						<?php do_settings_sections( 'mercadopago' ); ?>
 
+						<?php submit_button(); ?>
+
+					</form>
+
+				</div>
+
+				<?php
+
+			}
+		);
 	}
 
 	// Payment gateways should be created as additional plugins that hook into WooCommerce.
 	// Inside the plugin, you need to create a class after plugins are loaded.
 	add_action(
 		'plugins_loaded',
-		array( 'WC_WooMercadoPago_Module', 'init_mercado_pago_class' )
+		array( 'WC_Woo_Mercado_Pago_Module', 'init_mercado_pago_class' )
 	);
+
+	// Create Mercado Pago option menu.
+	add_action( 'admin_menu', 'mercadopago_plugin_menu' );
 
 endif;
