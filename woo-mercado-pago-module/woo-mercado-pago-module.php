@@ -134,8 +134,8 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		 * @return boolean true/false depending on the validation result.
 		 */
 		public static function validate_credentials_v0() {
-			$client_id = get_option( '_mp_client_id', true );
-			$client_secret = get_option( '_mp_client_secret', true );
+			$client_id = get_option( '_mp_client_id', '' );
+			$client_secret = get_option( '_mp_client_secret', '' );
 			if ( empty( $client_id ) || empty( $client_secret ) ) {
 				return false;
 			}
@@ -176,8 +176,8 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		 * @return boolean true/false depending on the validation result.
 		 */
 		public static function validate_credentials_v1() {
-			$public_key = get_option( '_mp_public_key', true );
-			$access_token = get_option( '_mp_access_token', true );
+			$public_key = get_option( '_mp_public_key', '' );
+			$access_token = get_option( '_mp_access_token', '' );
 			if ( empty( $public_key ) || empty( $access_token ) ) {
 				return false;
 			}
@@ -360,6 +360,50 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 			return '';
 		}
 
+		// Build the string representing the path to the log file.
+		public static function build_log_path_string( $gateway_id, $gateway_name ) {
+			return '<a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=logs&log_file=' .
+				esc_attr( $gateway_id ) . '-' . sanitize_file_name( wp_hash( $gateway_id ) ) . '.log' ) ) . '">' .
+				$gateway_name . '</a>';
+		}
+
+		public static function get_map( $selector_id ) {
+			$arr = explode( '_', $selector_id );
+			$defaults = array(
+				'pending' => 'pending',
+				'approved' => 'processing',
+				'inprocess' => 'on_hold',
+				'inmediation' => 'on_hold',
+				'rejected' => 'failed',
+				'cancelled' => 'cancelled',
+				'refunded' => 'refunded',
+				'chargedback' => 'refunded'
+			);
+			$selection = get_option( '_mp_' . $selector_id, $defaults[$arr[2]] );
+			return
+				'<option value="pending"' . ( $selection == 'pending' ? 'selected="selected"' : '' ) . '>' .
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'PENDING
+				</option>
+				<option value="processing"' . ( $selection == 'processing' ? 'selected="selected"' : '' ) . '>' .
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'PROCESSING
+				</option>
+				<option value="on_hold"' . ( $selection == 'on_hold' ? 'selected="selected"' : '' ) . '>' . 
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'ON-HOLD
+				</option>
+				<option value="completed"' . ( $selection == 'completed' ? 'selected="selected"' : '' ) . '>' .
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'COMPLETED
+				</option>
+				<option value="cancelled"' . ( $selection == 'cancelled' ? 'selected="selected"' : '' ) . '>' .
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'CANCELLED
+				</option>
+				<option value="refunded"' . ( $selection == 'refunded' ? 'selected="selected"' : '' ) . '>' .
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'REFUNDED
+				</option>
+				<option value="failed"' . ( $selection == 'failed' ? 'selected="selected"' : '' ) . '>' .
+					__( "Update WooCommerce order to ", "woo-mercado-pago-module" ) . 'FAILED
+				</option>';
+		}
+
 	}
 
 	//=====
@@ -400,6 +444,30 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					if ( isset( $_POST['pending_url'] ) ) {
 						update_option( '_mp_pending_url', $_POST['pending_url'], true );
 					}
+					if ( isset( $_POST['order_status_pending_map'] ) ) {
+						update_option( '_mp_order_status_pending_map', $_POST['order_status_pending_map'], true );
+					}
+					if ( isset( $_POST['order_status_approved_map'] ) ) {
+						update_option( '_mp_order_status_approved_map', $_POST['order_status_approved_map'], true );
+					}
+					if ( isset( $_POST['order_status_inprocess_map'] ) ) {
+						update_option( '_mp_order_status_inprocess_map', $_POST['order_status_inprocess_map'], true );
+					}
+					if ( isset( $_POST['order_status_inmediation_map'] ) ) {
+						update_option( '_mp_order_status_inmediation_map', $_POST['order_status_inmediation_map'], true );
+					}
+					if ( isset( $_POST['order_status_rejected_map'] ) ) {
+						update_option( '_mp_order_status_rejected_map', $_POST['order_status_rejected_map'], true );
+					}
+					if ( isset( $_POST['order_status_cancelled_map'] ) ) {
+						update_option( '_mp_order_status_cancelled_map', $_POST['order_status_cancelled_map'], true );
+					}
+					if ( isset( $_POST['order_status_refunded_map'] ) ) {
+						update_option( '_mp_order_status_refunded_map', $_POST['order_status_refunded_map'], true );
+					}
+					if ( isset( $_POST['order_status_chargedback_map'] ) ) {
+						update_option( '_mp_order_status_chargedback_map', $_POST['order_status_chargedback_map'], true );
+					}
 					if ( isset( $_POST['category_id'] ) ) {
 						update_option( '_mp_category_id', $_POST['category_id'], true );
 					}
@@ -415,6 +483,11 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 						update_option( '_mp_currency_conversion_v1', $_POST['currency_conversion_v1'], true );
 					} else {
 						update_option( '_mp_currency_conversion_v1', '', true );
+					}
+					if ( isset( $_POST['debug_mode'] ) ) {
+						update_option( '_mp_debug_mode', $_POST['debug_mode'], true );
+					} else {
+						update_option( '_mp_debug_mode', '', true );
 					}
 				}
 
@@ -460,19 +533,19 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 						'">' . __( 'Subscription', 'woo-mercado-pago-module' ) . '</a>' .
 				'</strong>';
 				// Back URL messages.
-				if ( ! empty( get_option( '_mp_success_url', true ) ) && filter_var( get_option( '_mp_success_url', true ), FILTER_VALIDATE_URL ) === FALSE ) {
+				if ( ! empty( get_option( '_mp_success_url', '' ) ) && filter_var( get_option( '_mp_success_url', '' ), FILTER_VALIDATE_URL ) === FALSE ) {
 					$success_back_url_message = '<img width="14" height="14" src="' . plugins_url( 'assets/images/warning.png', __FILE__ ) . '"> ' .
 					__( 'This appears to be an invalid URL.', 'woo-mercado-pago-module' ) . ' ';
 				} else {
 					$success_back_url_message = __( 'Where customers should be redirected after a successful purchase. Let blank to redirect to the default store order resume page.', 'woo-mercado-pago-module' );
 				}
-				if ( ! empty( get_option( '_mp_fail_url', true ) ) && filter_var( get_option( '_mp_fail_url', true ), FILTER_VALIDATE_URL ) === FALSE ) {
+				if ( ! empty( get_option( '_mp_fail_url', '' ) ) && filter_var( get_option( '_mp_fail_url', '' ), FILTER_VALIDATE_URL ) === FALSE ) {
 					$fail_back_url_message = '<img width="14" height="14" src="' . plugins_url( 'assets/images/warning.png', __FILE__ ) . '"> ' .
 					__( 'This appears to be an invalid URL.', 'woo-mercado-pago-module' ) . ' ';
 				} else {
 					$fail_back_url_message = __( 'Where customers should be redirected after a failed purchase. Let blank to redirect to the default store order resume page.', 'woo-mercado-pago-module' );
 				}
-				if ( ! empty( get_option( '_mp_pending_url', true ) ) && filter_var( get_option( '_mp_pending_url', true ), FILTER_VALIDATE_URL ) === FALSE ) {
+				if ( ! empty( get_option( '_mp_pending_url', '' ) ) && filter_var( get_option( '_mp_pending_url', '' ), FILTER_VALIDATE_URL ) === FALSE ) {
 					$pending_back_url_message = '<img width="14" height="14" src="' . plugins_url( 'assets/images/warning.png', __FILE__ ) . '"> ' .
 					__( 'This appears to be an invalid URL.', 'woo-mercado-pago-module' ) . ' ';
 				} else {
@@ -482,7 +555,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				$categories = WC_Woo_Mercado_Pago_Module::get_categories();
 				WC_Woo_Mercado_Pago_Module::$store_categories_id = $categories['store_categories_id'];
 				WC_Woo_Mercado_Pago_Module::$store_categories_description = $categories['store_categories_description'];
-				$category_id = get_option( '_mp_category_id', true );
+				$category_id = get_option( '_mp_category_id', 0 );
 				if ( count( WC_Woo_Mercado_Pago_Module::$store_categories_id ) == 0 ) {
 					$store_category_message = '<img width="14" height="14" src="' . plugins_url( 'assets/images/warning.png', __FILE__ ) . '">' . ' ' .
 						__( 'Configure your Client_id and Client_secret to have access to more options.', 'woo-mercado-pago-module' );
@@ -490,14 +563,16 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					$store_category_message = __( 'Define which type of products your store sells.', 'woo-mercado-pago-module' );
 				}
 				// Store identification.
-				if ( empty( get_option( '_mp_store_identificator', true ) ) ) {
-					$store_identificator = 'WC-';
+				$store_identificator = get_option( '_mp_store_identificator', 'WC-' );
+				// Debug mode.
+				if ( empty( get_option( '_mp_debug_mode', '' ) ) ) {
+					$is_debug_mode = '';
 				} else {
-					$store_identificator = get_option( '_mp_store_identificator', true );
+					$is_debug_mode = 'checked="checked"';
 				}
 
 				// ===== v0 verifications =====
-				$site_id_v0 = get_option( '_site_id_v0', true );
+				$site_id_v0 = get_option( '_site_id_v0', '' );
 				// Trigger v0 API to validate credentials.
 				$v0_credentials_message = WC_Woo_Mercado_Pago_Module::validate_credentials_v0() ?
 					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
@@ -528,19 +603,19 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					__( 'Venezuela', 'woo-mercado-pago-module' )
 				);
 				// Currency conversion.
-				if ( empty( get_option( '_mp_currency_conversion_v0', true ) ) ) {
+				if ( empty( get_option( '_mp_currency_conversion_v0', '' ) ) ) {
 					$is_currency_conversion_v0 = '';
 				} else {
 					$is_currency_conversion_v0 = 'checked="checked"';
 				}
 				if ( WC_Woo_Mercado_Pago_Module::$mp_v0 != null ) {
 					if ( ! WC_Woo_Mercado_Pago_Module::is_supported_currency( $site_id_v0 ) ) {
-						if ( empty( get_option( '_mp_currency_conversion_v0', true ) ) ) {
+						if ( empty( get_option( '_mp_currency_conversion_v0', '' ) ) ) {
 							$currency_conversion_v0_message = WC_Woo_Mercado_Pago_Module::build_currency_not_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v0]['currency'],
 								WC_Woo_Mercado_Pago_Module::get_country_name( $site_id_v0 )
 							);
-						} elseif ( ! empty( get_option( '_mp_currency_conversion_v0', true ) ) && WC_Woo_Mercado_Pago_Module::$can_do_currency_conversion_v0 ) {
+						} elseif ( ! empty( get_option( '_mp_currency_conversion_v0', '' ) ) && WC_Woo_Mercado_Pago_Module::$can_do_currency_conversion_v0 ) {
 							$currency_conversion_v0_message = WC_Woo_Mercado_Pago_Module::build_currency_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v0]['currency']
 							);
@@ -557,14 +632,14 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				}
 
 				// ===== v1 verifications =====
-				$site_id_v1 = get_option( '_site_id_v1', true );
+				$site_id_v1 = get_option( '_site_id_v1', '' );
 				// Trigger v1 API to validate credentials.
 				$v1_credentials_message = WC_Woo_Mercado_Pago_Module::validate_credentials_v1() ?
 					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
 					__( 'Your <strong>public_key</strong> and <strong>access_token</strong> are <strong>valid</strong> for', 'woo-mercado-pago-module' ) . ': ' .
 					'<img style="margin-top:2px;" width="18.6" height="12" src="' .
-					plugins_url( 'assets/images/' . $_site_id_v1 . '/' . $_site_id_v1 . '.png', __FILE__ ) . '"> ' .
-					WC_Woo_Mercado_Pago_Module::get_country_name( $_site_id_v1 ) :
+					plugins_url( 'assets/images/' . $site_id_v1 . '/' . $site_id_v1 . '.png', __FILE__ ) . '"> ' .
+					WC_Woo_Mercado_Pago_Module::get_country_name( $site_id_v1 ) :
 					'<img width="14" height="14" src="' . plugins_url( 'assets/images/error.png', __FILE__ ) . '"> ' .
 					__( 'Your <strong>public_key</strong> and <strong>access_token</strong> are <strong>not valid</strong>!', 'woo-mercado-pago-module' );
 				$v1_credential_locales = sprintf(
@@ -586,19 +661,19 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					__( 'Venezuela', 'woo-mercado-pago-module' )
 				);
 				// Currency conversion.
-				if ( empty( get_option( '_mp_currency_conversion_v1', true ) ) ) {
+				if ( empty( get_option( '_mp_currency_conversion_v1', '' ) ) ) {
 					$is_currency_conversion_v1 = '';
 				} else {
 					$is_currency_conversion_v1 = 'checked="checked"';
 				}
 				if ( WC_Woo_Mercado_Pago_Module::$mp_v1 != null ) {
 					if ( ! WC_Woo_Mercado_Pago_Module::is_supported_currency( $site_id_v1 ) ) {
-						if ( empty( get_option( '_mp_currency_conversion_v1', true ) ) ) {
+						if ( empty( get_option( '_mp_currency_conversion_v1', '' ) ) ) {
 							$currency_conversion_v1_message = WC_Woo_Mercado_Pago_Module::build_currency_not_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v1]['currency'],
 								WC_Woo_Mercado_Pago_Module::get_country_name( $site_id_v1 )
 							);
-						} elseif ( ! empty( get_option( '_mp_currency_conversion_v1', true ) ) && WC_Woo_Mercado_Pago_Module::$can_do_currency_conversion_v1 ) {
+						} elseif ( ! empty( get_option( '_mp_currency_conversion_v1', '' ) ) && WC_Woo_Mercado_Pago_Module::$can_do_currency_conversion_v1 ) {
 							$currency_conversion_v1_message = WC_Woo_Mercado_Pago_Module::build_currency_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v1]['currency']
 							);

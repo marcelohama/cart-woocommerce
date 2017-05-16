@@ -173,14 +173,8 @@
 					<?php echo __( 'Status for PENDING', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_pending_map" id="mp_order_status_pending_map">
-						<option value="pending" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_pending_map" id="order_status_pending_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_pending_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'when Mercado Pago updates a payment status to PENDING.', 'woo-mercado-pago-module' ) ); ?>
@@ -192,14 +186,8 @@
 					<?php echo __( 'Status for APPROVED', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_approved_map" id="mp_order_status_approved_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_approved_map" id="order_status_approved_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_approved_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to APPROVED.', 'woo-mercado-pago-module' ) ); ?>
@@ -211,14 +199,8 @@
 					<?php echo __( 'Status for IN_PROCESS', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_inprocess_map" id="mp_order_status_inprocess_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_inprocess_map" id="order_status_inprocess_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_inprocess_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to IN_PROCESS.', 'woo-mercado-pago-module' ) ); ?>
@@ -230,14 +212,8 @@
 					<?php echo __( 'Status for IN_MEDIATION', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_inmediation_map" id="mp_order_status_inmediation_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_inmediation_map" id="order_status_inmediation_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_inmediation_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to IN_MEDIATION.', 'woo-mercado-pago-module' ) ); ?>
@@ -249,14 +225,8 @@
 					<?php echo __( 'Status for REJECTED', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_rejected_map" id="mp_order_status_rejected_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_rejected_map" id="order_status_rejected_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_rejected_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to REJECTED.', 'woo-mercado-pago-module' ) ); ?>
@@ -268,14 +238,8 @@
 					<?php echo __( 'Status for CANCELLED', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_cancelled_map" id="mp_order_status_cancelled_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_cancelled_map" id="order_status_cancelled_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_cancelled_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to CANCELLED.', 'woo-mercado-pago-module' ) ); ?>
@@ -287,14 +251,8 @@
 					<?php echo __( 'Status for REFUNDED', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_refunded_map" id="mp_order_status_refunded_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_refunded_map" id="order_status_refunded_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_refunded_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to REFUNDED.', 'woo-mercado-pago-module' ) ); ?>
@@ -306,14 +264,8 @@
 					<?php echo __( 'Status for CHARGED_BACK', 'woo-mercado-pago-module' ); ?>
 				</label></th>
 				<td>
-					<select name="mp_order_status_chargedback_map" id="mp_order_status_chargedback_map">
-						<option value="pending"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PENDING</option>
-						<option value="processing"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>PROCESSING</option>
-						<option value="on-hold"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>ON-HOLD</option>
-						<option value="completed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>COMPLETED</option>
-						<option value="cancelled"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>CANCELLED</option>
-						<option value="refunded" selected="selected"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>REFUNDED</option>
-						<option value="failed"><?php echo __( 'Update WooCommerce order to ', 'woo-mercado-pago-module' ); ?>FAILED</option>
+					<select name="order_status_chargedback_map" id="order_status_chargedback_map">
+						<?php echo WC_Woo_Mercado_Pago_Module::get_map( 'order_status_chargedback_map' ); ?>
 					</select>
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'When Mercado Pago updates a payment status to CHARGED_BACK.', 'woo-mercado-pago-module' ) ); ?>
@@ -377,9 +329,33 @@
 			<tr>
 				<th scope="row"><label><?php echo __( 'Debug and Log', 'woo-mercado-pago-module' ); ?></label></th>
 				<td>
-					<input name="store_category" type="text" id="store_category" aria-describedby="tagline-description" value="<?php form_option('_mp_store_category'); ?>" class="regular-text" />
+					<label>
+						<input class="" type="checkbox" name="debug_mode" id="debug_mode" <?php echo $is_debug_mode; ?>>
+						<?php echo __( 'Enable log (Keep this disabled if you’re in production).', 'woo-mercado-pago-module' ); ?>
+					</label>
 					<p class="description" id="tagline-description">
-						<?php echo esc_html( __( 'Define which type of products your store sells.', 'woo-mercado-pago-module' ) ); ?>
+						<?php echo sprintf(
+							__( 'Register event logs of Mercado Pago, such as API requests, for', 'woo-mercado-pago-module' ) . ' %s, %s, %s, or %s.',
+							WC_Woo_Mercado_Pago_Module::build_log_path_string(
+								'woocommerce-mercadopago-basic-module',
+								__( 'Basic Checkout', 'woo-mercado-pago-module' )
+							),
+							WC_Woo_Mercado_Pago_Module::build_log_path_string(
+								'woocommerce-mercadopago-custom-module',
+								__( 'Custom Checkout', 'woo-mercado-pago-module' )
+							),
+							WC_Woo_Mercado_Pago_Module::build_log_path_string(
+								'woocommerce-mercadopago-ticket-module',
+								__( 'Tickets', 'woo-mercado-pago-module' )
+							),
+							WC_Woo_Mercado_Pago_Module::build_log_path_string(
+								'woocommerce-mercadopago-subscription-module',
+								__( 'Subscriptions', 'woo-mercado-pago-module' )
+							) . '.<br>' .
+							__( 'You can access your logs in ', 'woo-mercado-pago-module' ) . '<strong>' .
+							__( 'WooCommerce &gt; System Status &gt; Logs', 'woo-mercado-pago-module' ) . '</strong>. ' .
+							__( 'Files are located in: ', 'woo-mercado-pago-module' ) . '<code>wordpress/wp-content/uploads/wc-logs/</code>' )
+						?>
 					</p>
 				</td>
 			</tr>
