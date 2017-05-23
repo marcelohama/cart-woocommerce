@@ -59,12 +59,13 @@
 			<tr>
 				<th scope="row"><label>Client Secret</label></th>
 				<td>
-					<input name="client_secret" type="text" id="client_secret" aria-describedby="tagline-description" value="<?php form_option('_mp_client_secret'); ?>" class="regular-text" />
+					<input name="client_secret" type="password" id="client_secret" aria-describedby="tagline-description" value="<?php form_option('_mp_client_secret'); ?>" class="regular-text" />
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'Insert your Mercado Pago Client_secret.', 'woo-mercado-pago-module' ) ); ?>
 					</p>
 				</td>
 			</tr>
+			<?php if ( ! empty ( $site_id_v0 ) ) { ?>
 			<tr>
 				<th scope="row"><label><?php echo __( 'Currency Conversion', 'woo-mercado-pago-module' ); ?></label></th>
 				<td>
@@ -77,6 +78,7 @@
 					</p>
 				</td>
 			</tr>
+			<?php } ?>
 		</table>
 		
 		<table class="form-table" border="0.5" frame="above" rules="void">
@@ -100,12 +102,13 @@
 			<tr>
 				<th scope="row"><label>Access Token</label></th>
 				<td>
-					<input name="access_token" type="text" id="access_token" aria-describedby="tagline-description" value="<?php form_option('_mp_access_token'); ?>" class="regular-text" />
+					<input name="access_token" type="password" id="access_token" aria-describedby="tagline-description" value="<?php form_option('_mp_access_token'); ?>" class="regular-text" />
 					<p class="description" id="tagline-description">
 						<?php echo esc_html( __( 'Insert your Mercado Pago Access token.', 'woo-mercado-pago-module' ) ); ?>
 					</p>
 				</td>
 			</tr>
+			<?php if ( ! empty ( $site_id_v1 ) ) { ?>
 			<tr>
 				<th scope="row"><label><?php echo __( 'Currency Conversion', 'woo-mercado-pago-module' ); ?></label></th>
 				<td>
@@ -118,15 +121,16 @@
 					</p>
 				</td>
 			</tr>
+			<?php } ?>
 		</table>
 
 		<table class="form-table" border="0.5" frame="above" rules="void">
 			<tr>
 				<th scope="row"><label><h3>
-					<?php echo esc_html( __( 'Server Communication', 'woo-mercado-pago-module' ) ); ?>
+					<?php echo esc_html( __( 'Status Mapping of Payment x Order', 'woo-mercado-pago-module' ) ); ?>
 				</h3></label></th>
 				<td><label class="description" id="tagline-description">
-					<?php echo __( 'Here you can configure details of your server communication with Mercado Pago. Back URL are redirections after the checkout.', 'woo-mercado-pago-module' ); ?>
+					<?php echo __( 'Here you can configure details about Mercado Pago payments and WooCommerce order statuses.', 'woo-mercado-pago-module' ); ?>
 					<br>
 					<?php echo sprintf(
 						__( 'For status mappings between payment/order you can use the defaults, or check references of %s and %s', 'woo-mercado-pago-module' ),
@@ -134,39 +138,6 @@
 						'<a target="_blank" href="https://docs.woocommerce.com/document/managing-orders/">WooCommerce</a>.'
 					); ?>
 				</label></td>
-			</tr>
-			<tr>
-				<th scope="row"><label>
-					<?php echo __( 'Sucess URL', 'woo-mercado-pago-module' ); ?>
-				</label></th>
-				<td>
-					<input name="success_url" type="text" id="success_url" value="<?php form_option('_mp_success_url'); ?>" class="regular-text" placeholder="<?php echo get_site_url() . '/wc-api/{mp_gateway}'; ?>"/>
-					<p class="description" id="tagline-description">
-						<?php echo $success_back_url_message; ?>
-					</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label>
-					<?php echo __( 'Failure URL', 'woo-mercado-pago-module' ); ?>
-				</label></th>
-				<td>
-					<input name="fail_url" type="text" id="fail_url" value="<?php form_option('_mp_fail_url'); ?>" class="regular-text" placeholder="<?php echo get_site_url() . '/wc-api/{mp_gateway}'; ?>"/>
-					<p class="description" id="tagline-description">
-						<?php echo $fail_back_url_message; ?>
-					</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label>
-					<?php echo __( 'Pending URL', 'woo-mercado-pago-module' ); ?>
-				</label></th>
-				<td>
-					<input name="pending_url" type="text" id="pending_url" value="<?php form_option('_mp_pending_url'); ?>" class="regular-text" placeholder="<?php echo get_site_url() . '/wc-api/{mp_gateway}'; ?>"/>
-					<p class="description" id="tagline-description">
-						<?php echo $pending_back_url_message; ?>
-					</p>
-				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label>
@@ -289,7 +260,7 @@
 				<td>
 					<select name="category_id" id="category_id">
 						<?php
-						foreach ( WC_Woo_Mercado_Pago_Module::$store_categories_id as $key=>$value) {
+						foreach ( $store_categories_id as $key=>$value) {
 							if ( $category_id == $key ) {
 								echo '<option value="' . $key . '" selected="selected">' . $value . '</option>';
 							} else {
