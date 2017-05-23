@@ -256,6 +256,17 @@
 				</label></td>
 			</tr>
 			<tr>
+				<th scope="row"><label><?php echo __( 'Statement Descriptor', 'woo-mercado-pago-module' ); ?></label></th>
+				<td>
+					<input name="statement_descriptor" type="text" id="statement_descriptor" aria-describedby="tagline-description" value="<?php echo $statement_descriptor; ?>" class="regular-text"/>
+					<p class="description" id="tagline-description">
+						<?php echo esc_html(
+							__( 'The description that will be shown in your customer\'s invoice.', 'woo-mercado-pago-module' )
+						); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
 				<th scope="row"><label><?php echo __( 'Store Category', 'woo-mercado-pago-module' ); ?></label></th>
 				<td>
 					<select name="category_id" id="category_id">
@@ -308,25 +319,39 @@
 						<?php echo sprintf(
 							__( 'Register event logs of Mercado Pago, such as API requests, for', 'woo-mercado-pago-module' ) . ' %s, %s, %s, or %s.',
 							WC_Woo_Mercado_Pago_Module::build_log_path_string(
-								'woocommerce-mercadopago-basic-module',
+								'woo-mercado-pago-basic',
 								__( 'Basic Checkout', 'woo-mercado-pago-module' )
 							),
 							WC_Woo_Mercado_Pago_Module::build_log_path_string(
-								'woocommerce-mercadopago-custom-module',
+								'woo-mercado-pago-custom',
 								__( 'Custom Checkout', 'woo-mercado-pago-module' )
 							),
 							WC_Woo_Mercado_Pago_Module::build_log_path_string(
-								'woocommerce-mercadopago-ticket-module',
+								'woo-mercado-pago-ticket',
 								__( 'Tickets', 'woo-mercado-pago-module' )
 							),
 							WC_Woo_Mercado_Pago_Module::build_log_path_string(
-								'woocommerce-mercadopago-subscription-module',
+								'woo-mercado-pago-subscription',
 								__( 'Subscriptions', 'woo-mercado-pago-module' )
 							) . '.<br>' .
 							__( 'You can access your logs in ', 'woo-mercado-pago-module' ) . '<strong>' .
 							__( 'WooCommerce &gt; System Status &gt; Logs', 'woo-mercado-pago-module' ) . '</strong>. ' .
 							__( 'Files are located in: ', 'woo-mercado-pago-module' ) . '<code>wordpress/wp-content/uploads/wc-logs/</code>' )
 						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php echo __( 'Mercado Pago Sandbox', 'woo-mercado-pago-module' ); ?></label></th>
+				<td>
+					<label>
+						<input class="" type="checkbox" name="sandbox_mode" id="sandbox_mode" <?php echo $is_sandbox_mode; ?>>
+						<?php echo __( 'Enable Mercado Pago Sandbox.', 'woo-mercado-pago-module' ); ?>
+					</label>
+					<p class="description" id="tagline-description">
+						<?php echo esc_html(
+							__( 'This option allows you to test payments inside a sandbox environment.', 'woo-mercado-pago-module' )
+						); ?>
 					</p>
 				</td>
 			</tr>

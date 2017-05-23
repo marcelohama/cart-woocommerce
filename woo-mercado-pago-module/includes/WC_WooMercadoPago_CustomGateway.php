@@ -13,51 +13,47 @@ require_once dirname( __FILE__ ) . '/sdk/lib/mercadopago.php';
 
 /**
  * Summary: Extending from WooCommerce Payment Gateway class.
- * Description: This class implements Mercado Pago Basic checkout.
- * @since 1.0.0
+ * Description: This class implements Mercado Pago custom checkout.
+ * @since 2.0.0
  */
-class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
+class WC_WooMercadoPago_CustomGateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 		
 		// WooCommerce fields.
 		$this->mp = null;
-		$this->id = 'woo-mercado-pago-basic';
+		$this->id = 'woo-mercado-pago-custom';
 		$this->supports = array( 'products', 'refunds' );
 		$this->icon = apply_filters(
 			'woocommerce_mercadopago_icon',
 			plugins_url( 'assets/images/mplogo.png', plugin_dir_path( __FILE__ ) )
 		);
-		$this->method_title = __( 'Mercado Pago - Basic Checkout', 'woo-mercado-pago-module' );
+		$this->method_title = __( 'Mercado Pago - Custom Checkout', 'woo-mercado-pago-module' );
 		$this->method_description = '<img width="200" height="52" src="' .
 			plugins_url( 'assets/images/mplogo.png', plugin_dir_path( __FILE__ ) ) .
 		'"><br><br><strong>' .
-			__( 'Receive payments in a matter of minutes. We make it easy for you: just tell us what you want to collect and we’ll take care of the rest.', 'woo-mercado-pago-module' ) .
+			__( 'We give you the possibility to adapt the payment experience you want to offer 100% in your website, mobile app or anywhere you want. You can build the design that best fits your business model, aiming to maximize conversion.', 'woo-mercado-pago-module' ) .
 		'</strong>';
 
 		// Mercao Pago instance.
 		$this->mp = new MP(
 			WC_Woo_Mercado_Pago_Module::get_module_version(),
-			get_option( '_mp_client_id' ),
-			get_option( '_mp_client_secret' )
+			get_option( '_mp_access_token' )
 		);
 
 		// How checkout is shown.
 		$this->title              = $this->get_option( 'title' );
 		$this->description        = $this->get_option( 'description' );
-		$this->method             = $this->get_option( 'method', 'iframe' );
-		$this->iframe_width       = $this->get_option( 'iframe_width', '640' );
-		$this->iframe_height      = $this->get_option( 'iframe_height', '800' );
+		/*
 		// How checkout redirections will behave.
 		$this->auto_return        = $this->get_option( 'auto_return', 'yes' );
 		$this->success_url        = $this->get_option( 'success_url', '' );
 		$this->failure_url        = $this->get_option( 'failure_url', '' );
 		$this->pending_url        = $this->get_option( 'pending_url', '' );
 		// How checkout payment behaves.
-		$this->installments       = $this->get_option( 'installments', '24' );
-		$this->ex_payments        = $this->get_option( 'ex_payments', 'n/d' );
+		$this->coupon_mode        = $this->get_option( 'coupon_mode' );
+		$this->binary_mode        = $this->get_option( 'binary_mode' );
 		$this->gateway_discount   = $this->get_option( 'gateway_discount', 0 );
-		$this->two_cards_mode     = 'inactive';
 
 		// Logging and debug.
 		if ( ! empty ( get_option( '_mp_debug_mode', '' ) ) ) {
@@ -76,7 +72,7 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 		add_action(
 			'woocommerce_update_options_payment_gateways_' . $this->id,
 			array( $this, 'custom_process_admin_options' )
-		);
+		);*/
 
 	}
 
@@ -84,7 +80,7 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 	 * Summary: Initialise Gateway Settings Form Fields.
 	 * Description: Initialise Gateway settings form fields with a customized page.
 	 */
-	public function init_form_fields() {
+	/*public function init_form_fields() {
 
 		// Show message if credentials are not properly configured.
 		if ( empty( get_option( '_site_id_v0', '' ) ) ) {
@@ -249,7 +245,7 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 			)
 		);
 
-	}
+	}*/
 
 	/**
 	 * Processes and saves options.
@@ -257,7 +253,7 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 	 * erroring field out.
 	 * @return bool was anything saved?
 	 */
-	public function custom_process_admin_options() {
+	/*public function custom_process_admin_options() {
 		$this->init_settings();
 		$post_data = $this->get_post_data();
 		foreach ( $this->get_form_fields() as $key => $field ) {
@@ -311,6 +307,6 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 			$this->get_option_key(),
 			apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings )
 		);
-	}
+	}*/
 
 }

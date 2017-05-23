@@ -42,6 +42,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		const MIN_PHP = 5.6;
 
 		// An array to hold configurations for LatAm environment.
+		// As this array contains runtime data, we can't set it as a class constant.
 		public static $country_configs = array();
 
 		// ============================================================
@@ -111,21 +112,31 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				)
 			);
 
-			// Verify if WooCommerce is already installed.
+			// First of all, verify if WooCommerce is already installed.
 			if ( class_exists( 'WC_Payment_Gateway' ) ) {
-				// Gateways.
+				
+				// Adds each Mercado Pago gateway as available payment method.
 				include_once dirname( __FILE__ ) . '/includes/WC_WooMercadoPago_BasicGateway.php';
+				include_once dirname( __FILE__ ) . '/includes/WC_WooMercadoPago_CustomGateway.php';
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
-				// Links.
+				
+				// This adds custom links in the plugin page.
 				add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'woomercadopago_settings_link' ) );
+
 			}
 
 		}
 
-		// As well as defining your class, you need to also tell WooCommerce (WC) that
-		// it exists. Do this by filtering woocommerce_payment_gateways.
+		/**
+		 * Summary: As well as defining your class, you need to also tell WooCommerce (WC) that
+		 * it exists. Do this by filtering woocommerce_payment_gateways.
+		 * Description: As well as defining your class, you need to also tell WooCommerce (WC) that
+		 * it exists. Do this by filtering woocommerce_payment_gateways.
+		 * @return an array containing the payment methods.
+		 */
 		public function add_gateway( $methods ) {
 			$methods[] = 'WC_WooMercadoPago_BasicGateway';
+			$methods[] = 'WC_WooMercadoPago_CustomGateway';
 			return $methods;
 		}
 
@@ -172,7 +183,9 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					}
 					return true;
 				}
-			} catch ( MercadoPagoException $e ) {}
+			} catch ( MercadoPagoException $e ) {
+				// TODO: should we handle an exception here?
+			}
 			update_option( '_access_token_v0', '', true, true );
 			update_option( '_test_user_v0', '', true );
 			update_option( '_site_id_v0', '', true );
@@ -195,6 +208,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				$access_token = $mp_v1->get_access_token();
 				$get_request = $mp_v1->get( '/users/me?access_token=' . $access_token );
 				if ( isset( $get_request['response']['site_id'] ) && ! empty( $public_key ) ) {
+					update_option( '_access_token_v1', $access_token, true );
 					update_option( '_test_user_v1', in_array( 'test_user', $get_request['response']['tags'] ), true );
 					update_option( '_site_id_v1', $get_request['response']['site_id'], true );
 					update_option( '_collector_id_v1', $get_request['response']['id'], true );
@@ -224,7 +238,9 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					}
 					return true;
 				}
-			} catch ( MercadoPagoException $e ) {}
+			} catch ( MercadoPagoException $e ) {
+				// TODO: should we handle an exception here?
+			}
 			update_option( '_access_token_v1', '', true );
 			update_option( '_test_user_v1', '', true );
 			update_option( '_site_id_v1', '', true );
@@ -532,6 +548,11 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					} else {
 						update_option( '_mp_order_status_chargedback_map', '', true );
 					}
+					if ( isset( $_POST['statement_descriptor'] ) ) {
+						update_option( '_mp_statement_descriptor', $_POST['statement_descriptor'], true );
+					} else {
+						update_option( '_mp_statement_descriptor', '', true );
+					}
 					if ( isset( $_POST['category_id'] ) ) {
 						update_option( '_mp_category_id', $_POST['category_id'], true );
 					} else {
@@ -556,6 +577,11 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 						update_option( '_mp_debug_mode', $_POST['debug_mode'], true );
 					} else {
 						update_option( '_mp_debug_mode', '', true );
+					}
+					if ( isset( $_POST['sandbox_mode'] ) ) {
+						update_option( '_mp_sandbox_mode', $_POST['sandbox_mode'], true );
+					} else {
+						update_option( '_mp_sandbox_mode', '', true );
 					}
 				}
 
@@ -600,6 +626,8 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoSubscription_Gateway' ) ) .
 						'">' . __( 'Subscription', 'woo-mercado-pago-module' ) . '</a>' .
 				'</strong>';
+				// Statement descriptor.
+				$statement_descriptor = get_option( '_mp_statement_descriptor', 'Mercado Pago' );
 				// Get categories.
 				$categories = WC_Woo_Mercado_Pago_Module::get_categories();
 				$store_categories_id = $categories['store_categories_id'];
@@ -617,6 +645,12 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					$is_debug_mode = '';
 				} else {
 					$is_debug_mode = 'checked="checked"';
+				}
+				// Sandbox mode.
+				if ( empty( get_option( '_mp_sandbox_mode', '' ) ) ) {
+					$is_sandbox_mode = '';
+				} else {
+					$is_sandbox_mode = 'checked="checked"';
 				}
 
 				// ===== v0 verifications =====
