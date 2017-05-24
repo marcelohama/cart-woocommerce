@@ -118,6 +118,8 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				// Adds each Mercado Pago gateway as available payment method.
 				include_once dirname( __FILE__ ) . '/includes/WC_WooMercadoPago_BasicGateway.php';
 				include_once dirname( __FILE__ ) . '/includes/WC_WooMercadoPago_CustomGateway.php';
+				include_once dirname( __FILE__ ) . '/includes/WC_WooMercadoPago_TicketGateway.php';
+				include_once dirname( __FILE__ ) . '/includes/WC_WooMercadoPago_SubscriptionGateway.php';
 				add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway' ) );
 				
 				// This adds custom links in the plugin page.
@@ -137,6 +139,8 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		public function add_gateway( $methods ) {
 			$methods[] = 'WC_WooMercadoPago_BasicGateway';
 			$methods[] = 'WC_WooMercadoPago_CustomGateway';
+			$methods[] = 'WC_WooMercadoPago_TicketGateway';
+			$methods[] = 'WC_WooMercadoPago_SubscriptionGateway';
 			return $methods;
 		}
 
@@ -242,7 +246,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				// TODO: should we handle an exception here?
 			}
 			update_option( '_access_token_v1', '', true );
-			update_option( '_test_user_v1', '', true );
+			update_option( '_test_user_v1', 'abc', true );
 			update_option( '_site_id_v1', '', true );
 			update_option( '_collector_id_v1', '', true );
 			update_option( '_all_payment_methods_v1', array(), true );
@@ -438,19 +442,19 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 			$plugin_links = array();
 			$plugin_links[] = '<a href="' . esc_url( admin_url(
 				'admin.php?page=mercado-pago-settings' ) ) .
-				'">' . __( 'Mercado Pago Settings', 'woocommerce-mercadopago-module' ) . '</a>';
+				'">' . __( 'Mercado Pago Settings', 'woo-mercado-pago-module' ) . '</a>';
 			$plugin_links[] = '<a target="_blank" href="' .
 				'https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform' .
 				'">' . sprintf(
-					__( 'Rate Us', 'woocommerce-mercadopago-module' ) . ' %s',
+					__( 'Rate Us', 'woo-mercado-pago-module' ) . ' %s',
 					'&#9733;&#9733;&#9733;&#9733;&#9733;'
 				) . '</a>';
 			$plugin_links[] = '<br><a target="_blank" href="' .
 				'https://github.com/mercadopago/cart-woocommerce#installation' .
-				'">' . __( 'Tutorial', 'woocommerce-mercadopago-module' ) . '</a>';
+				'">' . __( 'Tutorial', 'woo-mercado-pago-module' ) . '</a>';
 			$plugin_links[] = '<a target="_blank" href="' .
 				'https://wordpress.org/support/plugin/woo-mercado-pago-module#postform' .
-				'">' . __( 'Report Issue', 'woocommerce-mercadopago-module' ) . '</a>';
+				'">' . __( 'Report Issue', 'woo-mercado-pago-module' ) . '</a>';
 			return array_merge( $plugin_links, $links );
 		}
 
@@ -612,18 +616,18 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .
 					__( 'Your site has SSL enabled.', 'woo-mercado-pago-module' );
 				// Create links for internal redirections to each payment solution.
-				$plugin_links = '<strong>' .
+				$gateway_buttons = '<strong>' .
 					'<a class="button button-primary" href="' . esc_url( admin_url(
-						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPago_BasicGateway' ) ) .
+						'admin.php?page=wc-settings&tab=checkout&section=woo-mercado-pago-basic' ) ) .
 						'">' . __( 'Basic Checkout', 'woo-mercado-pago-module' ) . '</a>' . ' ' .
 					'<a class="button button-primary" href="' . esc_url( admin_url(
-						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoCustom_Gateway' ) ) .
+						'admin.php?page=wc-settings&tab=checkout&section=woo-mercado-pago-custom' ) ) .
 						'">' . __( 'Custom Checkout', 'woo-mercado-pago-module' ) . '</a>' . ' ' .
 					'<a class="button button-primary" href="' . esc_url( admin_url(
-						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoTicket_Gateway' ) ) .
+						'admin.php?page=wc-settings&tab=checkout&section=woo-mercado-pago-ticket' ) ) .
 						'">' . __( 'Ticket', 'woo-mercado-pago-module' ) . '</a>' . ' ' .
 					'<a class="button button-primary" href="' . esc_url( admin_url(
-						'admin.php?page=wc-settings&tab=checkout&section=WC_WooMercadoPagoSubscription_Gateway' ) ) .
+						'admin.php?page=wc-settings&tab=checkout&section=woo-mercado-pago-subscription' ) ) .
 						'">' . __( 'Subscription', 'woo-mercado-pago-module' ) . '</a>' .
 				'</strong>';
 				// Statement descriptor.
@@ -717,7 +721,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 
 				// ===== v1 verifications =====
 				// Trigger v1 API to validate credentials.
-				if ( get_option( '_site_id_v1', null ) != null ) {
+				if ( WC_Woo_Mercado_Pago_Module::validate_credentials_v1() ) {
 					$site_id_v1 = get_option( '_site_id_v1', '' );
 					$v1_credentials_message = WC_Woo_Mercado_Pago_Module::validate_credentials_v1() ?
 						'<img width="14" height="14" src="' . plugins_url( 'assets/images/check.png', __FILE__ ) . '"> ' .

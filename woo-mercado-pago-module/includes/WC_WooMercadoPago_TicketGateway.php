@@ -13,22 +13,22 @@ require_once dirname( __FILE__ ) . '/sdk/lib/mercadopago.php';
 
 /**
  * Summary: Extending from WooCommerce Payment Gateway class.
- * Description: This class implements Mercado Pago custom checkout.
+ * Description: This class implements Mercado Pago ticket payment method.
  * @since 2.0.0
  */
-class WC_WooMercadoPago_CustomGateway extends WC_Payment_Gateway {
+class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 		
 		// WooCommerce fields.
 		$this->mp = null;
-		$this->id = 'woo-mercado-pago-custom';
+		$this->id = 'woo-mercado-pago-ticket';
 		$this->supports = array( 'products', 'refunds' );
 		$this->icon = apply_filters(
 			'woocommerce_mercadopago_icon',
 			plugins_url( 'assets/images/mplogo.png', plugin_dir_path( __FILE__ ) )
 		);
-		$this->method_title = __( 'Mercado Pago - Custom Checkout', 'woo-mercado-pago-module' );
+		$this->method_title = __( 'Mercado Pago - Ticket', 'woo-mercado-pago-module' );
 		$this->method_description = '<img width="200" height="52" src="' .
 			plugins_url( 'assets/images/mplogo.png', plugin_dir_path( __FILE__ ) ) .
 		'"><br><br><strong>' .
@@ -46,7 +46,7 @@ class WC_WooMercadoPago_CustomGateway extends WC_Payment_Gateway {
 		$this->description        = $this->get_option( 'description' );
 		// How checkout payment behaves.
 		$this->coupon_mode        = $this->get_option( 'coupon_mode', 'no' );
-		$this->binary_mode        = $this->get_option( 'binary_mode', 'no' );
+		$this->stock_reduce_mode  = $this->get_option( 'stock_reduce_mode', 'no' );
 		$this->gateway_discount   = $this->get_option( 'gateway_discount', 0 );
 		
 		// Logging and debug.
@@ -97,25 +97,25 @@ class WC_WooMercadoPago_CustomGateway extends WC_Payment_Gateway {
 			'enabled' => array(
 				'title' => __( 'Enable/Disable', 'woo-mercado-pago-module' ),
 				'type' => 'checkbox',
-				'label' => __( 'Enable Custom Checkout', 'woo-mercado-pago-module' ),
+				'label' => __( 'Enable Ticket Payment Method', 'woo-mercado-pago-module' ),
 				'default' => 'no'
 			),
 			'checkout_options_title' => array(
-				'title' => __( '--- Checkout Interface: How checkout is shown ---', 'woo-mercado-pago-module' ),
+				'title' => __( '--- Ticket Interface: How checkout is shown ---', 'woo-mercado-pago-module' ),
 				'type' => 'title'
 			),
 			'title' => array(
 				'title' => __( 'Title', 'woo-mercado-pago-module' ),
 				'type' => 'text',
 				'description' =>
-					__( 'Title shown to the client in the checkout.', 'woo-mercado-pago-module' ),
+					__( 'Title shown to the client in the ticket.', 'woo-mercado-pago-module' ),
 				'default' => __( 'Mercado Pago', 'woo-mercado-pago-module' )
 			),
 			'description' => array(
 				'title' => __( 'Description', 'woo-mercado-pago-module' ),
 				'type' => 'textarea',
 				'description' =>
-					__( 'Description shown to the client in the checkout.', 'woo-mercado-pago-module' ),
+					__( 'Description shown to the client in the ticket.', 'woo-mercado-pago-module' ),
 				'default' => __( 'Pay with Mercado Pago', 'woo-mercado-pago-module' )
 			),
 			'payment_title' => array(
@@ -130,13 +130,13 @@ class WC_WooMercadoPago_CustomGateway extends WC_Payment_Gateway {
 				'description' =>
 					__( 'If there is a Mercado Pago campaign, allow your store to give discounts to customers.', 'woo-mercado-pago-module' )
 			),
-			'binary_mode' => array(
-				'title' => __( 'Binary Mode', 'woo-mercado-pago-module' ),
+			'stock_reduce_mode' => array(
+				'title' => __( 'Stock Reduce', 'woo-mercado-pago-module' ),
 				'type' => 'checkbox',
-				'label' => __( 'Enable binary mode for checkout status', 'woo-mercado-pago-module' ),
+				'label' =>
+					__( 'Reduce Stock in Order Generation', 'woo-mercado-pago-module' ),
 				'default' => 'no',
-				'description' =>
-					__( 'When charging a credit card, only [approved] or [reject] status will be taken.', 'woo-mercado-pago-module' )
+				'description' => __( 'Enable this to reduce the stock on order creation. Disable this to reduce <strong>after</strong> the payment approval.', 'woo-mercado-pago-module' )
 			),
 			'gateway_discount' => array(
 				'title' => __( 'Discount by Gateway', 'woo-mercado-pago-module' ),
@@ -179,8 +179,8 @@ class WC_WooMercadoPago_CustomGateway extends WC_Payment_Gateway {
 			);
 			// Analytics.
 			$infra_data = WC_Woo_Mercado_Pago_Module::get_common_settings();
-			$infra_data['checkout_custom_credit_card'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
-			$infra_data['checkout_custom_credit_card_coupon'] = ( $this->settings['coupon_mode'] == 'yes' ? 'true' : 'false' );
+			$infra_data['checkout_custom_ticket'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
+			$infra_data['checkout_custom_ticket_coupon'] = ( $this->settings['coupon_mode'] == 'yes' ? 'true' : 'false' );
 			$response = $mp->analytics_save_settings( $infra_data );
 		}
 		// Apply updates.

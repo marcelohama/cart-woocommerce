@@ -30,7 +30,7 @@
 	<table class="form-table">
 		<tr>
 			<th scope="row"><?php echo __( 'Payment Gateways', 'woo-mercado-pago-module' ); ?></th>
-			<td><?php echo $plugin_links; ?></td>
+			<td><?php echo $gateway_buttons; ?></td>
 		</tr>
 	</table>
 
