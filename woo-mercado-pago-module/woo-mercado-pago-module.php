@@ -31,6 +31,23 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 	/**
 	 * Summary: WooCommerce MercadoPago Module main class.
 	 * Description: Used as a kind of manager to enable/disable each Mercado Pago gateway.
+	 * Available Public Static Functions:
+	 * - validate_credentials_v0()
+	 * - validate_credentials_v1()
+	 * - woocommerce_instance()
+	 * - get_conversion_rate( $used_currency )
+	 * - get_common_settings()
+	 * - get_categories()
+	 * - get_site_data( $is_v1 = false )
+	 * - get_module_version()
+	 * - is_supported_currency( $site_id )
+	 * - build_currency_conversion_err_msg( $currency )
+	 * - build_currency_not_converted_msg( $currency, $country_name )
+	 * - build_currency_converted_msg( $currency )
+	 * - get_country_name( $site_id )
+	 * - build_log_path_string( $gateway_id, $gateway_name )
+	 * - get_map( $selector_id )
+
 	 * @since 1.0.0
 	 */
 	class WC_Woo_Mercado_Pago_Module {
@@ -147,6 +164,27 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		// Multi-language setup.
 		public function load_plugin_textdomain() {
 			load_plugin_textdomain( 'woo-mercado-pago-module', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages/' );
+		}
+
+		// Add settings link on plugin page.
+		public function woomercadopago_settings_link( $links ) {
+			$plugin_links = array();
+			$plugin_links[] = '<a href="' . esc_url( admin_url(
+				'admin.php?page=mercado-pago-settings' ) ) .
+				'">' . __( 'Mercado Pago Settings', 'woo-mercado-pago-module' ) . '</a>';
+			$plugin_links[] = '<a target="_blank" href="' .
+				'https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform' .
+				'">' . sprintf(
+					__( 'Rate Us', 'woo-mercado-pago-module' ) . ' %s',
+					'&#9733;&#9733;&#9733;&#9733;&#9733;'
+				) . '</a>';
+			$plugin_links[] = '<br><a target="_blank" href="' .
+				'https://github.com/mercadopago/cart-woocommerce#installation' .
+				'">' . __( 'Tutorial', 'woo-mercado-pago-module' ) . '</a>';
+			$plugin_links[] = '<a target="_blank" href="' .
+				'https://wordpress.org/support/plugin/woo-mercado-pago-module#postform' .
+				'">' . __( 'Report Issue', 'woo-mercado-pago-module' ) . '</a>';
+			return array_merge( $plugin_links, $links );
 		}
 
 		// ============================================================
@@ -331,6 +369,25 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		}
 
 		/**
+		 * Summary: Get information about the used Mercado Pago account based in its site.
+		 * Description: Get information about the used Mercado Pago account based in its site.
+		 * @return an array with the information.
+		 */
+		public static function get_site_data( $is_v1 = false ) {
+			if ( ! $is_v1 ) {
+				$site_id = get_option( '_site_id_v0', '' );
+			} else {
+				$site_id = get_option( '_site_id_v1', '' );
+			}
+			if ( isset( $site_id ) ) {
+				return WC_Woo_Mercado_Pago_Module::$country_configs[$site_id];
+			} else {
+				return null;
+			}
+			
+		}
+
+		/**
 		 * Summary: Get module's version.
 		 * Description: Get module's version.
 		 * @return a string with the given version.
@@ -437,37 +494,14 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				</option>';
 		}
 
-		// Add settings link on plugin page.
-		public function woomercadopago_settings_link( $links ) {
-			$plugin_links = array();
-			$plugin_links[] = '<a href="' . esc_url( admin_url(
-				'admin.php?page=mercado-pago-settings' ) ) .
-				'">' . __( 'Mercado Pago Settings', 'woo-mercado-pago-module' ) . '</a>';
-			$plugin_links[] = '<a target="_blank" href="' .
-				'https://wordpress.org/support/view/plugin-reviews/woo-mercado-pago-module?filter=5#postform' .
-				'">' . sprintf(
-					__( 'Rate Us', 'woo-mercado-pago-module' ) . ' %s',
-					'&#9733;&#9733;&#9733;&#9733;&#9733;'
-				) . '</a>';
-			$plugin_links[] = '<br><a target="_blank" href="' .
-				'https://github.com/mercadopago/cart-woocommerce#installation' .
-				'">' . __( 'Tutorial', 'woo-mercado-pago-module' ) . '</a>';
-			$plugin_links[] = '<a target="_blank" href="' .
-				'https://wordpress.org/support/plugin/woo-mercado-pago-module#postform' .
-				'">' . __( 'Report Issue', 'woo-mercado-pago-module' ) . '</a>';
-			return array_merge( $plugin_links, $links );
-		}
-
 	}
 
 	//=====
 
-	function mercadopago_plugin_menu() {
+	// Create Mercado Pago option menu.
+	add_action( 'admin_menu', function() {
 		add_options_page(
-			'Mercado Pago Options',
-			'Mercado Pago',
-			'manage_options',
-			'mercado-pago-settings',
+			'Mercado Pago Options', 'Mercado Pago', 'manage_options', 'mercado-pago-settings',
 			function() {
 
 				// Verify permissions.
@@ -786,7 +820,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 
 			}
 		);
-	}
+	});
 
 	// Payment gateways should be created as additional plugins that hook into WooCommerce.
 	// Inside the plugin, you need to create a class after plugins are loaded.
@@ -794,8 +828,5 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		'plugins_loaded',
 		array( 'WC_Woo_Mercado_Pago_Module', 'init_mercado_pago_class' )
 	);
-
-	// Create Mercado Pago option menu.
-	add_action( 'admin_menu', 'mercadopago_plugin_menu' );
 
 endif;
