@@ -39,6 +39,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 	 * - get_common_settings()
 	 * - get_categories()
 	 * - get_site_data( $is_v1 = false )
+	 * - workaround_ampersand_bug( $link )
 	 * - get_module_version()
 	 * - is_supported_currency( $site_id )
 	 * - build_currency_conversion_err_msg( $currency )
@@ -58,8 +59,9 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 		const VERSION = '3.0.0';
 		const MIN_PHP = 5.6;
 
-		// An array to hold configurations for LatAm environment.
+		// Arrays to hold configurations for LatAm environment.
 		// As this array contains runtime data, we can't set it as a class constant.
+		public static $categories = array();
 		public static $country_configs = array();
 
 		// ============================================================
@@ -78,50 +80,59 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 
 			add_action( 'init', array( $this, 'load_plugin_textdomain' ) );
 
+			WC_Woo_Mercado_Pago_Module::$categories = WC_Woo_Mercado_Pago_Module::get_categories();
 			WC_Woo_Mercado_Pago_Module::$country_configs = array(
 				'MCO' => array(
+					'site_id'                => 'MCO',
 					'sponsor_id'             => 208687643,
 					'checkout_banner'        => plugins_url( 'assets/images/MCO/standard_mco.jpg', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MCO/credit_card.png', __FILE__ ),
 					'currency'               => 'COP'
 				),
 				'MLA' => array(
+					'site_id'                => 'MLA',
 					'sponsor_id'             => 208682286,
 					'checkout_banner'        => plugins_url( 'assets/images/MLA/standard_mla.jpg', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MLA/credit_card.png', __FILE__ ),
 					'currency'               => 'ARS'
 				),
 				'MLB' => array(
+					'site_id'                => 'MLB',
 					'sponsor_id'             => 208686191,
 					'checkout_banner'        => plugins_url( 'assets/images/MLB/standard_mlb.jpg', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MLB/credit_card.png', __FILE__ ),
 					'currency'               => 'BRL'
 				),
 				'MLC' => array(
+					'site_id'                => 'MLC',
 					'sponsor_id'             => 208690789,
 					'checkout_banner'        => plugins_url( 'assets/images/MLC/standard_mlc.gif', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MLC/credit_card.png', __FILE__ ),
 					'currency'               => 'CLP'
 				),
 				'MLM' => array(
+					'site_id'                => 'MLM',
 					'sponsor_id'             => 208692380,
 					'checkout_banner'        => plugins_url( 'assets/images/MLM/standard_mlm.jpg', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MLM/credit_card.png', __FILE__ ),
 					'currency'               => 'MXN'
 				),
 				'MLU' => array(
+					'site_id'                => 'MLU',
 					'sponsor_id'             => 243692679,
 					'checkout_banner'        => plugins_url( 'assets/images/MLU/standard_mlu.png', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MLU/credit_card.png', __FILE__ ),
 					'currency'               => 'UYU'
 				),
 				'MLV' => array(
+					'site_id'                => 'MLV',
 					'sponsor_id'             => 208692735,
 					'checkout_banner'        => plugins_url( 'assets/images/MLV/standard_mlv.jpg', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MLV/credit_card.png', __FILE__ ),
 					'currency'               => 'VEF'
 				),
 				'MPE' => array(
+					'site_id'                => 'MPE',
 					'sponsor_id'             => 216998692,
 					'checkout_banner'        => plugins_url( 'assets/images/MPE/standard_mpe.png', __FILE__ ),
 					'checkout_banner_custom' => plugins_url( 'assets/images/MPE/credit_card.png', __FILE__ ),
@@ -384,7 +395,11 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 			} else {
 				return null;
 			}
-			
+		}
+
+		// Fix to URL Problem : #038; replaces & and breaks the navigation.
+		public static function workaround_ampersand_bug( $link ) {
+			return str_replace( '\/', '/', str_replace( '&#038;', '&', $link) );
 		}
 
 		/**
@@ -593,8 +608,11 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					}
 					if ( isset( $_POST['category_id'] ) ) {
 						update_option( '_mp_category_id', $_POST['category_id'], true );
+						$categories_data = WC_Woo_Mercado_Pago_Module::$categories;
+						update_option( '_mp_category_name', $categories_data['store_categories_id'][$_POST['category_id']], true );
 					} else {
 						update_option( '_mp_category_id', '', true );
+						update_option( '_mp_category_name', 'others', true );
 					}
 					if ( isset( $_POST['store_identificator'] ) ) {
 						update_option( '_mp_store_identificator', $_POST['store_identificator'], true );
@@ -667,8 +685,7 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				// Statement descriptor.
 				$statement_descriptor = get_option( '_mp_statement_descriptor', 'Mercado Pago' );
 				// Get categories.
-				$categories = WC_Woo_Mercado_Pago_Module::get_categories();
-				$store_categories_id = $categories['store_categories_id'];
+				$store_categories_id = WC_Woo_Mercado_Pago_Module::$categories['store_categories_id'];
 				$category_id = get_option( '_mp_category_id', 0 );
 				if ( count( $store_categories_id ) == 0 ) {
 					$store_category_message = '<img width="14" height="14" src="' . plugins_url( 'assets/images/warning.png', __FILE__ ) . '">' . ' ' .

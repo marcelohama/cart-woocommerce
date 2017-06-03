@@ -341,7 +341,7 @@
 					</p>
 				</td>
 			</tr>
-			<tr>
+			<!--<tr>
 				<th scope="row"><label><?php echo __( 'Mercado Pago Sandbox', 'woo-mercado-pago-module' ); ?></label></th>
 				<td>
 					<label>
@@ -354,7 +354,7 @@
 						); ?>
 					</p>
 				</td>
-			</tr>
+			</tr>-->
 		</table>
 
 		<?php do_settings_sections( 'mercadopago' ); ?>
