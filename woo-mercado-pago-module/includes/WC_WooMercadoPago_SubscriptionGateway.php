@@ -32,7 +32,7 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 		$this->method_description = '<img width="200" height="52" src="' .
 			plugins_url( 'assets/images/mplogo.png', plugin_dir_path( __FILE__ ) ) .
 		'"><br><br><strong>' .
-			__( 'Follow this tutorial and you will be able to create a button to receive recurring payments from your users.', 'woo-mercado-pago-module' ) .
+			__( 'This service allows you to subscribe customers to subscription plans.', 'woo-mercado-pago-module' ) .
 		'</strong>';
 
 		// Mercao Pago instance.
@@ -81,6 +81,20 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 	 * Description: Initialise Gateway settings form fields with a customized page.
 	 */
 	public function init_form_fields() {
+
+		// TODO: implement and remove this
+		$this->form_fields = array(
+			'under_building_title' => array(
+				'title' => sprintf(
+					__( 'UNDER BUILDING...', 'woo-mercado-pago-module' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=mercado-pago-settings' ) ) . '">' .
+					__( 'Mercado Pago Settings', 'woo-mercado-pago-module' ) .
+					'</a>'
+				),
+				'type' => 'title'
+			),
+		);
+		return;
 
 		// Show message if credentials are not properly configured or country is not supported.
 		if ( empty( get_option( '_site_id_v0', '' ) ) ) {
@@ -263,10 +277,14 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 					}
 				} elseif ( $key == 'gateway_discount') {
 					$value = $this->get_field_value( $key, $field, $post_data );
-					if ( $value < 0 || $value > 100 || empty ( $value ) ) {
+					if ( ! is_numeric( $value ) || empty ( $value ) ) {
 						$this->settings[$key] = 0;
 					} else {
-						$this->settings[$key] = $value;
+						if ( $value < 0 || $value >= 100 || empty ( $value ) ) {
+							$this->settings[$key] = 0;
+						} else {
+							$this->settings[$key] = $value;
+						}
 					}
 				} else {
 					$this->settings[$key] = $this->get_field_value( $key, $field, $post_data );
@@ -284,14 +302,24 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 			$infra_data = WC_Woo_Mercado_Pago_Module::get_common_settings();
 			$infra_data['checkout_subscription'] = ( $this->settings['enabled'] == 'yes' ? 'true' : 'false' );
 			$response = $mp->analytics_save_settings( $infra_data );
-			// Two cards mode.
-			$response = $mp->set_two_cards_mode( $this->two_cards_mode );
 		}
 		// Apply updates.
 		return update_option(
 			$this->get_option_key(),
 			apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings )
 		);
+	}
+
+	/*
+	 * ========================================================================
+	 * AUXILIARY AND FEEDBACK METHODS (SERVER SIDE)
+	 * ========================================================================
+	 */
+
+	// Called automatically by WooCommerce, verify if Module is available to use.
+	// TODO:: check
+	public function is_available() {
+		return false;
 	}
 
 }

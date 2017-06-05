@@ -76,6 +76,20 @@ class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 	 */
 	public function init_form_fields() {
 
+		// TODO: implement and remove this
+		$this->form_fields = array(
+			'under_building_title' => array(
+				'title' => sprintf(
+					__( 'UNDER BUILDING...', 'woo-mercado-pago-module' ),
+					'<a href="' . esc_url( admin_url( 'admin.php?page=mercado-pago-settings' ) ) . '">' .
+					__( 'Mercado Pago Settings', 'woo-mercado-pago-module' ) .
+					'</a>'
+				),
+				'type' => 'title'
+			),
+		);
+		return;
+
 		// Show message if credentials are not properly configured.
 		if ( empty( get_option( '_site_id_v1', '' ) ) ) {
 			$this->form_fields = array(
@@ -161,10 +175,14 @@ class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 			if ( 'title' !== $this->get_field_type( $field ) ) {
 				if ( $key == 'gateway_discount') {
 					$value = $this->get_field_value( $key, $field, $post_data );
-					if ( $value < 0 || $value > 100 || empty ( $value ) ) {
+					if ( ! is_numeric( $value ) || empty ( $value ) ) {
 						$this->settings[$key] = 0;
 					} else {
-						$this->settings[$key] = $value;
+						if ( $value < 0 || $value >= 100 || empty ( $value ) ) {
+							$this->settings[$key] = 0;
+						} else {
+							$this->settings[$key] = $value;
+						}
 					}
 				} else {
 					$this->settings[$key] = $this->get_field_value( $key, $field, $post_data );
@@ -188,6 +206,18 @@ class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 			$this->get_option_key(),
 			apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings )
 		);
+	}
+
+	/*
+	 * ========================================================================
+	 * AUXILIARY AND FEEDBACK METHODS (SERVER SIDE)
+	 * ========================================================================
+	 */
+
+	// Called automatically by WooCommerce, verify if Module is available to use.
+	// TODO:: check
+	public function is_available() {
+		return false;
 	}
 
 }
