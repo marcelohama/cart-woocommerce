@@ -483,7 +483,8 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				'refunded' => 'refunded',
 				'chargedback' => 'refunded'
 			);
-			return get_option( '_mp_order_status_' . $mp_status . '_map', $defaults[$mp_status] );
+			$status = get_option( '_mp_order_status_' . $mp_status . '_map', $defaults[$mp_status] );
+			return str_replace( '_', '-', $status );
 		}
 
 		public static function get_map( $selector_id ) {
@@ -710,13 +711,15 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				// Store identification.
 				$store_identificator = get_option( '_mp_store_identificator', 'WC-' );
 				// Debug mode.
-				if ( empty( get_option( '_mp_debug_mode', '' ) ) ) {
+				$_mp_debug_mode = get_option( '_mp_debug_mode', '' );
+				if ( empty( $_mp_debug_mode ) ) {
 					$is_debug_mode = '';
 				} else {
 					$is_debug_mode = 'checked="checked"';
 				}
 				// Sandbox mode.
-				if ( empty( get_option( '_mp_sandbox_mode', '' ) ) ) {
+				$_mp_sandbox_mode = get_option( '_mp_sandbox_mode', '' );
+				if ( empty( $_mp_sandbox_mode ) ) {
 					$is_sandbox_mode = '';
 				} else {
 					$is_sandbox_mode = 'checked="checked"';
@@ -756,19 +759,22 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					__( 'Venezuela', 'woo-mercado-pago-module' )
 				);
 				// Currency conversion.
-				if ( empty( get_option( '_mp_currency_conversion_v0', '' ) ) ) {
+				$_mp_currency_conversion_v0 = get_option( '_mp_currency_conversion_v0', '' );
+				if ( empty( $_mp_currency_conversion_v0 ) ) {
 					$is_currency_conversion_v0 = '';
 				} else {
 					$is_currency_conversion_v0 = 'checked="checked"';
 				}
-				if ( get_option( '_site_id_v0', null ) != null ) {
+				$_site_id_v0 = get_option( '_site_id_v0', null );
+				$_can_do_currency_conversion_v0 = get_option( '_can_do_currency_conversion_v0', false );
+				if ( $_site_id_v0 != null ) {
 					if ( ! WC_Woo_Mercado_Pago_Module::is_supported_currency( $site_id_v0 ) ) {
-						if ( empty( get_option( '_mp_currency_conversion_v0', '' ) ) ) {
+						if ( empty( $_mp_currency_conversion_v0 ) ) {
 							$currency_conversion_v0_message = WC_Woo_Mercado_Pago_Module::build_currency_not_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v0]['currency'],
 								WC_Woo_Mercado_Pago_Module::get_country_name( $site_id_v0 )
 							);
-						} elseif ( ! empty( get_option( '_mp_currency_conversion_v0', '' ) ) && get_option( '_can_do_currency_conversion_v0', false ) ) {
+						} elseif ( ! empty( $_mp_currency_conversion_v0 ) && $_can_do_currency_conversion_v0 ) {
 							$currency_conversion_v0_message = WC_Woo_Mercado_Pago_Module::build_currency_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v0]['currency']
 							);
@@ -819,19 +825,22 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 					__( 'Venezuela', 'woo-mercado-pago-module' )
 				);
 				// Currency conversion.
-				if ( empty( get_option( '_mp_currency_conversion_v1', '' ) ) ) {
+				$_mp_currency_conversion_v1 = get_option( '_mp_currency_conversion_v1', '' );
+				if ( empty( $_mp_currency_conversion_v1 ) ) {
 					$is_currency_conversion_v1 = '';
 				} else {
 					$is_currency_conversion_v1 = 'checked="checked"';
 				}
-				if ( get_option( '_site_id_v1', null ) != null ) {
+				$_site_id_v1 = get_option( '_site_id_v1', null );
+				$_can_do_currency_conversion_v1 = get_option( '_can_do_currency_conversion_v1', false );
+				if ( $_site_id_v1 != null ) {
 					if ( ! WC_Woo_Mercado_Pago_Module::is_supported_currency( $site_id_v1 ) ) {
-						if ( empty( get_option( '_mp_currency_conversion_v1', '' ) ) ) {
+						if ( empty( $_mp_currency_conversion_v1 ) ) {
 							$currency_conversion_v1_message = WC_Woo_Mercado_Pago_Module::build_currency_not_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v1]['currency'],
 								WC_Woo_Mercado_Pago_Module::get_country_name( $site_id_v1 )
 							);
-						} elseif ( ! empty( get_option( '_mp_currency_conversion_v1', '' ) ) && get_option( '_can_do_currency_conversion_v1', false ) ) {
+						} elseif ( ! empty( $_mp_currency_conversion_v1 ) && $_can_do_currency_conversion_v1 ) {
 							$currency_conversion_v1_message = WC_Woo_Mercado_Pago_Module::build_currency_converted_msg(
 								WC_Woo_Mercado_Pago_Module::$country_configs[$site_id_v1]['currency']
 							);

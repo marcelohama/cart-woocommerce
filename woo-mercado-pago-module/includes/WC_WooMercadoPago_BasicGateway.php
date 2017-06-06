@@ -63,7 +63,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 		$this->two_cards_mode     = 'inactive';
 
 		// Logging and debug.
-		if ( ! empty ( get_option( '_mp_debug_mode', '' ) ) ) {
+		$_mp_debug_mode = get_option( '_mp_debug_mode', '' );
+		if ( ! empty ( $_mp_debug_mode ) ) {
 			if ( class_exists( 'WC_Logger' ) ) {
 				$this->log = new WC_Logger();
 			} else {
@@ -77,7 +78,7 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 
 		// Used by IPN to receive IPN incomings.
 		add_action(
-			'woocommerce_api_wc_woomercadopago_gateway',
+			'woocommerce_api_wc_woomercadopago_basicgateway',
 			array( $this, 'check_ipn_response' )
 		);
 		// Used by IPN to process valid incomings.
@@ -141,7 +142,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 
 		// Show message if credentials are not properly configured.
-		if ( empty( get_option( '_site_id_v0', '' ) ) ) {
+		$_site_id_v0 = get_option( '_site_id_v0', '' );
+		if ( empty( $_site_id_v0 ) ) {
 			$this->form_fields = array(
 				'no_credentials_title' => array(
 					'title' => sprintf(
@@ -349,7 +351,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 				}
 			}
 		}
-		if ( ! empty( get_option( '_site_id_v0', '' ) ) ) {
+		$_site_id_v0 = get_option( '_site_id_v0', '' );
+		if ( ! empty( $_site_id_v0 ) ) {
 			// Create MP instance.
 			$mp = new MP(
 				WC_Woo_Mercado_Pago_Module::get_module_version(),
@@ -372,7 +375,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 	}
 
 	private function write_log( $function, $message ) {
-		if ( ! empty ( get_option( '_mp_debug_mode', '' ) ) ) {
+		$_mp_debug_mode = get_option( '_mp_debug_mode', '' );
+		if ( ! empty ( $_mp_debug_mode ) ) {
 			$this->log->add(
 				$this->id,
 				'[' . $function . ']: ' . $message
@@ -443,7 +447,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 
 	public function update_checkout_status( $order_id ) {
 		$client_id = get_option( '_mp_client_id' );
-		if ( ! empty( $client_id ) && ! $this->is_test_user ) {
+		$_test_user_v0 = get_option( '_test_user_v0', false );
+		if ( ! empty( $client_id ) && ! $_test_user_v0 ) {
 			if ( get_post_meta( $order_id, '_used_gateway', true ) != 'woo-mercado-pago-basic' ) {
 				return;
 			}
@@ -590,7 +595,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 					$method_discount = $line_amount * ( $this->gateway_discount / 100 );
 
 					$currency_ratio = 1;
-					if ( ! empty( get_option( '_mp_currency_conversion_v0', '' ) ) ) {
+					$_mp_currency_conversion_v0 = get_option( '_mp_currency_conversion_v0', '' );
+					if ( ! empty( $_mp_currency_conversion_v0 ) ) {
 						$currency_ratio = WC_Woo_Mercado_Pago_Module::get_conversion_rate( $this->site_data['currency'] );
 						$currency_ratio = $currency_ratio > 0 ? $currency_ratio : 1;
 					}
@@ -746,7 +752,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 			),
 			'payment_methods' => $payment_methods,
 			//'notification_url' =>
-			'external_reference' => get_option( '_mp_store_identificator', 'WC-' ) . $order->get_id()
+			'external_reference' => get_option( '_mp_store_identificator', 'WC-' ) .
+				( method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id )
 			//'additional_info' =>
 			//'expires' =>
 			//'expiration_date_from' =>
@@ -780,13 +787,14 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 
 		// Do not set IPN url if it is a localhost.
 		if ( ! strrpos( get_site_url(), 'localhost' ) ) {
-			$preferences['notification_url'] = WC_WooMercadoPago_Module::workaround_ampersand_bug(
-				esc_url( WC()->api_request_url( 'WC_WooMercadoPago_Gateway' ) )
+			$preferences['notification_url'] = WC_Woo_Mercado_Pago_Module::workaround_ampersand_bug(
+				esc_url( WC()->api_request_url( 'WC_WooMercadoPago_BasicGateway' ) )
 			);
 		}
 
 		// Set sponsor ID.
-		if ( ! get_option( '_test_user_v0', false ) ) {
+		$_test_user_v0 = get_option( '_test_user_v0', false );
+		if ( ! $_test_user_v0 ) {
 			$preferences['sponsor_id'] = $this->site_data['sponsor_id'];
 		}
 
@@ -870,10 +878,13 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 			}
 		}*/
 		// Check if this gateway is enabled and well configured.
+		$_mp_client_id = get_option( '_mp_client_id' );
+		$_mp_client_secret = get_option( '_mp_client_secret' );
+		$_site_id_v0 = get_option( '_site_id_v0' );
 		$available = ( 'yes' == $this->settings['enabled'] ) &&
-			! empty( get_option( '_mp_client_id' ) ) &&
-			! empty( get_option( '_mp_client_secret' ) ) &&
-			! empty( get_option( '_site_id_v0', '' ) );
+			! empty( $_mp_client_id ) &&
+			! empty( $_mp_client_secret ) &&
+			! empty( $_site_id_v0 );
 		return $available;
 	}
 
@@ -881,11 +892,11 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 	protected function admin_url() {
 		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '2.1', '>=' ) ) {
 			return admin_url(
-				'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopago_gateway'
+				'admin.php?page=wc-settings&tab=checkout&section=wc_woomercadopago_basicgateway'
 			);
 		}
 		return admin_url(
-			'admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_WooMercadoPago_Gateway'
+			'admin.php?page=woocommerce_settings&tab=payment_gateways&section=WC_WooMercadoPago_BasicGateway'
 		);
 	}
 
@@ -1014,14 +1025,15 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 		if ( empty( $order_key ) ) {
 			return;
 		}
-		$id = (int) str_replace( $this->invoice_prefix, '', $order_key );
+		$invoice_prefix = get_option( '_mp_store_identificator', 'WC-' );
+		$id = (int) str_replace( $invoice_prefix, '', $order_key );
 		$order = wc_get_order( $id );
 		// Check if order exists.
 		if ( ! $order ) {
 			return;
 		}
 		// WooCommerce 3.0 or later.
-		$order_id = ( method_exists( $order, 'get_id' ) ) ? $order->get_id() : $order->id;
+		$order_id = ( method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id );
 		// Check if we have the correct order.
 		if ( $order_id !== $id ) {
 			return;
@@ -1115,6 +1127,11 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 			}
 		}
 		// Switch the status and update in WooCommerce.
+		$this->write_log(
+			__FUNCTION__,
+			'Changing order status to: ' .
+			WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( str_replace( '_', '', $status ) )
+		);
 		switch ( $status ) {
 			case 'approved':
 				$order->add_order_note(
@@ -1193,7 +1210,8 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 	/*public function check_mercado_envios( $merchant_order ) {
 		$order_key = $merchant_order['external_reference'];
 		if ( ! empty( $order_key ) ) {
-			$order_id = (int) str_replace( $this->invoice_prefix, '', $order_key );
+			$invoice_prefix = get_option( '_mp_store_identificator', 'WC-' );
+			$order_id = (int) str_replace( $invoice_prefix, '', $order_key );
 			$order = wc_get_order( $order_id );
 			if ( count( $merchant_order['shipments'] ) > 0 ) {
 				foreach ( $merchant_order['shipments'] as $shipment ) {
@@ -1309,11 +1327,11 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 						foreach ( $items as $item ) {
 							$product = new WC_product( $item['product_id'] );
 							if ( method_exists( $product, 'get_description' ) ) {
-								$product_title = WC_WooMercadoPago_Module::utf8_ansi(
+								$product_title = WC_Woo_Mercado_Pago_Module::utf8_ansi(
 									$product->get_name()
 								);
 							} else {
-								$product_title = WC_WooMercadoPago_Module::utf8_ansi(
+								$product_title = WC_Woo_Mercado_Pago_Module::utf8_ansi(
 									$product->post->post_title
 								);
 							}

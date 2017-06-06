@@ -56,7 +56,8 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 		$this->gateway_discount   = $this->get_option( 'gateway_discount', 0 );
 
 		// Logging and debug.
-		if ( ! empty ( get_option( '_mp_debug_mode', '' ) ) ) {
+		$_mp_debug_mode = get_option( '_mp_debug_mode', '' );
+		if ( ! empty ( $_mp_debug_mode ) ) {
 			if ( class_exists( 'WC_Logger' ) ) {
 				$this->log = new WC_Logger();
 			} else {
@@ -97,7 +98,8 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 		return;
 
 		// Show message if credentials are not properly configured or country is not supported.
-		if ( empty( get_option( '_site_id_v0', '' ) ) ) {
+		$_site_id_v0 = get_option( '_site_id_v0', '' );
+		if ( empty( $_site_id_v0 ) ) {
 			$this->form_fields = array(
 				'no_credentials_title' => array(
 					'title' => sprintf(
@@ -291,7 +293,8 @@ class WC_WooMercadoPago_SubscriptionGateway extends WC_Payment_Gateway {
 				}
 			}
 		}
-		if ( ! empty( get_option( '_site_id_v0', '' ) ) ) {
+		$_site_id_v0 = get_option( '_site_id_v0', '' );
+		if ( ! empty( $_site_id_v0 ) ) {
 			// Create MP instance.
 			$mp = new MP(
 				WC_Woo_Mercado_Pago_Module::get_module_version(),

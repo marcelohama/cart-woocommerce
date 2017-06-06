@@ -50,7 +50,8 @@ class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 		$this->gateway_discount   = $this->get_option( 'gateway_discount', 0 );
 		
 		// Logging and debug.
-		if ( ! empty ( get_option( '_mp_debug_mode', '' ) ) ) {
+		$_mp_debug_mode = get_option( '_mp_debug_mode', '' );
+		if ( ! empty ( $_mp_debug_mode ) ) {
 			if ( class_exists( 'WC_Logger' ) ) {
 				$this->log = new WC_Logger();
 			} else {
@@ -91,7 +92,8 @@ class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 		return;
 
 		// Show message if credentials are not properly configured.
-		if ( empty( get_option( '_site_id_v1', '' ) ) ) {
+		$_site_id_v1 = get_option( '_site_id_v1', '' );
+		if ( empty( $_site_id_v1 ) ) {
 			$this->form_fields = array(
 				'no_credentials_title' => array(
 					'title' => sprintf(
@@ -189,7 +191,8 @@ class WC_WooMercadoPago_TicketGateway extends WC_Payment_Gateway {
 				}
 			}
 		}
-		if ( ! empty( get_option( '_site_id_v1', '' ) ) ) {
+		$_site_id_v1 = get_option( '_site_id_v1', '' );
+		if ( ! empty( $_site_id_v1 ) ) {
 			// Create MP instance.
 			$mp = new MP(
 				WC_Woo_Mercado_Pago_Module::get_module_version(),
