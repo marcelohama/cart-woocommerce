@@ -1122,8 +1122,14 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 					__( 'Payment approved.', 'woo-mercado-pago-module' )
 				);
 				$order->payment_complete();
+				$order->update_status(
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'approved' )
+				);
 				break;
 			case 'pending':
+				$order->update_status(
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'pending' )
+				);
 				$order->add_order_note(
 					'Mercado Pago: ' .
 					__( 'Customer haven\'t paid yet.', 'woo-mercado-pago-module' )
@@ -1131,39 +1137,45 @@ class WC_WooMercadoPago_BasicGateway extends WC_Payment_Gateway {
 				break;
 			case 'in_process':
 				$order->update_status(
-					'on-hold',
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'on-hold' ),
 					'Mercado Pago: ' .
 					__( 'Payment under review.', 'woo-mercado-pago-module' )
 				);
 				break;
 			case 'rejected':
 				$order->update_status(
-					'failed',
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'failed' ),
 					'Mercado Pago: ' .
 					__( 'The payment was refused. The customer can try again.', 'woo-mercado-pago-module' )
 				);
 				break;
 			case 'refunded':
 				$order->update_status(
-					'refunded',
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'refunded' ),
 					'Mercado Pago: ' .
 					__( 'The payment was refunded to the customer.', 'woo-mercado-pago-module' )
 				);
 				break;
 			case 'cancelled':
 				$order->update_status(
-					'cancelled',
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'cancelled' ),
 					'Mercado Pago: ' .
 					__( 'The payment was cancelled.', 'woo-mercado-pago-module' )
 				);
 				break;
 			case 'in_mediation':
+				$order->update_status(
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'inmediation' )
+				);
 				$order->add_order_note(
 					'Mercado Pago: ' .
 					__( 'The payment is under mediation or it was charged-back.', 'woo-mercado-pago-module' )
 				);
 				break;
 			case 'charged-back':
+				$order->update_status(
+					WC_Woo_Mercado_Pago_Module::get_wc_status_for_mp_status( 'chargedback' )
+				);
 				$order->add_order_note(
 					'Mercado Pago: ' .
 					__( 'The payment is under mediation or it was charged-back.', 'woo-mercado-pago-module' )

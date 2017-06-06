@@ -472,6 +472,20 @@ if ( ! class_exists( 'WC_Woo_Mercado_Pago_Module' ) ) :
 				$gateway_name . '</a>';
 		}
 
+		public static function get_wc_status_for_mp_status( $mp_status ) {
+			$defaults = array(
+				'pending' => 'pending',
+				'approved' => 'processing',
+				'inprocess' => 'on_hold',
+				'inmediation' => 'on_hold',
+				'rejected' => 'failed',
+				'cancelled' => 'cancelled',
+				'refunded' => 'refunded',
+				'chargedback' => 'refunded'
+			);
+			return get_option( '_mp_order_status_' . $mp_status . '_map', $defaults[$mp_status] );
+		}
+
 		public static function get_map( $selector_id ) {
 			$arr = explode( '_', $selector_id );
 			$defaults = array(
