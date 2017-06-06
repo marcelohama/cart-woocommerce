@@ -23,100 +23,100 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 msgid "Mercado Pago Settings"
-msgstr ""
+msgstr "Configurações do Mercado Pago"
 
 msgid "Rate Us"
-msgstr ""
+msgstr "Qualifique-nos"
 
 msgid "Tutorial"
-msgstr ""
+msgstr "Tutorial"
 
 msgid "Report Issue"
-msgstr ""
+msgstr "Reportar Problema"
 
 msgid "ERROR: It was not possible to convert the unsupported currency"
-msgstr ""
+msgstr "ERRO: Não foi possível converter a moeda não suportada"
 
 msgid "to"
-msgstr ""
+msgstr "para"
 
 msgid "Currency conversions should be made outside this module."
-msgstr ""
+msgstr "Conversões de moedas devem ser feitas fora deste módulo."
 
 msgid "ATTENTION: The currency"
-msgstr ""
+msgstr "ATENÇÃO: A moeda"
 
 msgid "defined in WooCommerce is different from the one used in your credentials country.<br>The currency for transactions in this payment method will be"
-msgstr ""
+msgstr "definida no WooCommerce é diferente da usada no país de suas credenciais.<br>A moeda para transações feitas por este meio de pagamento será"
 
 msgid "CURRENCY CONVERTED: Your store is converting currency from"
-msgstr ""
+msgstr "MOEDA CONVERTIDA: Sua loja está convertendo moeda de"
 
 msgid "Colombia"
-msgstr ""
+msgstr "Colômbia"
 
 msgid "Argentine"
-msgstr ""
+msgstr "Argentina"
 
 msgid "Brazil"
-msgstr ""
+msgstr "Brasil"
 
 msgid "Chile"
-msgstr ""
+msgstr "Chile"
 
 msgid "Mexico"
-msgstr ""
+msgstr "México"
 
 msgid "Uruguay"
-msgstr ""
+msgstr "Uruguai"
 
 msgid "Venezuela"
-msgstr ""
+msgstr "Venezuela"
 
 msgid "Peru"
-msgstr ""
+msgstr "Peru"
 
 msgid "Update WooCommerce order to "
-msgstr ""
+msgstr "Atualizar pedido no WooCommerce para "
 
 msgid "You do not have sufficient permissions to access this page."
-msgstr ""
+msgstr "Você não possui permissões suficientes para acessar esta página."
 
 msgid "WooCommerce is installed and enabled."
-msgstr ""
+msgstr "WooCommerce está instalado e habilitado."
 
 msgid "You don\'t have WooCommerce installed and enabled."
-msgstr ""
+msgstr "Você não possui o WooCommerce instalado e habilitado."
 
 msgid "Your PHP version is OK."
-msgstr ""
+msgstr "Sua versão do PHP está OK."
 
 msgid "Your PHP version do not support this module."
-msgstr ""
+msgstr "Sua versão do PHP não suporta este módulo."
 
 msgid "cURL is installed."
-msgstr ""
+msgstr "cURL está instalado."
 
 msgid "cURL is not installed."
-msgstr ""
+msgstr "cURL não está instalado."
 
 msgid "SSL is missing in your site."
-msgstr ""
+msgstr "Está faltando SSL em seu site."
 
 msgid "Your site has SSL enabled."
-msgstr ""
+msgstr "Seu site possui SSL habilitado."
 
 msgid "Basic Checkout"
-msgstr ""
+msgstr "Checkout Básico"
 
 msgid "Custom Checkout"
-msgstr ""
+msgstr "Checkout Transparente"
 
 msgid "Ticket"
-msgstr ""
+msgstr "Boletos"
 
 msgid "Subscription"
-msgstr ""
+msgstr "Assinaturas"
 
 msgid "Configure your Client_id and Client_secret to have access to more options."
 msgstr ""
